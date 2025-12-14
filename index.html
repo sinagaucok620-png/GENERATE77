@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v7.6 - Smart Strategy</title>
+    <title>Game Scheduler v7.7 - Universal Smart Strategy</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -12,7 +12,7 @@
             --bg-dark: #0a0a0a;
             --card-bg: rgba(30, 30, 30, 0.8);
         }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-dark); color: #fff; margin: 0; padding: 20px; user-select: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: #fff; margin: 0; padding: 20px; user-select: none; }
         .container { max-width: 1400px; margin: auto; background: rgba(20, 20, 20, 0.9); padding: 30px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
         h2 { text-align: center; color: #ffcc00; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 25px; }
         .controls { text-align: center; margin-bottom: 30px; }
@@ -39,7 +39,7 @@
 </head>
 <body>
 <div class="container">
-    <h2>🎰 GAME SCHEDULER V7.6</h2>
+    <h2>🎰 GAME SCHEDULER V7.7</h2>
     <div class="controls">
         <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
         <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
@@ -63,7 +63,7 @@ async function fetchDatabase() {
         poolPGSoft = { gold: [], silver: [], bronze: [] , guide: [] };
 
         lines.slice(1).forEach(line => {
-            let cleanLine = line.replace(/"/g, '');
+            let cleanLine = line.replace(/"/g, ''); // Bersihkan kutip
             let cols = cleanLine.split(',');
 
             if (cols.length >= 3) {
@@ -98,16 +98,17 @@ function getStrategy(prov) {
         dc = `<span class="dc-badge" style="background:${status === 'ON' ? '#27ae60' : '#c0392b'}">FITUR GANDA ${status}</span>`;
     }
 
-    // LOGIKA ANTI-REPEAT TYPE (MANUAL/AUTO)
+    // LOGIKA ANTI-REPEAT UNTUK SEMUA PROVIDER (PRAGMATIC & PG SOFT)
     let finalSteps = [];
     let lastType = "";
-    let attempts = 0;
     let shuffled = source.sort(() => 0.5 - Math.random());
+    let attempts = 0;
 
-    while (finalSteps.length < 5 && attempts < 50) {
+    while (finalSteps.length < 5 && attempts < 100) {
         let currentStep = shuffled[attempts % shuffled.length];
         let currentType = currentStep.toUpperCase().includes("MANUAL") ? "MANUAL" : "AUTO";
 
+        // Cek tipe berbeda dan pastikan teks pola belum ada di list
         if (currentType !== lastType && !finalSteps.includes(currentStep)) {
             finalSteps.push(currentStep);
             lastType = currentType;
@@ -115,7 +116,7 @@ function getStrategy(prov) {
         attempts++;
     }
 
-    // Fallback jika pola di sheet kurang bervariasi
+    // Fallback jika tidak cukup variasi Manual/Auto di Sheet
     if (finalSteps.length < 5) {
         shuffled.forEach(s => {
             if (!finalSteps.includes(s) && finalSteps.length < 5) finalSteps.push(s);
@@ -128,45 +129,33 @@ function getStrategy(prov) {
 function pickGame(prov, tier, yesterdayGolds, currentPool) {
     let list = (prov === 'Pragmatic') ? currentPool.Pragmatic[tier] : currentPool.PGSoft[tier];
     if (!list || list.length === 0) return { name: "", html: "" };
-
     let filtered = list.filter(g => !yesterdayGolds.includes(g));
     if (filtered.length === 0) filtered = list;
-
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
     let idx = list.indexOf(chosen);
     if (idx > -1) list.splice(idx, 1);
-
-    return {
-        name: chosen,
-        html: `<div class="game-card border-${tier}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>`
-    };
+    return { name: chosen, html: `<div class="game-card border-${tier}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>` };
 }
 
 function generateJadwal() {
     const days = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
     let html = ""; let lastGolds = [];
-    
     days.forEach(day => {
-        let dailyPool = {
-            Pragmatic: JSON.parse(JSON.stringify(poolPragmatic)),
-            PGSoft: JSON.parse(JSON.stringify(poolPGSoft))
-        };
+        let dailyPool = { Pragmatic: JSON.parse(JSON.stringify(poolPragmatic)), PGSoft: JSON.parse(JSON.stringify(poolPGSoft)) };
         let todayGolds = [];
-
         const draw = (p, t) => {
             let res = pickGame(p, t, lastGolds, dailyPool);
             if (t === 'gold' && res.name) todayGolds.push(res.name);
             return res.html;
         };
-
         html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">
             <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${draw('Pragmatic','bronze')}${getStrategy('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${renderPG('MIDNIGHT', draw, 'gold', 'silver')}</div>
+                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','silver')}${getStrategy('PGSoft')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${getStrategy('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${renderPG('SIANG', draw, 'gold', 'bronze')}</div>
+                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','bronze')}${getStrategy('PGSoft')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">🌇 SORE</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div>
@@ -182,15 +171,11 @@ function generateJadwal() {
     document.getElementById("saveBtn").style.display = "inline-block";
 }
 
-function renderPG(session, drawFunc, t1, t2) {
-    return `${drawFunc('PGSoft', t1)}${drawFunc('PGSoft', t2)}${getStrategy('PGSoft')}`;
-}
-
 function downloadPNG() {
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a");
         a.href = canvas.toDataURL();
-        a.download = "Jadwal_Smart_Strategy_V7.6.png";
+        a.download = "Jadwal_Master_V7.7.png";
         a.click();
     });
 }

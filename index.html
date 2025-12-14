@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v7.0 - Final Cloud Master</title>
+    <title>Game Scheduler v7.1 - Final Master Cloud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -19,13 +19,13 @@
         button { background: var(--gold-grad); color: #000; border: none; padding: 12px 35px; cursor: pointer; border-radius: 50px; font-weight: 800; transition: 0.3s; }
         .btn-save { background: #27ae60 !important; color: #fff !important; display: none; margin-left: 10px; }
         
-        /* Layout Grid */
         .day-row { margin-bottom: 50px; border-bottom: 1px solid #333; padding-bottom: 30px; }
         .day-label { font-size: 24px; color: #ffcc00; font-weight: 900; margin-bottom: 20px; display: block; border-left: 5px solid #ffcc00; padding-left: 15px; }
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .session-box { background: var(--card-bg); padding: 18px; border-radius: 12px; border: 1px solid #2a2a2a; }
-        
-        /* Game Cards & Badges */
+        .session-title { font-size: 11px; color: #ffcc00; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 6px; }
+
+        /* Game Card Styles */
         .game-card { background: #1a1a1a; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #444; }
         .game-name { font-size: 11px; font-weight: 600; color: #efefef; }
         .badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; font-weight: 900; color: #000; text-transform: uppercase; }
@@ -33,17 +33,18 @@
         .badge-silver { background: var(--silver-grad) !important; }
         .badge-bronze { background: var(--bronze-grad) !important; color: #fff !important; }
 
-        /* Guide Pattern Symbols */
-        .guide-container { margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
-        .step-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #222; padding-bottom: 4px; font-size: 10px; }
+        /* Strategy Guide Styles */
+        .guide-container { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
+        .step-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 4px; font-size: 10px; }
         .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
         .dc-on { background: #27ae60; color: white; }
         .dc-off { background: #c0392b; color: white; }
+        .icon-group { color: #2ecc71; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>🎰 GAME SCHEDULER V7.0</h2>
+    <h2>🎰 GAME SCHEDULER V7.1</h2>
     <div class="controls">
         <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
         <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
@@ -55,7 +56,6 @@
 let database = { Pragmatic: { gold: [], silver: [], bronze: [] }, PGSoft: { gold: [], silver: [], bronze: [] } };
 let cloudGuides = { Pragmatic: [], PGSoft: [] };
 
-// URL CSV SPREADSHEET ANDA
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?output=csv";
 
 async function fetchDatabase() {
@@ -68,7 +68,7 @@ async function fetchDatabase() {
         cloudGuides = { Pragmatic: [], PGSoft: [] };
 
         lines.slice(1).forEach(line => {
-            // Anti-Cut Regex: Memastikan spasi di nama game tidak memecah kolom
+            // Logika split yang mengabaikan koma di dalam tanda kutip
             let cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             if (cols && cols.length >= 3) {
                 const prov = cols[0].replace(/"/g, '').trim(); 
@@ -76,14 +76,18 @@ async function fetchDatabase() {
                 const name = cols[2].replace(/"/g, '').trim();
 
                 if (name && name !== "undefined") {
-                    if (tier === 'guide') cloudGuides[prov].push(name);
-                    else if (database[prov] && database[prov][tier]) database[prov][tier].push(name);
+                    if (tier === 'guide') {
+                        if (prov === 'Pragmatic') cloudGuides.Pragmatic.push(name);
+                        if (prov === 'PGSoft') cloudGuides.PGSoft.push(name);
+                    } else if (database[prov] && database[prov][tier]) {
+                        database[prov][tier].push(name);
+                    }
                 }
             }
         });
         document.getElementById("genBtn").innerText = "GENERATE MASTER SCHEDULE";
         document.getElementById("genBtn").disabled = false;
-    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sync!</p>"; }
+    } catch (e) { alert("Sinkronisasi Gagal!"); }
 }
 window.onload = fetchDatabase;
 
@@ -92,19 +96,20 @@ function parsePattern(text) {
     const match = text.match(regex);
     if (!match) return `<span>${text}</span>`;
     
-    const icons = match[1].split(';').map(b => b.trim() === '1' ? '✅' : '❌');
+    // Pecah berdasarkan titik koma (;) agar aman dari CSV
+    const icons = match[1].split(';').map(b => b.trim() === '1' || b.trim() === '✅' ? '✅' : '❌');
     const title = text.replace(regex, '').trim();
-    return `<span>${title}</span><span>${icons.join(' ')}</span>`;
+    return `<span>${title}</span><span class="icon-group">${icons.join('')}</span>`;
 }
 
 function getGuideBox(prov) {
     const list = [...cloudGuides[prov]];
-    if (list.length < 5) return `<div class="guide-container">Pola < 5 baris</div>`;
+    if (list.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Pola Kurang (Min 5)</div>`;
     
     let dcHtml = "";
     if (prov === 'Pragmatic') {
         const isOn = Math.random() > 0.5;
-        dcHtml = `<span class="dc-badge ${isOn ? 'dc-on' : 'dc-off'}">DC ${isOn ? 'ON' : 'OFF'}</span>`;
+        dcHtml = `<span class="dc-badge ${isOn ? 'dc-on' : 'dc-off'}">FITUR GANDA ${isOn ? 'ON' : 'OFF'}</span>`;
     }
     
     let shuffled = list.sort(() => 0.5 - Math.random()).slice(0, 5);
@@ -132,18 +137,18 @@ function generateJadwal() {
             return res.html;
         };
         html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">
-            <div class="session-box">MIDNIGHT<div style="display:flex; gap:10px; margin-top:10px;">
+            <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${render('Pragmatic','gold')}${render('Pragmatic','silver')}${render('Pragmatic','bronze')}${getGuideBox('Pragmatic')}</div>
                 <div style="flex:1;">PG<br>${render('PGSoft','gold')}${render('PGSoft','silver')}${getGuideBox('PGSoft')}</div>
             </div></div>
-            <div class="session-box">SIANG<div style="display:flex; gap:10px; margin-top:10px;">
+            <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${render('Pragmatic','gold')}${render('Pragmatic','silver')}${getGuideBox('Pragmatic')}</div>
                 <div style="flex:1;">PG<br>${render('PGSoft','gold')}${render('PGSoft','bronze')}${getGuideBox('PGSoft')}</div>
             </div></div>
-            <div class="session-box">SORE<div style="display:flex; gap:10px; margin-top:10px;">
+            <div class="session-box"><div class="session-title">🌇 SORE</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${render('Pragmatic','gold')}${render('Pragmatic','gold')}${getGuideBox('Pragmatic')}</div>
             </div></div>
-            <div class="session-box">MALAM<div style="display:flex; gap:10px; margin-top:10px;">
+            <div class="session-box"><div class="session-title">🌙 MALAM</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">PG<br>${render('PGSoft','gold')}${getGuideBox('PGSoft')}</div>
             </div></div>
         </div></div>`;
@@ -157,7 +162,7 @@ function downloadPNG() {
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a");
         a.href = canvas.toDataURL();
-        a.download = "Jadwal_V7.png";
+        a.download = "Jadwal_Master_V7.1.png";
         a.click();
     });
 }

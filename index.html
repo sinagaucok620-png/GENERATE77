@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v7.5 - Total Isolation</title>
+    <title>Game Scheduler v7.6 - Smart Strategy</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -34,12 +34,12 @@
 
         .guide-container { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
         .step-row { font-size: 10px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; }
-        .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; background: #27ae60; color: white; }
+        .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; color: white; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>🎰 GAME SCHEDULER V7.5</h2>
+    <h2>🎰 GAME SCHEDULER V7.6</h2>
     <div class="controls">
         <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
         <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
@@ -48,7 +48,6 @@
 </div>
 
 <script>
-// Gudang data yang dipisah total
 let poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
 let poolPGSoft = { gold: [], silver: [], bronze: [], guide: [] };
 
@@ -60,12 +59,10 @@ async function fetchDatabase() {
         const csvData = await response.text();
         const lines = csvData.split(/\r?\n/).filter(l => l.trim() !== "");
         
-        // Reset Gudang
         poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
         poolPGSoft = { gold: [], silver: [], bronze: [] , guide: [] };
 
         lines.slice(1).forEach(line => {
-            // Bersihkan baris dari tanda kutip ganda yang merusak identifikasi
             let cleanLine = line.replace(/"/g, '');
             let cols = cleanLine.split(',');
 
@@ -75,7 +72,6 @@ async function fetchDatabase() {
                 const name = cols[2].trim();
 
                 if (name && name !== "undefined") {
-                    // Filter Super Ketat
                     if (provider === "Pragmatic") {
                         if (tier === 'guide') poolPragmatic.guide.push(name);
                         else if (poolPragmatic[tier]) poolPragmatic[tier].push(name);
@@ -86,7 +82,7 @@ async function fetchDatabase() {
                 }
             }
         });
-        document.getElementById("genBtn").innerText = "GENERATE JADWAL (ISOLASI AKTIF)";
+        document.getElementById("genBtn").innerText = "GENERATE MASTER SCHEDULE";
         document.getElementById("genBtn").disabled = false;
     } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sinkron!</p>"; }
 }
@@ -102,8 +98,31 @@ function getStrategy(prov) {
         dc = `<span class="dc-badge" style="background:${status === 'ON' ? '#27ae60' : '#c0392b'}">FITUR GANDA ${status}</span>`;
     }
 
-    let shuffled = source.sort(() => 0.5 - Math.random()).slice(0, 5);
-    return `<div class="guide-container">${dc}${shuffled.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`;
+    // LOGIKA ANTI-REPEAT TYPE (MANUAL/AUTO)
+    let finalSteps = [];
+    let lastType = "";
+    let attempts = 0;
+    let shuffled = source.sort(() => 0.5 - Math.random());
+
+    while (finalSteps.length < 5 && attempts < 50) {
+        let currentStep = shuffled[attempts % shuffled.length];
+        let currentType = currentStep.toUpperCase().includes("MANUAL") ? "MANUAL" : "AUTO";
+
+        if (currentType !== lastType && !finalSteps.includes(currentStep)) {
+            finalSteps.push(currentStep);
+            lastType = currentType;
+        }
+        attempts++;
+    }
+
+    // Fallback jika pola di sheet kurang bervariasi
+    if (finalSteps.length < 5) {
+        shuffled.forEach(s => {
+            if (!finalSteps.includes(s) && finalSteps.length < 5) finalSteps.push(s);
+        });
+    }
+
+    return `<div class="guide-container">${dc}${finalSteps.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`;
 }
 
 function pickGame(prov, tier, yesterdayGolds, currentPool) {
@@ -114,7 +133,6 @@ function pickGame(prov, tier, yesterdayGolds, currentPool) {
     if (filtered.length === 0) filtered = list;
 
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
-    // Hapus dari stok hari ini
     let idx = list.indexOf(chosen);
     if (idx > -1) list.splice(idx, 1);
 
@@ -129,7 +147,6 @@ function generateJadwal() {
     let html = ""; let lastGolds = [];
     
     days.forEach(day => {
-        // Clone gudang untuk stok harian
         let dailyPool = {
             Pragmatic: JSON.parse(JSON.stringify(poolPragmatic)),
             PGSoft: JSON.parse(JSON.stringify(poolPGSoft))
@@ -145,11 +162,11 @@ function generateJadwal() {
         html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">
             <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${draw('Pragmatic','bronze')}${getStrategy('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','silver')}${getStrategy('PGSoft')}</div>
+                <div style="flex:1;">PG<br>${renderPG('MIDNIGHT', draw, 'gold', 'silver')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${getStrategy('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','bronze')}${getStrategy('PGSoft')}</div>
+                <div style="flex:1;">PG<br>${renderPG('SIANG', draw, 'gold', 'bronze')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">🌇 SORE</div><div style="display:flex; gap:10px;">
                 <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div>
@@ -165,11 +182,15 @@ function generateJadwal() {
     document.getElementById("saveBtn").style.display = "inline-block";
 }
 
+function renderPG(session, drawFunc, t1, t2) {
+    return `${drawFunc('PGSoft', t1)}${drawFunc('PGSoft', t2)}${getStrategy('PGSoft')}`;
+}
+
 function downloadPNG() {
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a");
         a.href = canvas.toDataURL();
-        a.download = "Jadwal_V7.5.png";
+        a.download = "Jadwal_Smart_Strategy_V7.6.png";
         a.click();
     });
 }

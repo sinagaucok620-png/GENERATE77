@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v8.4 - Manual Date Edition</title>
+    <title>Game Scheduler v8.8 - Full Provider Name</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -14,48 +14,50 @@
         }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-dark); color: #fff; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: auto; background: rgba(20, 20, 20, 0.9); padding: 30px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
-        
         .header-area { text-align: center; margin-bottom: 25px; }
         h2 { color: #ffcc00; text-transform: uppercase; letter-spacing: 5px; margin: 0; font-size: 26px; }
         #displayDate { color: #aaa; font-size: 16px; margin-top: 5px; font-weight: bold; }
-
-        .controls { text-align: center; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #444; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
-        input[type="text"] { background: #222; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 5px; width: 250px; }
-        select { background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        button { background: var(--gold-grad); color: #000; border: none; padding: 12px 35px; cursor: pointer; border-radius: 50px; font-weight: 800; transition: 0.3s; text-transform: uppercase; }
-        .btn-save { background: #27ae60 !important; color: #fff !important; display: none; margin-left: 10px; }
-        
+        .controls { text-align: center; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #444; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+        input[type="text"] { background: #222; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 5px; width: 200px; }
+        select { background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        button { background: var(--gold-grad); color: #000; border: none; padding: 12px 25px; cursor: pointer; border-radius: 50px; font-weight: 800; transition: 0.3s; text-transform: uppercase; font-size: 12px; }
+        .btn-copy { background: linear-gradient(45deg, #3498db, #2980b9) !important; color: #fff !important; display: none; }
+        .btn-save { background: #27ae60 !important; color: #fff !important; display: none; }
+        .loader-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { width: 70px; height: 70px; border: 6px solid #222; border-top: 6px solid #ffcc00; border-radius: 50%; animation: spin 1s linear infinite; }
+        .loader-text { margin-top: 20px; font-weight: bold; color: #ffcc00; letter-spacing: 2px; text-transform: uppercase; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .day-row { margin-bottom: 50px; border-bottom: 1px solid #333; padding-bottom: 30px; }
-        .day-label { font-size: 24px; color: #ffcc00; font-weight: 900; margin-bottom: 20px; display: block; border-left: 5px solid #ffcc00; padding-left: 15px; }
-        
+        .day-label { font-size: 22px; color: #ffcc00; font-weight: 900; margin-bottom: 20px; display: block; border-left: 5px solid #ffcc00; padding-left: 15px; }
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .session-box { background: var(--card-bg); padding: 18px; border-radius: 12px; border: 1px solid #2a2a2a; height: 100%; display: flex; flex-direction: column; }
+        .session-box { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #2a2a2a; height: 100%; display: flex; flex-direction: column; }
         .session-title { font-size: 11px; color: #ffcc00; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
-
-        .game-card { background: #1a1a1a; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #444; }
-        .game-name { font-size: 11px; font-weight: 600; color: #efefef; }
-        .badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; font-weight: 900; color: #000; text-transform: uppercase; }
+        .provider-label { font-size: 10px; color: #888; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px dashed #333; padding-bottom: 2px; }
+        .game-card { background: #1a1a1a; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #444; }
+        .game-name { font-size: 10px; font-weight: 600; color: #efefef; }
+        .badge { font-size: 7px; padding: 2px 5px; border-radius: 4px; font-weight: 900; color: #000; text-transform: uppercase; }
         .badge-gold { background: var(--gold-grad) !important; }
         .badge-silver { background: var(--silver-grad) !important; }
         .badge-bronze { background: var(--bronze-grad) !important; color: #fff !important; }
-
         .guide-container { margin-top: auto; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
-        .step-row { font-size: 10px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; }
+        .step-row { font-size: 9px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; }
         .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: block; width: fit-content; color: white; }
-
-        @media (max-width: 1000px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .session-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
+
+<div id="loaderOverlay" class="loader-overlay">
+    <div class="spinner"></div>
+    <div id="loaderText" class="loader-text">Sinkronisasi Data...</div>
+</div>
+
 <div class="container">
     <div class="header-area">
-        <h2>🎰 PLATFORM SCHEDULER V8.4</h2>
+        <h2>🎰 PLATFORM SCHEDULER V8.8</h2>
         <div id="displayDate"></div>
     </div>
-    
     <div class="controls">
-        <input type="text" id="manualDateInput" placeholder="Ketik Tanggal (Contoh: 15-21 Des)">
+        <input type="text" id="manualDateInput" placeholder="Rentang Tanggal">
         <select id="profileSelect" onchange="fetchDatabase()">
             <option value="CAPTAIN77">CAPTAIN77</option>
             <option value="JAGUAR77">JAGUAR77</option>
@@ -66,10 +68,10 @@
             <option value="HOLYPLAY17">HOLYPLAY17</option>
             <option value="INDOFUN17">INDOFUN17</option>
         </select>
-        <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
-        <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
+        <button id="genBtn" onclick="startGeneration()" disabled>SINKRONISASI...</button>
+        <button id="copyBtn" class="btn-copy" onclick="copyScheduleToText()">COPY TEXT</button>
+        <button id="saveBtn" class="btn-save" onclick="downloadPNG()">SAVE PNG</button>
     </div>
-
     <div id="capture-area"><div id="hasil"></div></div>
 </div>
 
@@ -87,13 +89,13 @@ const PROFILE_CONFIG = {
 
 let poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
 let poolPGSoft = { gold: [], silver: [], bronze: [], guide: [] };
+let globalMemory = [];
 
 async function fetchDatabase() {
     const selected = document.getElementById("profileSelect").value;
     const url = PROFILE_CONFIG[selected];
     const btn = document.getElementById("genBtn");
-    btn.disabled = true;
-    btn.innerText = "SINKRONISASI...";
+    btn.disabled = true; btn.innerText = "SINKRONISASI...";
     document.getElementById("hasil").innerHTML = "";
 
     try {
@@ -105,11 +107,11 @@ async function fetchDatabase() {
 
         lines.slice(1).forEach(line => {
             let cleanLine = line.replace(/"/g, ''); 
-            let cols = cleanLine.split(',');
+            let cols = cleanLine.split(',').map(c => c.trim());
             if (cols.length >= 3) {
-                const prov = cols[0].trim();
-                const tier = cols[1].trim().toLowerCase();
-                const name = cols[2].trim();
+                const prov = cols[0];
+                const tier = cols[1].toLowerCase();
+                const name = cols[2];
                 if (name && name !== "undefined") {
                     if (prov === "Pragmatic") {
                         if (tier === 'guide') poolPragmatic.guide.push(name);
@@ -123,47 +125,44 @@ async function fetchDatabase() {
         });
         btn.innerText = "GENERATE JADWAL " + selected;
         btn.disabled = false;
-    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Link CSV Tidak Valid!</p>"; }
+    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sinkron!</p>"; }
 }
-
 window.onload = fetchDatabase;
+
+function startGeneration() {
+    const overlay = document.getElementById("loaderOverlay");
+    overlay.style.display = "flex";
+    setTimeout(() => { generateJadwal(); overlay.style.display = "none"; }, 1500);
+}
 
 function getStrategy(prov) {
     let source = (prov === 'Pragmatic') ? [...poolPragmatic.guide] : [...poolPGSoft.guide];
-    if (source.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Data Pola ${prov} Kurang</div>`;
-    
-    // DC BADGE DI SINI (Hanya muncul jika Pragmatic)
-    let dcHtml = "";
+    if (source.length < 5) return { html: `<div class="guide-container">Pola Kurang</div>`, text: ["Pola Kurang"], dcText: "" };
+    let dcHtml = ""; let dcText = "";
     if (prov === 'Pragmatic') {
         const status = Math.random() > 0.5 ? "ON" : "OFF";
         dcHtml = `<span class="dc-badge" style="background:${status === 'ON' ? '#27ae60' : '#c0392b'}">FITUR GANDA ${status}</span>`;
+        dcText = `FITUR GANDA ${status}`;
     }
-
-    let finalSteps = [];
-    let lastType = "";
-    let shuffled = source.sort(() => 0.5 - Math.random());
+    let finalSteps = []; let lastType = ""; let shuffled = source.sort(() => 0.5 - Math.random());
     let attempts = 0;
-
     while (finalSteps.length < 5 && attempts < 100) {
         let currentStep = shuffled[attempts % shuffled.length];
         let currentType = currentStep.toUpperCase().includes("MANUAL") ? "MANUAL" : "AUTO";
         if (currentType !== lastType && !finalSteps.includes(currentStep)) {
-            finalSteps.push(currentStep);
-            lastType = currentType;
+            finalSteps.push(currentStep); lastType = currentType;
         }
         attempts++;
     }
     if (finalSteps.length < 5) { shuffled.forEach(s => { if (!finalSteps.includes(s) && finalSteps.length < 5) finalSteps.push(s); }); }
-
-    // RENDER: DC BADGE SELALU DI ATAS
-    return `<div class="guide-container">${dcHtml}${finalSteps.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`;
+    return { html: `<div class="guide-container">${dcHtml}${finalSteps.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`, text: finalSteps, dcText: dcText };
 }
 
 function pickGame(prov, tier, blacklist, dailyUsed) {
     let list = (prov === 'Pragmatic') ? poolPragmatic[tier] : poolPGSoft[tier];
     if (!list || list.length === 0) return { name: "", html: "" };
-    let combinedBlacklist = [...blacklist, ...dailyUsed];
-    let filtered = list.filter(g => !combinedBlacklist.includes(g));
+    let combined = [...blacklist, ...dailyUsed];
+    let filtered = list.filter(g => !combined.includes(g));
     if (filtered.length === 0) filtered = list.filter(g => !dailyUsed.includes(g));
     if (filtered.length === 0) filtered = list;
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
@@ -171,52 +170,101 @@ function pickGame(prov, tier, blacklist, dailyUsed) {
 }
 
 function generateJadwal() {
-    // Ambil input tanggal manual
     const dateInput = document.getElementById("manualDateInput").value;
     document.getElementById("displayDate").innerText = dateInput;
-
     const days = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
-    let html = ""; let yesterdayGolds = [];
+    let html = ""; let yesterdayGolds = []; globalMemory = [];
     days.forEach((day) => {
-        let todayGolds = [];
+        let todayGolds = []; let dayData = { day: day, sessions: [] };
         const draw = (p, t) => {
             let res = pickGame(p, t, yesterdayGolds, todayGolds);
-            if (res.name) todayGolds.push(res.name);
-            return res.html;
+            if (res.name) todayGolds.push(res.name); return res;
         };
+        const getSess = (title, contentFunc) => {
+            const data = contentFunc(); dayData.sessions.push({ title: title, content: data });
+            return `<div class="session-box"><div class="session-title">${title}</div>${data.html}</div>`;
+        };
+        html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">`;
+        
+        // Midnight
+        html += getSess("🌑 MIDNIGHT", () => {
+            const p = draw('Pragmatic','gold'); const s = draw('Pragmatic','silver'); const b = draw('Pragmatic','bronze'); const stratP = getStrategy('Pragmatic');
+            const pgG = draw('PGSoft','gold'); const pgS = draw('PGSoft','silver'); const stratPg = getStrategy('PGSoft');
+            return { 
+                html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${s.html}${b.html}${stratP.html}</div><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pgG.html}${pgS.html}${stratPg.html}</div></div>`, 
+                raw: `PRAGMATIC PLAY: ${p.name}, ${s.name}, ${b.name} (${stratP.dcText} | ${stratP.text.join(' - ')}) \nPG SOFT: ${pgG.name}, ${pgS.name} (${stratPg.text.join(' - ')})` 
+            };
+        });
 
-        const isMixedSore = Math.random() > 0.5;
-        let soreContent = isMixedSore ? 
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft')}</div></div>` :
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div></div>`;
+        // Siang
+        html += getSess("☀️ SIANG", () => {
+            const p = draw('Pragmatic','gold'); const s = draw('Pragmatic','silver'); const stratP = getStrategy('Pragmatic');
+            const pgG = draw('PGSoft','gold'); const pgB = draw('PGSoft','bronze'); const stratPg = getStrategy('PGSoft');
+            return { 
+                html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${s.html}${stratP.html}</div><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pgG.html}${pgB.html}${stratPg.html}</div></div>`, 
+                raw: `PRAGMATIC PLAY: ${p.name}, ${s.name} (${stratP.dcText} | ${stratP.text.join(' - ')}) \nPG SOFT: ${pgG.name}, ${pgB.name} (${stratPg.text.join(' - ')})` 
+            };
+        });
 
-        const isPragmaticMalam = Math.random() > 0.5;
-        let malamContent = isPragmaticMalam ?
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div></div>` :
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft')}</div></div>`;
+        // Sore
+        html += getSess("🌇 SORE", () => {
+            const isMix = Math.random() > 0.5;
+            if (isMix) {
+                const p = draw('Pragmatic','gold'); const stratP = getStrategy('Pragmatic'); const pg = draw('PGSoft','gold'); const stratPg = getStrategy('PGSoft');
+                return { 
+                    html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${stratP.html}</div><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pg.html}${stratPg.html}</div></div>`, 
+                    raw: `PRAGMATIC PLAY: ${p.name} (${stratP.dcText}) \nPG SOFT: ${pg.name}` 
+                };
+            } else {
+                const p1 = draw('Pragmatic','gold'); const p2 = draw('Pragmatic','gold'); const stratP = getStrategy('Pragmatic');
+                return { 
+                    html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p1.html}${p2.html}${stratP.html}</div></div>`, 
+                    raw: `PRAGMATIC PLAY: ${p1.name}, ${p2.name} (${stratP.dcText})` 
+                };
+            }
+        });
 
-        html += `<div class="day-row">
-            <span class="day-label">${day}</span>
-            <div class="session-grid">
-                <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${draw('Pragmatic','bronze')}${getStrategy('Pragmatic')}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','silver')}${getStrategy('PGSoft')}</div></div></div>
-                <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${getStrategy('Pragmatic')}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','bronze')}${getStrategy('PGSoft')}</div></div></div>
-                <div class="session-box"><div class="session-title">🌇 SORE</div>${soreContent}</div>
-                <div class="session-box"><div class="session-title">🌙 MALAM</div>${malamContent}</div>
-            </div>
-        </div>`;
-        yesterdayGolds = [...todayGolds];
+        // Malam
+        html += getSess("🌙 MALAM", () => {
+            const isP = Math.random() > 0.5;
+            if (isP) {
+                const p = draw('Pragmatic', 'gold'); const stratP = getStrategy('Pragmatic');
+                return { 
+                    html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${stratP.html}</div></div>`, 
+                    raw: `PRAGMATIC PLAY: ${p.name} (${stratP.dcText})` 
+                };
+            } else {
+                const pg = draw('PGSoft', 'gold'); const stratPg = getStrategy('PGSoft');
+                return { 
+                    html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pg.html}${stratPg.html}</div></div>`, 
+                    raw: `PG SOFT: ${pg.name}` 
+                };
+            }
+        });
+
+        html += `</div></div>`; globalMemory.push(dayData); yesterdayGolds = [...todayGolds];
     });
     document.getElementById("hasil").innerHTML = html;
+    document.getElementById("copyBtn").style.display = "inline-block";
     document.getElementById("saveBtn").style.display = "inline-block";
 }
 
+function copyScheduleToText() {
+    const profile = document.getElementById("profileSelect").value;
+    const date = document.getElementById("manualDateInput").value || "Minggu Ini";
+    let text = `📅 JADWAL GACOR ${profile}\nPeriode: ${date}\n\n`;
+    globalMemory.forEach(d => {
+        text += `--- ${d.day} ---\n`;
+        d.sessions.forEach(s => { text += `[${s.title}]\n${s.content.raw}\n\n`; });
+    });
+    navigator.clipboard.writeText(text).then(() => { alert("Teks berhasil disalin!"); });
+}
+
 function downloadPNG() {
-    const selected = document.getElementById("profileSelect").value;
+    const sel = document.getElementById("profileSelect").value;
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
-        const a = document.createElement("a");
-        a.href = canvas.toDataURL();
-        a.download = `Jadwal_${selected}_V8.4.png`;
-        a.click();
+        const a = document.createElement("a"); a.href = canvas.toDataURL();
+        a.download = `Jadwal_${sel}.png`; a.click();
     });
 }
 </script>

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v7.4 - Final Shield</title>
+    <title>Game Scheduler v7.5 - Total Isolation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -12,7 +12,7 @@
             --bg-dark: #0a0a0a;
             --card-bg: rgba(30, 30, 30, 0.8);
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: #fff; margin: 0; padding: 20px; user-select: none; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-dark); color: #fff; margin: 0; padding: 20px; user-select: none; }
         .container { max-width: 1400px; margin: auto; background: rgba(20, 20, 20, 0.9); padding: 30px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
         h2 { text-align: center; color: #ffcc00; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 25px; }
         .controls { text-align: center; margin-bottom: 30px; }
@@ -33,25 +33,24 @@
         .badge-bronze { background: var(--bronze-grad) !important; color: #fff !important; }
 
         .guide-container { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
-        .step-row { font-size: 10px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; display: flex; justify-content: space-between; }
-        .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
-        .dc-on { background: #27ae60; color: white; }
-        .dc-off { background: #c0392b; color: white; }
+        .step-row { font-size: 10px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; }
+        .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; background: #27ae60; color: white; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>🎰 GAME SCHEDULER V7.4</h2>
+    <h2>🎰 GAME SCHEDULER V7.5</h2>
     <div class="controls">
-        <button id="genBtn" onclick="generateJadwal()" disabled>MENYAMBUNGKAN...</button>
+        <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
         <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
     </div>
     <div id="capture-area"><div id="hasil"></div></div>
 </div>
 
 <script>
-let database = { Pragmatic: { gold: [], silver: [], bronze: [] }, PGSoft: { gold: [], silver: [], bronze: [] } };
-let cloudGuides = { Pragmatic: [], PGSoft: [] };
+// Gudang data yang dipisah total
+let poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
+let poolPGSoft = { gold: [], silver: [], bronze: [], guide: [] };
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?output=csv";
 
@@ -61,94 +60,106 @@ async function fetchDatabase() {
         const csvData = await response.text();
         const lines = csvData.split(/\r?\n/).filter(l => l.trim() !== "");
         
-        database = { Pragmatic: { gold: [], silver: [], bronze: [] }, PGSoft: { gold: [], silver: [], bronze: [] } };
-        cloudGuides = { Pragmatic: [], PGSoft: [] };
+        // Reset Gudang
+        poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
+        poolPGSoft = { gold: [], silver: [], bronze: [] , guide: [] };
 
         lines.slice(1).forEach(line => {
-            // Logika pembersihan karakter tanda kutip yang merusak sistem
+            // Bersihkan baris dari tanda kutip ganda yang merusak identifikasi
             let cleanLine = line.replace(/"/g, '');
             let cols = cleanLine.split(',');
 
             if (cols.length >= 3) {
-                const prov = cols[0].trim(); 
-                const tier = cols[1].trim().toLowerCase(); 
+                const provider = cols[0].trim();
+                const tier = cols[1].trim().toLowerCase();
                 const name = cols[2].trim();
 
                 if (name && name !== "undefined") {
-                    if (tier === 'guide') {
-                        // LOGIKA PENYARINGAN KETAT (STRICT FILTER)
-                        if (prov === "Pragmatic") {
-                            cloudGuides.Pragmatic.push(name);
-                        } else if (prov === "PGSoft") {
-                            cloudGuides.PGSoft.push(name);
-                        }
-                    } else {
-                        if (database[prov] && database[prov][tier]) {
-                            database[prov][tier].push(name);
-                        }
+                    // Filter Super Ketat
+                    if (provider === "Pragmatic") {
+                        if (tier === 'guide') poolPragmatic.guide.push(name);
+                        else if (poolPragmatic[tier]) poolPragmatic[tier].push(name);
+                    } else if (provider === "PGSoft") {
+                        if (tier === 'guide') poolPGSoft.guide.push(name);
+                        else if (poolPGSoft[tier]) poolPGSoft[tier].push(name);
                     }
                 }
             }
         });
-        document.getElementById("genBtn").innerText = "GENERATE MASTER SCHEDULE";
+        document.getElementById("genBtn").innerText = "GENERATE JADWAL (ISOLASI AKTIF)";
         document.getElementById("genBtn").disabled = false;
-    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Memuat Data!</p>"; }
+    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sinkron!</p>"; }
 }
 window.onload = fetchDatabase;
 
-function getGuideBox(prov) {
-    const list = [...cloudGuides[prov]];
-    if (list.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Data Pola ${prov} Kurang (Min 5)</div>`;
+function getStrategy(prov) {
+    let source = (prov === 'Pragmatic') ? [...poolPragmatic.guide] : [...poolPGSoft.guide];
+    if (source.length < 5) return `<div class="guide-container">Pola ${prov} Kurang</div>`;
     
-    let dcHtml = "";
+    let dc = "";
     if (prov === 'Pragmatic') {
-        const isOn = Math.random() > 0.5;
-        dcHtml = `<span class="dc-badge ${isOn ? 'dc-on' : 'dc-off'}">DC ${isOn ? 'ON' : 'OFF'}</span>`;
+        const status = Math.random() > 0.5 ? "ON" : "OFF";
+        dc = `<span class="dc-badge" style="background:${status === 'ON' ? '#27ae60' : '#c0392b'}">FITUR GANDA ${status}</span>`;
     }
-    
-    let shuffled = list.sort(() => 0.5 - Math.random()).slice(0, 5);
-    return `<div class="guide-container">${dcHtml}${shuffled.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`;
+
+    let shuffled = source.sort(() => 0.5 - Math.random()).slice(0, 5);
+    return `<div class="guide-container">${dc}${shuffled.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`;
 }
 
-function pick(p, t, bl, daily) {
-    let pool = daily[p][t];
-    let filtered = pool.filter(g => !bl.includes(g));
-    if (filtered.length === 0) filtered = pool;
-    if (filtered.length === 0) return { name: "", html: "" };
-    const res = filtered[Math.floor(Math.random() * filtered.length)];
-    daily[p][t].splice(daily[p][t].indexOf(res), 1);
-    return { name: res, html: `<div class="game-card border-${t}"><span class="game-name">${res}</span><span class="badge badge-${t}">${t}</span></div>` };
+function pickGame(prov, tier, yesterdayGolds, currentPool) {
+    let list = (prov === 'Pragmatic') ? currentPool.Pragmatic[tier] : currentPool.PGSoft[tier];
+    if (!list || list.length === 0) return { name: "", html: "" };
+
+    let filtered = list.filter(g => !yesterdayGolds.includes(g));
+    if (filtered.length === 0) filtered = list;
+
+    const chosen = filtered[Math.floor(Math.random() * filtered.length)];
+    // Hapus dari stok hari ini
+    let idx = list.indexOf(chosen);
+    if (idx > -1) list.splice(idx, 1);
+
+    return {
+        name: chosen,
+        html: `<div class="game-card border-${tier}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>`
+    };
 }
 
 function generateJadwal() {
     const days = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
-    let html = ""; let yesterdayGolds = [];
+    let html = ""; let lastGolds = [];
+    
     days.forEach(day => {
-        let daily = JSON.parse(JSON.stringify(database));
+        // Clone gudang untuk stok harian
+        let dailyPool = {
+            Pragmatic: JSON.parse(JSON.stringify(poolPragmatic)),
+            PGSoft: JSON.parse(JSON.stringify(poolPGSoft))
+        };
         let todayGolds = [];
-        const render = (p, t) => {
-            const res = pick(p, t, yesterdayGolds, daily);
-            if (t === 'gold') todayGolds.push(res.name);
+
+        const draw = (p, t) => {
+            let res = pickGame(p, t, lastGolds, dailyPool);
+            if (t === 'gold' && res.name) todayGolds.push(res.name);
             return res.html;
         };
+
         html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">
             <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;">
-                <div style="flex:1;">P<br>${render('Pragmatic','gold')}${render('Pragmatic','silver')}${render('Pragmatic','bronze')}${getGuideBox('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${render('PGSoft','gold')}${render('PGSoft','silver')}${getGuideBox('PGSoft')}</div>
+                <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${draw('Pragmatic','bronze')}${getStrategy('Pragmatic')}</div>
+                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','silver')}${getStrategy('PGSoft')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;">
-                <div style="flex:1;">P<br>${render('Pragmatic','gold')}${render('Pragmatic','silver')}${getGuideBox('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${render('PGSoft','gold')}${render('PGSoft','silver')}${getGuideBox('PGSoft')}</div>
+                <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${getStrategy('Pragmatic')}</div>
+                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','bronze')}${getStrategy('PGSoft')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">🌇 SORE</div><div style="display:flex; gap:10px;">
-                <div style="flex:1;">P<br>${render('Pragmatic','gold')}${render('Pragmatic','gold')}${getGuideBox('Pragmatic')}</div>
-                <div style="flex:1;">PG<br>${render('PGSoft','gold')}${getGuideBox('PGSoft')}</div>
+                <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div>
+                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft')}</div>
             </div></div>
             <div class="session-box"><div class="session-title">🌙 MALAM</div><div style="display:flex; gap:10px;">
-                <div style="flex:1;">PG<br>${render('PGSoft','gold')}${getGuideBox('PGSoft')}</div>
+                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft')}</div>
             </div></div>
         </div></div>`;
-        yesterdayGolds = [...todayGolds];
+        lastGolds = [...todayGolds];
     });
     document.getElementById("hasil").innerHTML = html;
     document.getElementById("saveBtn").style.display = "inline-block";
@@ -158,7 +169,7 @@ function downloadPNG() {
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a");
         a.href = canvas.toDataURL();
-        a.download = "Jadwal_V7.4.png";
+        a.download = "Jadwal_V7.5.png";
         a.click();
     });
 }

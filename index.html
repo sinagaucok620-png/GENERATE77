@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v7.3 - Iron Wall Filter</title>
+    <title>Game Scheduler v7.4 - Final Shield</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -19,14 +19,12 @@
         button { background: var(--gold-grad); color: #000; border: none; padding: 12px 35px; cursor: pointer; border-radius: 50px; font-weight: 800; transition: 0.3s; }
         .btn-save { background: #27ae60 !important; color: #fff !important; display: none; margin-left: 10px; }
         
-        /* Layout */
         .day-row { margin-bottom: 50px; border-bottom: 1px solid #333; padding-bottom: 30px; }
         .day-label { font-size: 24px; color: #ffcc00; font-weight: 900; margin-bottom: 20px; display: block; border-left: 5px solid #ffcc00; padding-left: 15px; }
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .session-box { background: var(--card-bg); padding: 18px; border-radius: 12px; border: 1px solid #2a2a2a; }
         .session-title { font-size: 11px; color: #ffcc00; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
 
-        /* Game & Badge */
         .game-card { background: #1a1a1a; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #444; }
         .game-name { font-size: 11px; font-weight: 600; color: #efefef; }
         .badge { font-size: 8px; padding: 2px 5px; border-radius: 4px; font-weight: 900; color: #000; text-transform: uppercase; }
@@ -34,7 +32,6 @@
         .badge-silver { background: var(--silver-grad) !important; }
         .badge-bronze { background: var(--bronze-grad) !important; color: #fff !important; }
 
-        /* Strategy Guide */
         .guide-container { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
         .step-row { font-size: 10px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; display: flex; justify-content: space-between; }
         .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
@@ -44,9 +41,9 @@
 </head>
 <body>
 <div class="container">
-    <h2>🎰 GAME SCHEDULER V7.3</h2>
+    <h2>🎰 GAME SCHEDULER V7.4</h2>
     <div class="controls">
-        <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
+        <button id="genBtn" onclick="generateJadwal()" disabled>MENYAMBUNGKAN...</button>
         <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
     </div>
     <div id="capture-area"><div id="hasil"></div></div>
@@ -56,7 +53,6 @@
 let database = { Pragmatic: { gold: [], silver: [], bronze: [] }, PGSoft: { gold: [], silver: [], bronze: [] } };
 let cloudGuides = { Pragmatic: [], PGSoft: [] };
 
-// LINK SPREADSHEET ANDA
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?output=csv";
 
 async function fetchDatabase() {
@@ -69,33 +65,40 @@ async function fetchDatabase() {
         cloudGuides = { Pragmatic: [], PGSoft: [] };
 
         lines.slice(1).forEach(line => {
-            // Regex Lookahead untuk menangani spasi/koma di dalam sel
-            let cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            // Logika pembersihan karakter tanda kutip yang merusak sistem
+            let cleanLine = line.replace(/"/g, '');
+            let cols = cleanLine.split(',');
+
             if (cols.length >= 3) {
-                const prov = cols[0].replace(/"/g, '').trim(); 
-                const tier = cols[1].replace(/"/g, '').trim().toLowerCase(); 
-                const name = cols[2].replace(/"/g, '').trim();
+                const prov = cols[0].trim(); 
+                const tier = cols[1].trim().toLowerCase(); 
+                const name = cols[2].trim();
 
                 if (name && name !== "undefined") {
                     if (tier === 'guide') {
-                        // FILTER KETAT: Hanya masukkan jika provider sama persis
-                        if (prov === 'Pragmatic') cloudGuides.Pragmatic.push(name);
-                        if (prov === 'PGSoft') cloudGuides.PGSoft.push(name);
-                    } else if (database[prov] && database[prov][tier]) {
-                        database[prov][tier].push(name);
+                        // LOGIKA PENYARINGAN KETAT (STRICT FILTER)
+                        if (prov === "Pragmatic") {
+                            cloudGuides.Pragmatic.push(name);
+                        } else if (prov === "PGSoft") {
+                            cloudGuides.PGSoft.push(name);
+                        }
+                    } else {
+                        if (database[prov] && database[prov][tier]) {
+                            database[prov][tier].push(name);
+                        }
                     }
                 }
             }
         });
         document.getElementById("genBtn").innerText = "GENERATE MASTER SCHEDULE";
         document.getElementById("genBtn").disabled = false;
-    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sinkronisasi!</p>"; }
+    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Memuat Data!</p>"; }
 }
 window.onload = fetchDatabase;
 
 function getGuideBox(prov) {
     const list = [...cloudGuides[prov]];
-    if (list.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Lengkapi data guide ${prov} di Sheet (Min 5)</div>`;
+    if (list.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Data Pola ${prov} Kurang (Min 5)</div>`;
     
     let dcHtml = "";
     if (prov === 'Pragmatic') {
@@ -155,7 +158,7 @@ function downloadPNG() {
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a");
         a.href = canvas.toDataURL();
-        a.download = "Jadwal_Master_V7.3.png";
+        a.download = "Jadwal_V7.4.png";
         a.click();
     });
 }

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v8.1 - Multi-Profile Edition</title>
+    <title>Game Scheduler v8.2 - Platform Multi-User</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -16,9 +16,9 @@
         .container { max-width: 1400px; margin: auto; background: rgba(20, 20, 20, 0.9); padding: 30px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
         h2 { text-align: center; color: #ffcc00; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 25px; }
         
-        .controls { text-align: center; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #444; }
-        select { background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 10px 20px; border-radius: 5px; font-weight: bold; margin-right: 10px; cursor: pointer; }
-        button { background: var(--gold-grad); color: #000; border: none; padding: 12px 35px; cursor: pointer; border-radius: 50px; font-weight: 800; transition: 0.3s; }
+        .controls { text-align: center; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #444; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+        select { background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        button { background: var(--gold-grad); color: #000; border: none; padding: 12px 35px; cursor: pointer; border-radius: 50px; font-weight: 800; transition: 0.3s; text-transform: uppercase; }
         .btn-save { background: #27ae60 !important; color: #fff !important; display: none; margin-left: 10px; }
         
         .day-row { margin-bottom: 50px; border-bottom: 1px solid #333; padding-bottom: 30px; }
@@ -37,16 +37,25 @@
         .guide-container { margin-top: auto; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 1px solid #333; }
         .step-row { font-size: 10px; color: #ddd; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 3px; }
         .dc-badge { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 8px; display: inline-block; color: white; }
+
+        @media (max-width: 1000px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .session-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>🎰 GAME SCHEDULER V8.1</h2>
+    <h2>🎰 PLATFORM SCHEDULER V8.2</h2>
     
     <div class="controls">
-        <label style="font-size: 12px; color: #aaa; margin-right: 10px;">PILIH PROFILE:</label>
-        <select id="profileSelect" onchange="resetAndSync()">
-            <option value="">-- LOADING PROFILE --</option>
+        <select id="profileSelect" onchange="fetchDatabase()">
+            <option value="CAPTAIN77">CAPTAIN77</option>
+            <option value="JAGUAR77">JAGUAR77</option>
+            <option value="INDOPEDIA77">INDOPEDIA77</option>
+            <option value="FUN77">FUN77</option>
+            <option value="PLAY77">PLAY77</option>
+            <option value="MUSTANG77">MUSTANG77</option>
+            <option value="HOLYPLAY17">HOLYPLAY17</option>
+            <option value="INDOFUN17">INDOFUN17</option>
         </select>
         <button id="genBtn" onclick="generateJadwal()" disabled>SINKRONISASI...</button>
         <button id="saveBtn" class="btn-save" onclick="downloadPNG()">DOWNLOAD PNG</button>
@@ -56,67 +65,69 @@
 </div>
 
 <script>
-// Struktur Data Multi-Profile
-let masterData = {}; // Format: { "NamaOrang": { Pragmatic: { gold:[], ... }, PGSoft: { ... } } }
-let availableProfiles = [];
+const PROFILE_CONFIG = {
+    "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
+    "JAGUAR77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1165225864&single=true&output=csv",
+    "INDOPEDIA77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=288756155&single=true&output=csv",
+    "FUN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=288756155&single=true&output=csv",
+    "PLAY77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=410917478&single=true&output=csv",
+    "MUSTANG77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1769820056&single=true&output=csv",
+    "HOLYPLAY17": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=265631998&single=true&output=csv",
+    "INDOFUN17": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=2086618792&single=true&output=csv"
+};
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?output=csv";
+let poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
+let poolPGSoft = { gold: [], silver: [], bronze: [], guide: [] };
 
 async function fetchDatabase() {
+    const selected = document.getElementById("profileSelect").value;
+    const url = PROFILE_CONFIG[selected];
+    const btn = document.getElementById("genBtn");
+    
+    btn.disabled = true;
+    btn.innerText = "SINKRONISASI...";
+    document.getElementById("hasil").innerHTML = "";
+
     try {
-        const response = await fetch(SHEET_URL);
+        const response = await fetch(url);
         const csvData = await response.text();
         const lines = csvData.split(/\r?\n/).filter(l => l.trim() !== "");
         
-        masterData = {};
-        availableProfiles = [];
+        poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
+        poolPGSoft = { gold: [], silver: [], bronze: [], guide: [] };
 
         lines.slice(1).forEach(line => {
             let cleanLine = line.replace(/"/g, ''); 
             let cols = cleanLine.split(',');
 
-            if (cols.length >= 4) {
-                const profile = cols[0].trim();
-                const provider = cols[1].trim();
-                const tier = cols[2].trim().toLowerCase();
-                const name = cols[3].trim();
-
-                if (!masterData[profile]) {
-                    masterData[profile] = {
-                        Pragmatic: { gold: [], silver: [], bronze: [], guide: [] },
-                        PGSoft: { gold: [], silver: [], bronze: [], guide: [] }
-                    };
-                    availableProfiles.push(profile);
-                }
+            if (cols.length >= 3) {
+                const provider = cols[0].trim();
+                const tier = cols[1].trim().toLowerCase();
+                const name = cols[2].trim();
 
                 if (name && name !== "undefined") {
-                    if (tier === 'guide') {
-                        masterData[profile][provider].guide.push(name);
-                    } else if (masterData[profile][provider][tier]) {
-                        masterData[profile][provider][tier].push(name);
+                    if (provider === "Pragmatic") {
+                        if (tier === 'guide') poolPragmatic.guide.push(name);
+                        else if (poolPragmatic[tier]) poolPragmatic[tier].push(name);
+                    } else if (provider === "PGSoft") {
+                        if (tier === 'guide') poolPGSoft.guide.push(name);
+                        else if (poolPGSoft[tier]) poolPGSoft[tier].push(name);
                     }
                 }
             }
         });
-
-        updateProfileDropdown();
-        document.getElementById("genBtn").disabled = false;
-        document.getElementById("genBtn").innerText = "GENERATE JADWAL PROFILE";
-    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sinkron! Periksa Kolom Profile.</p>"; }
+        btn.innerText = "GENERATE JADWAL " + selected;
+        btn.disabled = false;
+    } catch (e) { 
+        document.getElementById("hasil").innerHTML = "<p style='color:red;'>Link CSV Tidak Valid!</p>"; 
+    }
 }
 
-function updateProfileDropdown() {
-    const select = document.getElementById("profileSelect");
-    select.innerHTML = availableProfiles.map(p => `<option value="${p}">${p.toUpperCase()}</option>`).join('');
-}
+window.onload = fetchDatabase;
 
-function resetAndSync() {
-    document.getElementById("hasil").innerHTML = `<p style='text-align:center; color:#ffcc00;'>Profile diganti. Siap men-generate...</p>`;
-}
-
-function getStrategy(prov, currentProfile) {
-    let source = [...masterData[currentProfile][prov].guide];
-    if (source.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Pola ${prov} Kurang</div>`;
+function getStrategy(prov) {
+    let source = (prov === 'Pragmatic') ? [...poolPragmatic.guide] : [...poolPGSoft.guide];
+    if (source.length < 5) return `<div class="guide-container" style="font-size:9px;color:#666;text-align:center;">Data Pola ${prov} Kurang</div>`;
     
     let dc = "";
     if (prov === 'Pragmatic') {
@@ -132,98 +143,69 @@ function getStrategy(prov, currentProfile) {
     while (finalSteps.length < 5 && attempts < 100) {
         let currentStep = shuffled[attempts % shuffled.length];
         let currentType = currentStep.toUpperCase().includes("MANUAL") ? "MANUAL" : "AUTO";
-
         if (currentType !== lastType && !finalSteps.includes(currentStep)) {
             finalSteps.push(currentStep);
             lastType = currentType;
         }
         attempts++;
     }
-
-    if (finalSteps.length < 5) {
-        shuffled.forEach(s => {
-            if (!finalSteps.includes(s) && finalSteps.length < 5) finalSteps.push(s);
-        });
-    }
-
+    if (finalSteps.length < 5) { shuffled.forEach(s => { if (!finalSteps.includes(s) && finalSteps.length < 5) finalSteps.push(s); }); }
     return `<div class="guide-container">${dc}${finalSteps.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`;
 }
 
-function pickGame(prov, tier, blacklist, dailyUsed, currentProfile) {
-    let list = masterData[currentProfile][prov][tier];
+function pickGame(prov, tier, blacklist, dailyUsed) {
+    let list = (prov === 'Pragmatic') ? poolPragmatic[tier] : poolPGSoft[tier];
     if (!list || list.length === 0) return { name: "", html: "" };
-
     let combinedBlacklist = [...blacklist, ...dailyUsed];
     let filtered = list.filter(g => !combinedBlacklist.includes(g));
-    
     if (filtered.length === 0) filtered = list.filter(g => !dailyUsed.includes(g));
     if (filtered.length === 0) filtered = list;
-
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
-    return {
-        name: chosen,
-        html: `<div class="game-card border-${tier}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>`
-    };
+    return { name: chosen, html: `<div class="game-card border-${tier}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>` };
 }
 
 function generateJadwal() {
-    const currentProfile = document.getElementById("profileSelect").value;
-    if (!currentProfile) return;
-
     const days = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
-    let html = ""; 
-    let yesterdayGolds = []; 
-
+    let html = ""; let yesterdayGolds = [];
     days.forEach(day => {
-        let todayGolds = []; 
-        
+        let todayGolds = [];
         const draw = (p, t) => {
-            let res = pickGame(p, t, yesterdayGolds, todayGolds, currentProfile);
-            if (res.name) todayGolds.push(res.name); 
+            let res = pickGame(p, t, yesterdayGolds, todayGolds);
+            if (res.name) todayGolds.push(res.name);
             return res.html;
         };
 
         const isMixedSore = Math.random() > 0.5;
         let soreContent = isMixedSore ? 
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${getStrategy('Pragmatic', currentProfile)}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft', currentProfile)}</div></div>` :
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','gold')}${getStrategy('Pragmatic', currentProfile)}</div></div>`;
+            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft')}</div></div>` :
+            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div></div>`;
 
         const isPragmaticMalam = Math.random() > 0.5;
         let malamContent = isPragmaticMalam ?
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${getStrategy('Pragmatic', currentProfile)}</div></div>` :
-            `<div style="display:flex; gap:10px;"><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft', currentProfile)}</div></div>`;
+            `<div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${getStrategy('Pragmatic')}</div></div>` :
+            `<div style="display:flex; gap:10px;"><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${getStrategy('PGSoft')}</div></div>`;
 
         html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">
-            <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;">
-                <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${draw('Pragmatic','bronze')}${getStrategy('Pragmatic', currentProfile)}</div>
-                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','silver')}${getStrategy('PGSoft', currentProfile)}</div>
-            </div></div>
-            <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;">
-                <div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${getStrategy('Pragmatic', currentProfile)}</div>
-                <div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','bronze')}${getStrategy('PGSoft', currentProfile)}</div>
-            </div></div>
+            <div class="session-box"><div class="session-title">🌑 MIDNIGHT</div><div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${draw('Pragmatic','bronze')}${getStrategy('Pragmatic')}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','silver')}${getStrategy('PGSoft')}</div></div></div>
+            <div class="session-box"><div class="session-title">☀️ SIANG</div><div style="display:flex; gap:10px;"><div style="flex:1;">P<br>${draw('Pragmatic','gold')}${draw('Pragmatic','silver')}${getStrategy('Pragmatic')}</div><div style="flex:1;">PG<br>${draw('PGSoft','gold')}${draw('PGSoft','bronze')}${getStrategy('PGSoft')}</div></div></div>
             <div class="session-box"><div class="session-title">🌇 SORE</div>${soreContent}</div>
             <div class="session-box"><div class="session-title">🌙 MALAM</div>${malamContent}</div>
         </div></div>`;
-        
         yesterdayGolds = [...todayGolds];
     });
-    
     document.getElementById("hasil").innerHTML = html;
     document.getElementById("saveBtn").style.display = "inline-block";
 }
 
 function downloadPNG() {
-    const profileName = document.getElementById("profileSelect").value;
+    const selected = document.getElementById("profileSelect").value;
     html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a");
         a.href = canvas.toDataURL();
-        a.download = `Jadwal_${profileName}_V8.1.png`;
+        a.download = `Jadwal_${selected}_V8.2.png`;
         a.click();
     });
 }
-
-window.onload = fetchDatabase;
 </script>
 </body>
 </html>

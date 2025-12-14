@@ -2,121 +2,142 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Game Scheduler v9.1 - Background Optimized</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Scheduler v11.5 - Interactive Motion</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold-grad: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
-            --silver-grad: linear-gradient(135deg, #e0e0e0 0%, #95a5a6 100%);
-            --bronze-grad: linear-gradient(135deg, #d38d5f 0%, #a0522d 100%);
-            --bg-overlay: rgba(0, 0, 0, 0.88); /* Overlay lebih gelap agar teks lebih tajam */
-            --glass: rgba(255, 255, 255, 0.03);
-            --border-glass: rgba(255, 255, 255, 0.08);
+            --gold: #ffcc00;
+            --gold-bright: #ffdb4d;
+            --bg-dark: #0a0a0a;
+            --card-bg: #151515;
+            --border-color: #222222;
+            --neon-glow: rgba(255, 204, 0, 0.2);
         }
 
         body { 
-            font-family: 'Inter', 'Segoe UI', sans-serif; 
+            font-family: 'Inter', sans-serif; 
             margin: 0; padding: 20px;
-            background-color: #000;
-            /* OPTIMALISASI BACKGROUND AGAR TIDAK MEMANJANG */
-            background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('https://dataset.catgarong.com/assets/images/highlights/promo-highlight.jpg');
-            background-size: cover; /* Mengisi layar tanpa merusak proporsi */
-            background-position: center center; /* Gambar tetap di tengah */
-            background-repeat: no-repeat;
-            background-attachment: fixed; /* Background statis saat scroll */
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #0a0a0a 100%);
+            color: #fff;
             -webkit-font-smoothing: antialiased;
         }
 
         .container { 
             max-width: 1300px; margin: auto; 
-            background: var(--glass);
-            backdrop-filter: blur(20px); 
-            padding: 40px; border-radius: 40px; 
-            border: 1px solid var(--border-glass); 
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8); 
+            background: #111;
+            padding: 40px; border-radius: 25px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 40px 80px rgba(0,0,0,0.9); 
         }
 
         .header-area { text-align: center; margin-bottom: 40px; }
-        h2 { 
-            background: var(--gold-grad);
+        .header-area h2 { 
+            background: linear-gradient(135deg, var(--gold) 0%, #ff9900 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-transform: uppercase; letter-spacing: 10px; 
+            text-transform: uppercase; letter-spacing: 8px; 
             margin: 0; font-size: 34px; font-weight: 900;
-            filter: drop-shadow(0 5px 15px rgba(255, 204, 0, 0.4));
+            filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.3));
         }
-        #displayDate { color: #666; font-size: 14px; margin-top: 12px; letter-spacing: 3px; font-weight: 800; }
+        #displayDate { color: #555; font-size: 14px; margin-top: 10px; font-weight: 800; letter-spacing: 3px; }
 
         .controls { 
-            display: flex; justify-content: center; align-items: center; gap: 12px; 
-            background: rgba(0,0,0,0.6); padding: 25px; 
-            border-radius: 24px; border: 1px solid var(--border-glass);
-            margin-bottom: 45px; flex-wrap: wrap;
+            display: flex; justify-content: center; align-items: center; gap: 15px; 
+            background: #0d0d0d; padding: 25px; 
+            border-radius: 20px; border: 1px solid var(--border-color);
+            margin-bottom: 50px; flex-wrap: wrap;
         }
 
         input[type="text"], select { 
-            background: #0a0a0a; color: #fff; border: 1px solid #222; 
-            padding: 14px 20px; border-radius: 14px; font-size: 13px; outline: none; transition: 0.3s;
+            background: #000; color: #fff; border: 1px solid #333; 
+            padding: 14px 20px; border-radius: 10px; font-size: 13px; outline: none; transition: 0.3s;
         }
-        input[type="text"]:focus, select:focus { border-color: #ffcc00; }
+        input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 10px var(--neon-glow); }
 
         button { 
-            background: var(--gold-grad); color: #000; border: none; 
-            padding: 15px 35px; cursor: pointer; border-radius: 14px; 
-            font-weight: 900; text-transform: uppercase; font-size: 11px; transition: 0.3s;
+            background: var(--gold); color: #000; border: none; 
+            padding: 15px 30px; cursor: pointer; border-radius: 10px; 
+            font-weight: 900; text-transform: uppercase; font-size: 11px; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255, 153, 0, 0.3); }
+        button:hover:not(:disabled) { background: var(--gold-bright); transform: scale(1.05); box-shadow: 0 10px 20px rgba(255, 204, 0, 0.3); }
 
-        .btn-copy { background: #1a1a1a !important; color: #fff !important; border: 1px solid #333 !important; }
+        .btn-copy { background: #222 !important; color: #fff !important; }
         .btn-save { background: #1b5e20 !important; color: #fff !important; }
 
-        .day-row { margin-bottom: 70px; }
+        .day-row { margin-bottom: 60px; }
         .day-label { 
-            font-size: 28px; color: #fff; font-weight: 900; 
+            font-size: 26px; color: #fff; font-weight: 900; 
             margin-bottom: 30px; display: flex; align-items: center; gap: 20px;
         }
-        .day-label::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #ffcc00, transparent); opacity: 0.2; }
+        .day-label::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-color), transparent); }
 
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+        /* MOTION BOX SESSION */
         .session-box { 
-            background: rgba(0, 0, 0, 0.7); padding: 22px; border-radius: 22px; 
-            border: 1px solid rgba(255,255,255,0.05); height: 100%; 
-            display: flex; flex-direction: column; transition: 0.3s;
+            background: var(--card-bg); padding: 25px; border-radius: 20px; 
+            border: 1px solid var(--border-color); height: 100%; 
+            display: flex; flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden;
         }
-        .session-box:hover { border-color: #ffcc00; transform: translateY(-5px); }
+
+        .session-box:hover { 
+            border-color: var(--gold); 
+            transform: translateY(-12px); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 20px rgba(255, 204, 0, 0.1);
+            background: #1c1c1c;
+        }
+
+        /* Light sweep effect on hover */
+        .session-box::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-25deg); transition: 0.7s;
+        }
+        .session-box:hover::before { left: 150%; }
 
         .session-title { 
-            font-size: 11px; color: #ffcc00; font-weight: 900; 
-            margin-bottom: 18px; letter-spacing: 2px; text-transform: uppercase;
+            font-size: 11px; color: var(--gold); font-weight: 900; 
+            margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;
+            border-left: 3px solid var(--gold); padding-left: 10px;
         }
 
-        .provider-label { font-size: 9px; color: #444; font-weight: 900; margin: 12px 0 8px; letter-spacing: 1px; }
+        .provider-label { font-size: 9px; color: #444; font-weight: 900; margin: 15px 0 10px; letter-spacing: 1px; text-transform: uppercase; }
 
+        /* MOTION GAME CARDS */
         .game-card { 
-            background: #050505; padding: 12px; border-radius: 12px; 
+            background: #0a0a0a; padding: 12px 15px; border-radius: 12px; 
             margin-bottom: 10px; display: flex; justify-content: space-between; 
-            align-items: center; border: 1px solid #111;
+            align-items: center; border-left: 4px solid #333;
+            transition: all 0.3s ease;
         }
-        .game-name { font-size: 11px; font-weight: 700; color: #fff; }
-        .badge { font-size: 7px; padding: 3px 6px; border-radius: 5px; font-weight: 900; text-transform: uppercase; }
-        
-        .badge-gold { background: var(--gold-grad); color: #000; }
-        .badge-silver { background: var(--silver-grad); color: #000; }
-        .badge-bronze { background: var(--bronze-grad); color: #fff; }
-
-        .guide-container { margin-top: auto; padding: 14px; background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px solid #111; }
-        .step-row { font-size: 10px; color: #999; margin-bottom: 7px; border-bottom: 1px solid #0a0a0a; padding-bottom: 5px; }
-        .dc-badge { font-size: 8px; padding: 4px 10px; border-radius: 6px; font-weight: 900; margin-bottom: 12px; display: inline-block; color: white; }
-
-        .loader-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 2000; 
-            justify-content: center; align-items: center; flex-direction: column; 
+        .game-card:hover { 
+            transform: translateX(8px); 
+            background: #111;
+            border-left-color: var(--gold);
+            box-shadow: -5px 0 15px rgba(255, 204, 0, 0.1);
         }
-        .spinner { width: 40px; height: 40px; border: 2px solid #111; border-top: 2px solid #ffcc00; border-radius: 50%; animation: spin 0.6s linear infinite; }
+
+        .game-name { font-size: 11px; font-weight: 700; color: #eee; }
+        .badge { font-size: 7px; padding: 4px 8px; border-radius: 6px; font-weight: 900; text-transform: uppercase; }
+        .badge-gold { background: var(--gold); color: #000; box-shadow: 0 0 10px rgba(255, 204, 0, 0.2); }
+        .badge-silver { background: #e0e0e0; color: #000; }
+        .badge-bronze { background: #d38d5f; color: #fff; }
+
+        .guide-container { margin-top: auto; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 15px; border: 1px solid #222; }
+        .step-row { font-size: 10px; color: #888; margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 6px; display: flex; justify-content: space-between; }
+        .dc-badge { font-size: 8px; padding: 5px 12px; border-radius: 20px; font-weight: 900; margin-bottom: 15px; display: inline-block; color: white; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+
+        .loader-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #111; border-top: 4px solid var(--gold); border-radius: 50%; animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        @media (max-width: 1200px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 700px) { .session-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -124,17 +145,17 @@
 
 <div id="loaderOverlay" class="loader-overlay">
     <div class="spinner"></div>
-    <div id="loaderText" style="margin-top:20px; color:#ffcc00; letter-spacing:4px; font-weight:900; font-size:10px;">ANALYZING DATA</div>
+    <div style="margin-top:25px; color:var(--gold); font-weight:900; font-size:12px; letter-spacing:4px;">ANALYZING CLOUD DATA...</div>
 </div>
 
 <div class="container">
     <div class="header-area">
-        <h2 id="mainTitle">PLATFORM SCHEDULER V9.1</h2>
+        <h2>PLATFORM SCHEDULER V11.5</h2>
         <div id="displayDate">READY TO GENERATE</div>
     </div>
     
     <div class="controls">
-        <input type="text" id="manualDateInput" placeholder="CONTOH: 15-21 DESEMBER">
+        <input type="text" id="manualDateInput" placeholder="MASUKKAN TANGGAL">
         <select id="profileSelect" onchange="fetchDatabase()">
             <option value="CAPTAIN77">CAPTAIN77</option>
             <option value="JAGUAR77">JAGUAR77</option>
@@ -154,6 +175,7 @@
 </div>
 
 <script>
+// Database GID tetap dipertahankan untuk isolasi data
 const PROFILE_CONFIG = {
     "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
     "JAGUAR77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1165225864&single=true&output=csv",
@@ -171,47 +193,32 @@ let globalMemory = [];
 
 async function fetchDatabase() {
     const selected = document.getElementById("profileSelect").value;
-    const url = PROFILE_CONFIG[selected];
     const btn = document.getElementById("genBtn");
     btn.disabled = true; btn.innerText = "SINKRONISASI...";
-    document.getElementById("hasil").innerHTML = "";
-
     try {
-        const response = await fetch(url);
+        const response = await fetch(PROFILE_CONFIG[selected]);
         const csvData = await response.text();
         const lines = csvData.split(/\r?\n/).filter(l => l.trim() !== "");
         poolPragmatic = { gold: [], silver: [], bronze: [], guide: [] };
         poolPGSoft = { gold: [], silver: [], bronze: [], guide: [] };
-
         lines.slice(1).forEach(line => {
             let cleanLine = line.replace(/"/g, ''); 
             let cols = cleanLine.split(',').map(c => c.trim());
-            // Membaca 3 kolom: Provider, Tier, GameName
             if (cols.length >= 3) {
-                const prov = cols[0];
-                const tier = cols[1].toLowerCase();
-                const name = cols[2];
-                if (name && name !== "undefined") {
-                    if (prov === "Pragmatic") {
-                        if (tier === 'guide') poolPragmatic.guide.push(name);
-                        else if (poolPragmatic[tier]) poolPragmatic[tier].push(name);
-                    } else if (prov === "PGSoft") {
-                        if (tier === 'guide') poolPGSoft.guide.push(name);
-                        else if (poolPGSoft[tier]) poolPGSoft[tier].push(name);
-                    }
+                const prov = cols[0]; const tier = cols[1].toLowerCase(); const name = cols[2];
+                if (name && name !== "") {
+                    if (prov === "Pragmatic") { if(tier==='guide') poolPragmatic.guide.push(name); else poolPragmatic[tier].push(name); }
+                    else if (prov === "PGSoft") { if(tier==='guide') poolPGSoft.guide.push(name); else poolPGSoft[tier].push(name); }
                 }
             }
         });
-        btn.innerText = "GENERATE " + selected;
-        btn.disabled = false;
-    } catch (e) { document.getElementById("hasil").innerHTML = "<p style='color:red;'>Gagal Sinkron!</p>"; }
+        btn.innerText = "GENERATE " + selected; btn.disabled = false;
+    } catch (e) { alert("Sinkronisasi Gagal!"); }
 }
-window.onload = fetchDatabase;
 
 function startGeneration() {
-    const overlay = document.getElementById("loaderOverlay");
-    overlay.style.display = "flex";
-    setTimeout(() => { generateJadwal(); overlay.style.display = "none"; }, 1500);
+    document.getElementById("loaderOverlay").style.display = "flex";
+    setTimeout(() => { generateJadwal(); document.getElementById("loaderOverlay").style.display = "none"; }, 1500);
 }
 
 function getStrategy(prov) {
@@ -228,13 +235,11 @@ function getStrategy(prov) {
     while (finalSteps.length < 5 && attempts < 100) {
         let currentStep = shuffled[attempts % shuffled.length];
         let currentType = currentStep.toUpperCase().includes("MANUAL") ? "MANUAL" : "AUTO";
-        if (currentType !== lastType && !finalSteps.includes(currentStep)) {
-            finalSteps.push(currentStep); lastType = currentType;
-        }
+        if (currentType !== lastType && !finalSteps.includes(currentStep)) { finalSteps.push(currentStep); lastType = currentType; }
         attempts++;
     }
     if (finalSteps.length < 5) { shuffled.forEach(s => { if (!finalSteps.includes(s) && finalSteps.length < 5) finalSteps.push(s); }); }
-    return { html: `<div class="guide-container">${dcHtml}${finalSteps.map(s => `<div class="step-row">${s}</div>`).join('')}</div>`, text: finalSteps, dcText: dcText };
+    return { html: `<div class="guide-container">${dcHtml}${finalSteps.map(s => `<div class="step-row"><span>${s}</span></div>`).join('')}</div>`, text: finalSteps, dcText: dcText };
 }
 
 function pickGame(prov, tier, blacklist, dailyUsed) {
@@ -244,14 +249,16 @@ function pickGame(prov, tier, blacklist, dailyUsed) {
     let filtered = list.filter(g => !combined.includes(g));
     if (filtered.length === 0) filtered = list.filter(g => !dailyUsed.includes(g));
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
-    return { name: chosen, html: `<div class="game-card" style="border-left:4px solid ${tier==='gold'?'#ffcc00':tier==='silver'?'#e0e0e0':'#d38d5f'}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>` };
+    const color = tier==='gold'?'#ffcc00':tier==='silver'?'#e0e0e0':'#d38d5f';
+    return { name: chosen, html: `<div class="game-card" style="border-left-color: ${color}"><span class="game-name">${chosen}</span><span class="badge badge-${tier}">${tier}</span></div>` };
 }
 
 function generateJadwal() {
     const dateInput = document.getElementById("manualDateInput").value;
-    document.getElementById("displayDate").innerText = dateInput || "MINGGU INI";
+    document.getElementById("displayDate").innerText = dateInput || "PERIOD: CURRENT WEEK";
     const days = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
     let html = ""; let yesterdayGolds = []; globalMemory = [];
+    
     days.forEach((day) => {
         let todayGolds = []; let dayData = { day: day, sessions: [] };
         const draw = (p, t) => {
@@ -267,37 +274,33 @@ function generateJadwal() {
         html += getSess("🌑 MIDNIGHT", () => {
             const p = draw('Pragmatic','gold'); const s = draw('Pragmatic','silver'); const b = draw('Pragmatic','bronze'); const stratP = getStrategy('Pragmatic');
             const pgG = draw('PGSoft','gold'); const pgS = draw('PGSoft','silver'); const stratPg = getStrategy('PGSoft');
-            return { html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${s.html}${b.html}${stratP.html}</div><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pgG.html}${pgS.html}${stratPg.html}</div></div>`, raw: `PRAGMATIC PLAY: ${p.name}, ${s.name}, ${b.name} (${stratP.dcText}) \nPG SOFT: ${pgG.name}, ${pgS.name}` };
+            return { html: `<div class="provider-label">PRAGMATIC PLAY</div>${p.html}${s.html}${b.html}${stratP.html}<div class="provider-label">PG SOFT</div>${pgG.html}${pgS.html}${stratPg.html}`, raw: `PRAGMATIC PLAY: ${p.name}, ${s.name}, ${b.name} (${stratP.dcText}) \nPG SOFT: ${pgG.name}, ${pgS.name}` };
         });
-
         html += getSess("☀️ SIANG", () => {
             const p = draw('Pragmatic','gold'); const s = draw('Pragmatic','silver'); const stratP = getStrategy('Pragmatic');
             const pgG = draw('PGSoft','gold'); const pgB = draw('PGSoft','bronze'); const stratPg = getStrategy('PGSoft');
-            return { html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${s.html}${stratP.html}</div><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pgG.html}${pgB.html}${stratPg.html}</div></div>`, raw: `PRAGMATIC PLAY: ${p.name}, ${s.name} (${stratP.dcText}) \nPG SOFT: ${pgG.name}, ${pgB.name}` };
+            return { html: `<div class="provider-label">PRAGMATIC PLAY</div>${p.html}${s.html}${stratP.html}<div class="provider-label">PG SOFT</div>${pgG.html}${pgB.html}${stratPg.html}`, raw: `PRAGMATIC PLAY: ${p.name}, ${s.name} (${stratP.dcText}) \nPG SOFT: ${pgG.name}, ${pgB.name}` };
         });
-
         html += getSess("🌇 SORE", () => {
             const isMix = Math.random() > 0.5;
             if (isMix) {
                 const p = draw('Pragmatic','gold'); const stratP = getStrategy('Pragmatic'); const pg = draw('PGSoft','gold'); const stratPg = getStrategy('PGSoft');
-                return { html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${stratP.html}</div><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pg.html}${stratPg.html}</div></div>`, raw: `PRAGMATIC PLAY: ${p.name} \nPG SOFT: ${pg.name}` };
+                return { html: `<div class="provider-label">PRAGMATIC PLAY</div>${p.html}${stratP.html}<div class="provider-label">PG SOFT</div>${pg.html}${stratPg.html}`, raw: `PRAGMATIC PLAY: ${p.name} \nPG SOFT: ${pg.name}` };
             } else {
                 const p1 = draw('Pragmatic','gold'); const p2 = draw('Pragmatic','gold'); const stratP = getStrategy('Pragmatic');
-                return { html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p1.html}${p2.html}${stratP.html}</div></div>`, raw: `PRAGMATIC PLAY: ${p1.name}, ${p2.name}` };
+                return { html: `<div class="provider-label">PRAGMATIC PLAY</div>${p1.html}${p2.html}${stratP.html}`, raw: `PRAGMATIC PLAY: ${p1.name}, ${p2.name}` };
             }
         });
-
         html += getSess("🌙 MALAM", () => {
             const isP = Math.random() > 0.5;
             if (isP) {
                 const p = draw('Pragmatic', 'gold'); const stratP = getStrategy('Pragmatic');
-                return { html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PRAGMATIC PLAY</div>${p.html}${stratP.html}</div></div>`, raw: `PRAGMATIC PLAY: ${p.name}` };
+                return { html: `<div class="provider-label">PRAGMATIC PLAY</div>${p.html}${stratP.html}`, raw: `PRAGMATIC PLAY: ${p.name}` };
             } else {
                 const pg = draw('PGSoft', 'gold'); const stratPg = getStrategy('PGSoft');
-                return { html: `<div style="display:flex; gap:10px;"><div style="flex:1;"><div class="provider-label">PG SOFT</div>${pg.html}${stratPg.html}</div></div>`, raw: `PG SOFT: ${pg.name}` };
+                return { html: `<div class="provider-label">PG SOFT</div>${pg.html}${stratPg.html}`, raw: `PG SOFT: ${pg.name}` };
             }
         });
-
         html += `</div></div>`; globalMemory.push(dayData); yesterdayGolds = [...todayGolds];
     });
     document.getElementById("hasil").innerHTML = html;
@@ -307,22 +310,24 @@ function generateJadwal() {
 
 function copyScheduleToText() {
     const profile = document.getElementById("profileSelect").value;
-    const date = document.getElementById("manualDateInput").value || "Minggu Ini";
-    let text = `📅 JADWAL GACOR ${profile}\nPeriode: ${date}\n\n`;
+    const date = document.getElementById("manualDateInput").value || "Current Week";
+    let text = `📅 JADWAL GACOR ${profile}\nPeriod: ${date}\n\n`;
     globalMemory.forEach(d => {
         text += `--- ${d.day} ---\n`;
         d.sessions.forEach(s => { text += `[${s.title}]\n${s.content.raw}\n\n`; });
     });
-    navigator.clipboard.writeText(text).then(() => { alert("Teks Berhasil Disalin!"); });
+    navigator.clipboard.writeText(text).then(() => { alert("Schedule Copied as Text!"); });
 }
 
 function downloadPNG() {
     const sel = document.getElementById("profileSelect").value;
-    html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#000000" }).then(canvas => {
+    html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#0a0a0a" }).then(canvas => {
         const a = document.createElement("a"); a.href = canvas.toDataURL();
         a.download = `Jadwal_${sel}.png`; a.click();
     });
 }
+
+window.onload = fetchDatabase;
 </script>
 </body>
 </html>

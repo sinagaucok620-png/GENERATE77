@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Scheduler v15.2 - Shareable</title>
+    <title>Platform Scheduler v15.7 - Full Box Copy</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -24,6 +24,7 @@
             color: #fff; -webkit-font-smoothing: antialiased;
             min-height: 100vh; background-color: #000;
             overflow-x: hidden; cursor: crosshair;
+            transition: background 0.3s ease;
         }
 
         /* ANIMASI BACKGROUND */
@@ -41,6 +42,7 @@
             border-top: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 0 50px rgba(0,0,0,0.8); 
             position: relative; z-index: 1;
+            transition: all 0.3s ease;
         }
 
         .header-area { text-align: center; margin-bottom: 30px; }
@@ -66,12 +68,22 @@
             font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer;
         }
         input:focus, select:focus { border-color: var(--primary); background: #000; }
+        
+        input[type="date"] { text-transform: uppercase; color-scheme: dark; }
+
+        #historySelect, #musicSelect {
+            max-width: 150px;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+            color: #aaa;
+        }
+        #musicSelect { color: var(--win-green); border-color: var(--win-green); }
 
         button { 
             background: var(--primary); color: #000; border: none; 
             padding: 12px 30px; cursor: pointer; border-radius: 8px; font-weight: 800; 
             text-transform: uppercase; font-size: 14px; transition: 0.3s;
-            position: relative; overflow: hidden;
+            position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px;
         }
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
         button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
@@ -86,9 +98,10 @@
         #lockBtn:hover { background: rgba(255,255,255,0.2); }
         #lockBtn.locked { background: var(--danger-red); color: #fff; border-color: var(--danger-red); box-shadow: 0 0 15px var(--danger-red); }
 
-        /* TOMBOL SHARE LINK BARU */
         #shareBtn { background: #6c5ce7; color: #fff; }
         #shareBtn:hover { box-shadow: 0 0 15px #6c5ce7; }
+        #designerBtn { background: #fff; color: #000; border: 1px solid #999; }
+        #designerBtn:hover { box-shadow: 0 0 15px #fff; }
 
         .btn-copy { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; }
         .btn-save { background: #10b981 !important; color: #fff !important; }
@@ -96,9 +109,13 @@
         /* GRID & CARDS */
         .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
         .day-label { 
-            font-size: 28px; color: #fff; font-weight: 800; margin-bottom: 20px; display: block; 
+            font-size: 28px; color: #fff; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
             border-left: 5px solid var(--primary); padding-left: 15px; 
             text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+        .date-badge {
+            font-size: 16px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; color: var(--primary); letter-spacing: 1px;
+            font-family: monospace;
         }
         
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -106,9 +123,19 @@
         .session-box { 
             background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; 
             border: 1px solid rgba(255,255,255,0.05); height: 100%; 
-            transition: 0.3s;
+            transition: 0.3s; position: relative;
         }
         .session-box:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        .smart-copy-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.5); color: var(--primary);
+            border: 1px solid var(--primary);
+            width: 30px; height: 30px; padding: 0;
+            border-radius: 6px; display: flex; justify-content: center; align-items: center;
+            opacity: 0.6; cursor: pointer; transition: 0.2s; z-index: 10;
+        }
+        .smart-copy-btn:hover { opacity: 1; background: var(--primary); color: #000; }
 
         .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
         .provider-label { font-size: 10px; color: #888; font-weight: 700; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 1px; }
@@ -145,6 +172,30 @@
 
         @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 700px) { .container{padding:20px;} .session-grid { grid-template-columns: 1fr; } }
+
+        /* === DESIGNER MODE === */
+        body.clean-mode { background: #f4f6f8 !important; color: #222 !important; cursor: default; }
+        body.clean-mode #nebula-canvas, body.clean-mode #cursor-canvas, body.clean-mode #particle-canvas { display: none !important; }
+        body.clean-mode .container { background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid #d1d5db; border-top: 5px solid #333; }
+        body.clean-mode .header-area h2 { color: #111 !important; text-shadow: none !important; font-weight: 900; }
+        body.clean-mode #displayDate { color: #555; font-weight: 600; }
+        body.clean-mode .controls { background: #f3f4f6; border: 1px solid #e5e7eb; box-shadow: none; }
+        body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect { opacity: 0.4; pointer-events: none; filter: grayscale(100%); }
+        
+        body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
+        body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
+        body.clean-mode .session-box { background: #fff; border: 2px solid #e5e7eb; box-shadow: none; }
+        body.clean-mode .session-title { color: #000; border-bottom: 2px solid #000; }
+        body.clean-mode .smart-copy-btn { background: #000; color: #fff; border: none; opacity: 1; }
+        body.clean-mode .provider-label { color: #666; background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        body.clean-mode .game-card { background: #f9fafb; border: 1px solid #d1d5db; color: #111; }
+        body.clean-mode .game-card .game-name { color: #000; font-size: 13px; }
+        body.clean-mode .game-card:hover { background: #fff; border-color: #000; box-shadow: none; }
+        body.clean-mode .depo-container { background: #fffbe6; border: 1px solid #ffe58f; color: #000; }
+        body.clean-mode .depo-header { color: #d46b08; border-bottom: 1px solid #ffe58f; }
+        body.clean-mode .depo-info { color: #222; font-family: monospace; font-size: 12px; font-weight: bold; }
+        body.clean-mode .badge { background: #eee !important; color: #000 !important; border: 1px solid #ccc; }
+        body.clean-mode #designerBtn { background: #000; color: #fff; border-color: #000; }
     </style>
 </head>
 <body>
@@ -167,13 +218,17 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V15.2</h2>
-        <div id="displayDate">SHAREABLE EDITION</div>
+        <h2>PLATFORM SCHEDULER V15.7</h2>
+        <div id="displayDate">INTERNAL USE ONLY</div>
     </div>
     
     <div class="controls">
-        <input type="text" id="manualDateInput" placeholder="CONTOH: 15-21 DESEMBER">
-        <select id="profileSelect" onchange="changeTheme()">
+        <div style="display:flex; flex-direction:column; gap:2px;">
+            <label style="font-size:10px; color:#aaa; margin-left:5px;">TANGGAL MULAI</label>
+            <input type="date" id="startDateInput">
+        </div>
+
+        <select id="profileSelect" onchange="changeProfileHandler()">
             <option value="CAPTAIN77">CAPTAIN77</option>
             <option value="PLAY77">PLAY77</option>
             <option value="JAGUAR77">JAGUAR77</option>
@@ -187,10 +242,25 @@
         <button id="lockBtn" onclick="toggleLock()" title="Kunci Tombol Sync"><i class="fas fa-unlock"></i></button>
         <button id="genBtn" onclick="initiateSync()">SYNC DATA</button>
         
-        <button id="musicBtn" onclick="toggleMusic()"><i class="fas fa-music"></i> MUSIC OFF</button>
-        <button id="shareBtn" onclick="copyShareLink()" title="Copy Link untuk Member"><i class="fas fa-link"></i> LINK</button>
+        <select id="historySelect" onchange="loadFromHistory()">
+            <option value="">⏳ RIWAYAT</option>
+        </select>
         
-        <button id="copyBtn" class="btn-copy" style="display:none" onclick="copyText()">COPY TEXT</button>
+        <button id="musicBtn" onclick="toggleMusic()"><i class="fas fa-music"></i> MUSIC OFF</button>
+        <select id="musicSelect" onchange="changeMusic()">
+            <option value="gCWaRhNUvfc">GAMING (NCS)</option>
+            <option value="jfKfPfyJRdk">LOFI CHILL</option>
+            <option value="3l0k6wQ6e6k">PHONK</option>
+            <option value="S-M1Q8Zc">EDM MIX</option>
+        </select>
+
+        <button id="shareBtn" onclick="copyShareLink()" title="Copy Link untuk Designer"><i class="fas fa-link"></i> LINK</button>
+        
+        <button id="designerBtn" onclick="toggleDesignerMode()" title="Mode Baca Mudah untuk Designer">
+            <i class="fas fa-eye"></i> MODE DESIGNER
+        </button>
+
+        <button id="copyBtn" class="btn-copy" style="display:none" onclick="copyText()">COPY ALL</button>
         <button id="saveBtn" class="btn-save" style="display:none" onclick="downloadPNG()">EXPORT PNG</button>
     </div>
 
@@ -200,8 +270,8 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// --- RANDOMNESS SEEDED (KUNCI AGAR SAMA DI SEMUA HP) ---
-let currentSeed = Date.now(); // Default seed
+// --- RANDOMNESS SYSTEM ---
+let currentSeed = Date.now(); 
 
 function seedRandom(seed) {
     var m = 0x80000000;
@@ -213,7 +283,64 @@ function seedRandom(seed) {
         return state / (m - 1);
     }
 }
-let myRandom = Math.random; // Default normal random
+let myRandom = Math.random; 
+
+function shuffleArray(array) {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex != 0) {
+        randomIndex = Math.floor(myRandom() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
+
+// --- HISTORY SYSTEM ---
+let seedHistory = []; 
+
+function addToHistory(oldSeed) {
+    if (!oldSeed) return;
+    const currentProfile = document.getElementById("profileSelect").value;
+    const time = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    seedHistory.unshift({ seed: oldSeed, time: time, profile: currentProfile });
+    if (seedHistory.length > 50) seedHistory.pop();
+    updateHistoryUI();
+}
+
+function updateHistoryUI() {
+    const sel = document.getElementById("historySelect");
+    const currentProfile = document.getElementById("profileSelect").value;
+    sel.innerHTML = '<option value="">⏳ RIWAYAT</option>';
+    const filteredHistory = seedHistory.filter(item => item.profile === currentProfile);
+    filteredHistory.slice(0, 5).forEach((item) => {
+        const originalIndex = seedHistory.indexOf(item);
+        sel.innerHTML += `<option value="${originalIndex}">${item.time} (Seed: ${item.seed.toString().slice(-4)})</option>`;
+    });
+}
+
+function loadFromHistory() {
+    const sel = document.getElementById("historySelect");
+    if (sel.value === "") return;
+    const index = parseInt(sel.value);
+    const item = seedHistory[index];
+    if (item) {
+        currentSeed = item.seed;
+        myRandom = seedRandom(currentSeed);
+        const profile = document.getElementById("profileSelect").value;
+        const inputDate = document.getElementById("startDateInput").value;
+        let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}`;
+        if(inputDate) newUrl += `&date=${inputDate}`;
+        window.history.pushState({path: newUrl}, '', newUrl);
+        fetchDatabase();
+        showToast(`RESTORED: ${item.time}`);
+    }
+    sel.value = ""; 
+}
+
+function changeProfileHandler() {
+    changeTheme();
+    updateHistoryUI();
+}
 
 // --- LOGIKA UTAMA ---
 let isLocked = false;
@@ -221,24 +348,49 @@ function toggleLock() {
     isLocked = !isLocked;
     const lockBtn = document.getElementById("lockBtn");
     const genBtn = document.getElementById("genBtn");
+    const dateInput = document.getElementById("startDateInput");
+    
     if (isLocked) {
         lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
         lockBtn.classList.add("locked");
         genBtn.disabled = true; genBtn.style.opacity = "0.5"; genBtn.style.cursor = "not-allowed";
+        dateInput.disabled = true;
     } else {
         lockBtn.innerHTML = '<i class="fas fa-unlock"></i>';
         lockBtn.classList.remove("locked");
         genBtn.disabled = false; genBtn.style.opacity = "1"; genBtn.style.cursor = "pointer";
+        dateInput.disabled = false;
+    }
+}
+
+function toggleDesignerMode() {
+    const body = document.body;
+    const btn = document.getElementById("designerBtn");
+    body.classList.toggle("clean-mode");
+    if (body.classList.contains("clean-mode")) {
+        btn.innerHTML = '<i class="fas fa-paint-brush"></i> KEMBALI KE NEON';
+        showToast("MODE DESIGNER: AKTIF");
+    } else {
+        btn.innerHTML = '<i class="fas fa-eye"></i> MODE DESIGNER';
+        showToast("MODE NEON: KEMBALI");
     }
 }
 
 // --- YOUTUBE LOGIC ---
 var player; var isPlaying = false;
 function onYouTubeIframeAPIReady() {
+    const defaultVid = document.getElementById("musicSelect").value;
     player = new YT.Player('youtube-player', {
-        height: '0', width: '0', videoId: 'gCWaRhNUvfc',
-        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'gCWaRhNUvfc' }
+        height: '0', width: '0', videoId: defaultVid,
+        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': defaultVid }
     });
+}
+function changeMusic() {
+    const vid = document.getElementById("musicSelect").value;
+    if (player) {
+        player.loadVideoById(vid);
+        if (isPlaying) player.playVideo(); else player.pauseVideo();
+    }
 }
 function toggleMusic() {
     const btn = document.getElementById('musicBtn');
@@ -254,7 +406,6 @@ function showToast(msg) {
     setTimeout(() => { toast.classList.remove("show"); }, 3000);
 }
 
-// --- CONFIG & THEMES ---
 const PROFILE_CONFIG = {
     "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
     "JAGUAR77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1165225864&single=true&output=csv",
@@ -292,39 +443,36 @@ function changeTheme() {
     currentNebulaColors = theme.nebula;
 }
 
-// === SYSTEM SHAREABLE URL ===
 function checkUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const seed = urlParams.get('seed');
     const profile = urlParams.get('profile');
+    const dateParam = urlParams.get('date');
     
     if (seed && profile) {
-        // Mode View (User membuka link yang dikirim)
-        currentSeed = parseInt(seed); // Gunakan seed dari URL
-        myRandom = seedRandom(currentSeed); // Kunci Randomness
-        
+        currentSeed = parseInt(seed); 
+        myRandom = seedRandom(currentSeed); 
         document.getElementById("profileSelect").value = profile;
-        changeTheme();
-        
-        // Auto Load
+        if(dateParam) document.getElementById("startDateInput").value = dateParam;
+        changeProfileHandler(); 
         fetchDatabase();
     } else {
-        // Mode Normal (Buat baru)
         currentSeed = Date.now();
         myRandom = Math.random;
+        document.getElementById("startDateInput").valueAsDate = new Date();
+        updateHistoryUI();
     }
 }
 
 function initiateSync() {
-    // Generate Seed Baru saat tombol diklik
+    addToHistory(currentSeed);
     currentSeed = Date.now();
-    myRandom = seedRandom(currentSeed);
-    
-    // Update URL tanpa reload
+    myRandom = seedRandom(currentSeed); 
     const profile = document.getElementById("profileSelect").value;
-    const newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}`;
+    const inputDate = document.getElementById("startDateInput").value;
+    let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}`;
+    if(inputDate) newUrl += `&date=${inputDate}`;
     window.history.pushState({path: newUrl}, '', newUrl);
-    
     fetchDatabase();
 }
 
@@ -334,7 +482,7 @@ function copyShareLink() {
         showToast("KLIK 'SYNC DATA' DULU!");
         return;
     }
-    navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! KIRIM KE MEMBER"); });
+    navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! KIRIM KE DESIGNER"); });
 }
 
 async function fetchDatabase() {
@@ -375,7 +523,7 @@ async function fetchDatabase() {
 
         generateJadwal();
         btn.disabled = false; btn.innerText = "SYNC DATA";
-        if(isLocked) btn.disabled = true; // Respect lock
+        if(isLocked) btn.disabled = true;
 
     } catch (e) {
         alert("Gagal mengambil data! Cek koneksi.");
@@ -386,11 +534,7 @@ async function fetchDatabase() {
 function getUniqueCode() {
     if (uniqueCodePool.length === 0) {
         uniqueCodePool = [500,1000,1500,2000,2500,3000,3500,4000,4500,5000,111,222,333,555,777,888,999,123,234,345,600,700,800,900];
-        // Shuffle using myRandom (Seeded)
-        for (let i = uniqueCodePool.length - 1; i > 0; i--) {
-            const j = Math.floor(myRandom() * (i + 1));
-            [uniqueCodePool[i], uniqueCodePool[j]] = [uniqueCodePool[j], uniqueCodePool[i]];
-        }
+        shuffleArray(uniqueCodePool);
     }
     return uniqueCodePool.pop();
 }
@@ -407,11 +551,16 @@ function getStrategy(prov) {
         badgeHtml = `<span class="badge" style="background:var(--primary); color:#000; margin-bottom:5px; display:inline-block;">${dcText}</span>`;
     }
 
-    // Shuffle using Seeded Random
-    let shuffled = [...list].sort(() => 0.5 - myRandom()).slice(0, 5);
-    let stepsHtml = shuffled.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
+    let shuffledList = [...list]; 
+    shuffleArray(shuffledList);
+    let selected = shuffledList.slice(0, 5);
     
-    return { html: `<div class="guide-container">${badgeHtml}${stepsHtml}</div>`, text: `(${dcText})` };
+    let stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
+    // TEXT VERSION UNTUK COPY
+    let stepsText = selected.map(s => `> ${s}`).join('\n');
+    let fullText = `${dcText ? dcText + '\n' : ''}${stepsText}`;
+
+    return { html: `<div class="guide-container">${badgeHtml}${stepsHtml}</div>`, text: fullText };
 }
 
 function getDeposit(sess) {
@@ -454,44 +603,76 @@ function showImg(name) {
 }
 
 function generateJadwal() {
-    const date = document.getElementById('manualDateInput').value || "MINGGU INI";
-    document.getElementById('displayDate').innerText = date;
+    const dateInputStr = document.getElementById('startDateInput').value;
+    let startDate = dateInputStr ? new Date(dateInputStr) : new Date();
+    
+    let endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    const dateRangeStr = `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
+    document.getElementById('displayDate').innerText = `PERIODE: ${dateRangeStr.toUpperCase()}`;
+
     const days = ["SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU","MINGGU"];
+    uniqueCodePool = []; 
     
     let html = "";
     globalMemory = [];
     let yesterday = [];
 
-    days.forEach(day => {
+    days.forEach((day, dayIndex) => {
+        let currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + dayIndex);
+        let dateBadge = currentDate.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: '2-digit'});
+
         let todayGames = [];
-        let dayData = { day: day, sessions: [] };
+        let dayData = { day: day, date: dateBadge, sessions: [] };
+        
         const draw = (p, t) => { let res = pickGame(p, t, yesterday, todayGames); if (res.name !== "DATA KOSONG") todayGames.push(res.name); return res; }
-        const buildSession = (label, key, func) => {
+        const buildSession = (label, key, func, sessIndex) => {
             let games = func();
             let depo = getDeposit(key);
             dayData.sessions.push({ title: label, games: games.rawText, depo: depo });
-            return `<div class="session-box"><div class="session-title">${label}</div>${games.html}${depo.html}</div>`;
+            
+            return `
+            <div class="session-box">
+                <button class="smart-copy-btn" onclick="copySession(${dayIndex}, ${sessIndex})" title="Copy FULL Data Sesi Ini"><i class="fas fa-copy"></i></button>
+                <div class="session-title">${label}</div>
+                ${games.html}${depo.html}
+            </div>`;
         };
 
-        html += `<div class="day-row"><span class="day-label">${day}</span><div class="session-grid">`;
+        html += `<div class="day-row"><span class="day-label">${day} <span class="date-badge">${dateBadge}</span></span><div class="session-grid">`;
         html += buildSession("🌑 MIDNIGHT", "MIDNIGHT", () => {
             let p1=draw('Pragmatic','gold'), p2=draw('Pragmatic','silver'), p3=draw('Pragmatic','bronze');
             let pg1=draw('PGSoft','gold'), pg2=draw('PGSoft','silver'), stP=getStrategy('Pragmatic'), stPg=getStrategy('PGSoft');
-            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${p2.html}${p3.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${pg2.html}${stPg.html}`, rawText: `PP: ${p1.name}, ${p2.name} | PG: ${pg1.name}` };
-        });
+            
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n${p2.name}\n${p3.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
+            rawTxt += `--- PG SOFT ---\n${pg1.name}\n${pg2.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
+            
+            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${p2.html}${p3.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${pg2.html}${stPg.html}`, rawText: rawTxt };
+        }, 0);
         html += buildSession("☀️ SIANG", "SIANG", () => {
             let p1=draw('Pragmatic','gold'), p2=draw('Pragmatic','silver'), pg1=draw('PGSoft','gold'), pg2=draw('PGSoft','bronze');
             let stP=getStrategy('Pragmatic'), stPg=getStrategy('PGSoft');
-            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${p2.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${pg2.html}${stPg.html}`, rawText: `PP: ${p1.name} | PG: ${pg1.name}` };
-        });
+
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n${p2.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
+            rawTxt += `--- PG SOFT ---\n${pg1.name}\n${pg2.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
+
+            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${p2.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${pg2.html}${stPg.html}`, rawText: rawTxt };
+        }, 1);
         html += buildSession("🌇 SORE", "SORE", () => {
             let p1=draw('Pragmatic','gold'), pg1=draw('PGSoft','gold'), stP=getStrategy('Pragmatic'), stPg=getStrategy('PGSoft');
-            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${stPg.html}`, rawText: `PP: ${p1.name} | PG: ${pg1.name}` };
-        });
+
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
+            rawTxt += `--- PG SOFT ---\n${pg1.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
+
+            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${stPg.html}`, rawText: rawTxt };
+        }, 2);
         html += buildSession("🌙 MALAM", "MALAM", () => {
             let p1=draw('Pragmatic','gold'), stP=getStrategy('Pragmatic');
-            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${stP.html}`, rawText: `PP: ${p1.name}` };
-        });
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n\nPOLA PRAGMATIC:\n${stP.text}`;
+            return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${stP.html}`, rawText: rawTxt };
+        }, 3);
         html += `</div></div>`;
         globalMemory.push(dayData);
         yesterday = [...todayGames];
@@ -502,16 +683,41 @@ function generateJadwal() {
     document.getElementById("saveBtn").style.display = "inline-block";
 }
 
+function copySession(dayIndex, sessIndex) {
+    const data = globalMemory[dayIndex].sessions[sessIndex];
+    const dayName = globalMemory[dayIndex].day;
+    const dateStr = globalMemory[dayIndex].date;
+    
+    let txt = `=================================\n`;
+    txt += `HARI: ${dayName}, ${dateStr}\n`;
+    txt += `SESI: ${data.title}\n`;
+    txt += `=================================\n\n`;
+    txt += `${data.games}\n\n`;
+    txt += `---------------------------------\n`;
+    txt += `KODE EKOR: ${data.depo.code}\n`;
+    txt += `---------------------------------\n`;
+    txt += `LIST DEPOSIT:\n${data.depo.text}`;
+    
+    navigator.clipboard.writeText(txt).then(() => {
+        showToast(`COPIED FULL: ${dayName} ${data.title}`);
+    });
+}
+
 function copyText() {
     const prof = document.getElementById("profileSelect").value;
-    const date = document.getElementById("manualDateInput").value;
-    let txt = `=== JADWAL GACOR ${prof} ===\nPERIODE: ${date}\n\n`;
+    const dateRange = document.getElementById("displayDate").innerText;
+    let txt = `=== JADWAL GACOR ${prof} ===\n${dateRange}\n\n`;
     globalMemory.forEach(d => {
-        txt += `[ ${d.day} ]\n`;
-        d.sessions.forEach(s => { txt += `\n${s.title}\n${s.games}\nEKOR: ${s.depo.code}\n${s.depo.text}`; });
+        txt += `\n[ ${d.day}, ${d.date} ]\n`;
+        d.sessions.forEach(s => { 
+            txt += `\n>>> ${s.title} <<<\n`;
+            txt += `${s.games}\n`;
+            txt += `EKOR: ${s.depo.code}\n`;
+            txt += `\n${s.depo.text}`;
+        });
         txt += `\n------------------------\n`;
     });
-    navigator.clipboard.writeText(txt).then(() => showToast("BERHASIL COPY!"));
+    navigator.clipboard.writeText(txt).then(() => showToast("ALL DATA COPIED!"));
 }
 
 function downloadPNG() {
@@ -521,7 +727,6 @@ function downloadPNG() {
     });
 }
 
-// --- VISUALS ---
 const bgCanvas = document.getElementById('nebula-canvas'); const bgCtx = bgCanvas.getContext('2d');
 const cursorCanvas = document.getElementById('cursor-canvas'); const cCtx = cursorCanvas.getContext('2d');
 const pCanvas = document.getElementById('particle-canvas'); const pCtx = pCanvas.getContext('2d');
@@ -538,6 +743,10 @@ function resize() { w = window.innerWidth; h = window.innerHeight; bgCanvas.widt
 function spawnCursorTrail() { for(let i=0; i<2; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentPrimaryColor, s: Math.random()*3+1 }); }
 
 function loopVisuals() {
+    if (document.body.classList.contains('clean-mode')) {
+        requestAnimationFrame(loopVisuals);
+        return;
+    }
     bgCtx.fillStyle = currentNebulaColors[0]; bgCtx.fillRect(0,0,w,h);
     nebulaLayers.forEach(l => {
         l.x+=l.vx; l.y+=l.vy; if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;
@@ -552,8 +761,7 @@ function loopVisuals() {
 function hexToRgba(hex,a) { let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
 
 window.onload = function() { 
-    changeTheme(); 
-    checkUrlParams(); // CEK APAKAH ADA LINK YANG DI-SHARE
+    checkUrlParams(); 
     initVisuals(); 
 };
 </script>

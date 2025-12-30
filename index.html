@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Scheduler v15.7 - Full Box Copy</title>
+    <title>Platform Scheduler v16.3 - Perfect Sync</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -16,6 +16,7 @@
             --win-green: #00ff88;
             --warn-yellow: #ffd700;
             --danger-red: #ff3e3e;
+            --wa-green: #25D366;
         }
 
         body { 
@@ -27,12 +28,10 @@
             transition: background 0.3s ease;
         }
 
-        /* ANIMASI BACKGROUND */
         #nebula-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; }
         #cursor-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; pointer-events: none; }
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9998; pointer-events: none; }
 
-        /* CONTAINER */
         .container { 
             max-width: 1300px; margin: auto; 
             background: var(--glass-bg);
@@ -55,12 +54,21 @@
             color: #aaa; font-size: 14px; margin-top: 10px; font-weight: 700; letter-spacing: 3px; 
         }
 
-        /* CONTROLS */
         .controls { 
             display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; 
-            background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-bottom: 40px;
+            background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-bottom: 20px;
             border: 1px solid var(--glass-border);
         }
+
+        .time-settings {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;
+            margin-bottom: 30px; border: 1px dashed rgba(255,255,255,0.2);
+            width: 100%; max-width: 1220px; margin: 0 auto 30px;
+        }
+        .time-settings summary { cursor: pointer; color: var(--warn-yellow); font-weight: bold; margin-bottom: 10px; outline: none; }
+        .time-inputs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+        .time-group label { display: block; font-size: 10px; color: #aaa; margin-bottom: 3px; }
+        .time-group input { width: 90%; font-size: 12px; padding: 8px; }
 
         input, select { 
             background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
@@ -68,7 +76,6 @@
             font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer;
         }
         input:focus, select:focus { border-color: var(--primary); background: #000; }
-        
         input[type="date"] { text-transform: uppercase; color-scheme: dark; }
 
         #historySelect, #musicSelect {
@@ -91,32 +98,28 @@
         #musicBtn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
         #musicBtn.playing { background: var(--win-green); color: #000; border-color: transparent; box-shadow: 0 0 20px var(--win-green); }
 
-        #lockBtn { 
-            background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); 
-            padding: 12px 15px; width: 50px; display: flex; justify-content: center;
-        }
-        #lockBtn:hover { background: rgba(255,255,255,0.2); }
-        #lockBtn.locked { background: var(--danger-red); color: #fff; border-color: var(--danger-red); box-shadow: 0 0 15px var(--danger-red); }
+        #lockBtn { padding: 12px 15px; width: 50px; display: flex; justify-content: center; background: rgba(255,255,255,0.1); color: #fff; }
+        #lockBtn.locked { background: var(--danger-red); }
 
         #shareBtn { background: #6c5ce7; color: #fff; }
         #shareBtn:hover { box-shadow: 0 0 15px #6c5ce7; }
+        
+        #waBtn { background: var(--wa-green); color: #fff; }
+        #waBtn:hover { box-shadow: 0 0 15px var(--wa-green); }
+
         #designerBtn { background: #fff; color: #000; border: 1px solid #999; }
         #designerBtn:hover { box-shadow: 0 0 15px #fff; }
 
         .btn-copy { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; }
         .btn-save { background: #10b981 !important; color: #fff !important; }
 
-        /* GRID & CARDS */
         .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
         .day-label { 
             font-size: 28px; color: #fff; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
             border-left: 5px solid var(--primary); padding-left: 15px; 
             text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
-        .date-badge {
-            font-size: 16px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; color: var(--primary); letter-spacing: 1px;
-            font-family: monospace;
-        }
+        .date-badge { font-size: 16px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
         
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         
@@ -137,7 +140,8 @@
         }
         .smart-copy-btn:hover { opacity: 1; background: var(--primary); color: #000; }
 
-        .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 5px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .session-time { font-size: 11px; color: #aaa; display: block; margin-bottom: 10px; font-family: monospace; }
         .provider-label { font-size: 10px; color: #888; font-weight: 700; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 1px; }
 
         .game-card { 
@@ -165,27 +169,39 @@
         .toast { background: rgba(10, 10, 10, 0.95); border: 2px solid var(--primary); color: var(--primary); padding: 15px 40px; border-radius: 50px; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 0 50px var(--primary); opacity: 0; transform: translateY(20px); transition: all 0.4s; display: flex; align-items: center; gap: 12px; }
         .toast.show { opacity: 1; transform: translateY(0); }
 
+        #hover-tooltip {
+            position: fixed; display: none; z-index: 10000;
+            background: #000; border: 2px solid var(--primary);
+            border-radius: 10px; padding: 5px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            pointer-events: none; 
+            max-width: 200px;
+        }
+        #hover-tooltip img { width: 100%; border-radius: 5px; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: #111; padding: 20px; border: 1px solid var(--primary); border-radius: 15px; max-width: 400px; text-align: center; box-shadow: 0 0 30px var(--primary); }
         .modal-content img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
         .close-modal { position: absolute; top: 20px; right: 20px; color: #fff; background: none; border: none; font-size: 24px; cursor: pointer; }
 
         @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { .container{padding:20px;} .session-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) { .container{padding:20px;} .session-grid { grid-template-columns: 1fr; } .time-inputs{ grid-template-columns: 1fr; }}
 
-        /* === DESIGNER MODE === */
         body.clean-mode { background: #f4f6f8 !important; color: #222 !important; cursor: default; }
         body.clean-mode #nebula-canvas, body.clean-mode #cursor-canvas, body.clean-mode #particle-canvas { display: none !important; }
         body.clean-mode .container { background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid #d1d5db; border-top: 5px solid #333; }
         body.clean-mode .header-area h2 { color: #111 !important; text-shadow: none !important; font-weight: 900; }
         body.clean-mode #displayDate { color: #555; font-weight: 600; }
-        body.clean-mode .controls { background: #f3f4f6; border: 1px solid #e5e7eb; box-shadow: none; }
-        body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect { opacity: 0.4; pointer-events: none; filter: grayscale(100%); }
-        
+        body.clean-mode .controls, body.clean-mode .time-settings { background: #f3f4f6; border: 1px solid #e5e7eb; box-shadow: none; color: #000; }
+        body.clean-mode .time-settings summary { color: #333; }
+        body.clean-mode .time-group label { color: #555; }
+        body.clean-mode .time-group input { background: #fff; color: #000; border: 1px solid #ccc; }
+        body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #waBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
         body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
         body.clean-mode .session-box { background: #fff; border: 2px solid #e5e7eb; box-shadow: none; }
         body.clean-mode .session-title { color: #000; border-bottom: 2px solid #000; }
+        body.clean-mode .session-time { color: #666; font-weight: bold; }
         body.clean-mode .smart-copy-btn { background: #000; color: #fff; border: none; opacity: 1; }
         body.clean-mode .provider-label { color: #666; background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         body.clean-mode .game-card { background: #f9fafb; border: 1px solid #d1d5db; color: #111; }
@@ -205,6 +221,7 @@
 <canvas id="particle-canvas"></canvas>
 
 <div class="toast-container"><div id="customToast" class="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">ACTION SUCCESSFUL</span></div></div>
+<div id="hover-tooltip"><img id="tooltip-img" src="" alt=""></div>
 
 <div id="youtube-player" style="display: none;"></div>
 
@@ -218,14 +235,24 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V15.7</h2>
-        <div id="displayDate">INTERNAL USE ONLY</div>
+        <h2>PLATFORM SCHEDULER V16.3</h2>
+        <div id="displayDate">SYNC PERFECTED</div>
     </div>
     
+    <details class="time-settings" id="timeSettings">
+        <summary><i class="fas fa-clock"></i> PENGATURAN JAM (EDITABLE)</summary>
+        <div class="time-inputs">
+            <div class="time-group"><label>MIDNIGHT</label><input type="text" id="timeMidnight" value="00:00 - 06:00 WIB" onchange="saveTimeSettings()"></div>
+            <div class="time-group"><label>SIANG</label><input type="text" id="timeSiang" value="06:00 - 15:00 WIB" onchange="saveTimeSettings()"></div>
+            <div class="time-group"><label>SORE</label><input type="text" id="timeSore" value="15:00 - 19:00 WIB" onchange="saveTimeSettings()"></div>
+            <div class="time-group"><label>MALAM</label><input type="text" id="timeMalam" value="19:00 - 00:00 WIB" onchange="saveTimeSettings()"></div>
+        </div>
+    </details>
+
     <div class="controls">
         <div style="display:flex; flex-direction:column; gap:2px;">
             <label style="font-size:10px; color:#aaa; margin-left:5px;">TANGGAL MULAI</label>
-            <input type="date" id="startDateInput">
+            <input type="date" id="startDateInput" onchange="liveUpdateView()">
         </div>
 
         <select id="profileSelect" onchange="changeProfileHandler()">
@@ -254,7 +281,10 @@
             <option value="S-M1Q8Zc">EDM MIX</option>
         </select>
 
-        <button id="shareBtn" onclick="copyShareLink()" title="Copy Link untuk Designer"><i class="fas fa-link"></i> LINK</button>
+        <button id="waBtn" onclick="sendToWhatsApp()" title="Kirim ke Designer (+628988385486)">
+            <i class="fab fa-whatsapp"></i> KIRIM
+        </button>
+        <button id="shareBtn" onclick="copyShareLink()" title="Copy Link Manual"><i class="fas fa-link"></i> LINK</button>
         
         <button id="designerBtn" onclick="toggleDesignerMode()" title="Mode Baca Mudah untuk Designer">
             <i class="fas fa-eye"></i> MODE DESIGNER
@@ -297,7 +327,6 @@ function shuffleArray(array) {
 
 // --- HISTORY SYSTEM ---
 let seedHistory = []; 
-
 function addToHistory(oldSeed) {
     if (!oldSeed) return;
     const currentProfile = document.getElementById("profileSelect").value;
@@ -306,7 +335,6 @@ function addToHistory(oldSeed) {
     if (seedHistory.length > 50) seedHistory.pop();
     updateHistoryUI();
 }
-
 function updateHistoryUI() {
     const sel = document.getElementById("historySelect");
     const currentProfile = document.getElementById("profileSelect").value;
@@ -317,7 +345,6 @@ function updateHistoryUI() {
         sel.innerHTML += `<option value="${originalIndex}">${item.time} (Seed: ${item.seed.toString().slice(-4)})</option>`;
     });
 }
-
 function loadFromHistory() {
     const sel = document.getElementById("historySelect");
     if (sel.value === "") return;
@@ -337,9 +364,67 @@ function loadFromHistory() {
     sel.value = ""; 
 }
 
-function changeProfileHandler() {
-    changeTheme();
-    updateHistoryUI();
+// --- LIVE SYNC LOGIC (PERBAIKAN UTAMA) ---
+function liveUpdateView() {
+    // KUNCI PERBAIKAN: Reset 'pengocok' ke posisi awal Seed saat ini.
+    // Ini menjamin game TIDAK BERUBAH saat admin ganti tanggal.
+    myRandom = seedRandom(currentSeed); 
+    
+    updateUrlState();
+    generateJadwal(); 
+    
+    showToast("TANGGAL DIPERBARUI");
+}
+
+function updateUrlState() {
+    const profile = document.getElementById("profileSelect").value;
+    const inputDate = document.getElementById("startDateInput").value;
+    let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}`;
+    if(inputDate) newUrl += `&date=${inputDate}`;
+    window.history.pushState({path: newUrl}, '', newUrl);
+}
+
+function changeProfileHandler() { 
+    changeTheme(); 
+    updateHistoryUI(); 
+    liveUpdateView(); 
+}
+
+// --- TIME SETTINGS STORAGE ---
+function saveTimeSettings() {
+    const settings = {
+        midnight: document.getElementById('timeMidnight').value,
+        siang: document.getElementById('timeSiang').value,
+        sore: document.getElementById('timeSore').value,
+        malam: document.getElementById('timeMalam').value
+    };
+    localStorage.setItem('schedulerTimeSettings', JSON.stringify(settings));
+    liveUpdateView(); 
+}
+function loadTimeSettings() {
+    const saved = localStorage.getItem('schedulerTimeSettings');
+    if (saved) {
+        const s = JSON.parse(saved);
+        if(s.midnight) document.getElementById('timeMidnight').value = s.midnight;
+        if(s.siang) document.getElementById('timeSiang').value = s.siang;
+        if(s.sore) document.getElementById('timeSore').value = s.sore;
+        if(s.malam) document.getElementById('timeMalam').value = s.malam;
+    }
+}
+
+// --- WHATSAPP FEATURE ---
+function sendToWhatsApp() {
+    if (!window.location.href.includes("seed=")) {
+        showToast("KLIK 'SYNC DATA' DULU!");
+        return;
+    }
+    const prof = document.getElementById("profileSelect").value;
+    const dateRange = document.getElementById("displayDate").innerText.replace("PERIODE: ", "");
+    const url = encodeURIComponent(window.location.href);
+    
+    let msg = `Halo Designer, ini jadwal *${prof}* untuk periode *${dateRange}*.\n\nSilakan diproses:\n${url}`;
+    
+    window.open(`https://wa.me/628988385486?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 // --- LOGIKA UTAMA ---
@@ -370,13 +455,34 @@ function toggleDesignerMode() {
     if (body.classList.contains("clean-mode")) {
         btn.innerHTML = '<i class="fas fa-paint-brush"></i> KEMBALI KE NEON';
         showToast("MODE DESIGNER: AKTIF");
+        document.addEventListener('mousemove', handleTooltip);
     } else {
         btn.innerHTML = '<i class="fas fa-eye"></i> MODE DESIGNER';
         showToast("MODE NEON: KEMBALI");
+        document.removeEventListener('mousemove', handleTooltip);
+        document.getElementById('hover-tooltip').style.display = 'none';
     }
 }
 
-// --- YOUTUBE LOGIC ---
+function handleTooltip(e) {
+    if (!document.body.classList.contains('clean-mode')) return;
+    const target = e.target.closest('.game-card');
+    const tooltip = document.getElementById('hover-tooltip');
+    const tooltipImg = document.getElementById('tooltip-img');
+    
+    if (target) {
+        const name = target.querySelector('.game-name').innerText;
+        if (gameImageMap[name]) {
+            tooltipImg.src = gameImageMap[name];
+            tooltip.style.display = 'block';
+            tooltip.style.top = (e.clientY + 15) + 'px';
+            tooltip.style.left = (e.clientX + 15) + 'px';
+        }
+    } else {
+        tooltip.style.display = 'none';
+    }
+}
+
 var player; var isPlaying = false;
 function onYouTubeIframeAPIReady() {
     const defaultVid = document.getElementById("musicSelect").value;
@@ -387,10 +493,7 @@ function onYouTubeIframeAPIReady() {
 }
 function changeMusic() {
     const vid = document.getElementById("musicSelect").value;
-    if (player) {
-        player.loadVideoById(vid);
-        if (isPlaying) player.playVideo(); else player.pauseVideo();
-    }
+    if (player) { player.loadVideoById(vid); if (isPlaying) player.playVideo(); else player.pauseVideo(); }
 }
 function toggleMusic() {
     const btn = document.getElementById('musicBtn');
@@ -398,7 +501,6 @@ function toggleMusic() {
     if (isPlaying) { player.pauseVideo(); btn.innerHTML = '<i class="fas fa-music"></i> MUSIC OFF'; btn.classList.remove('playing'); isPlaying = false; } 
     else { player.playVideo(); btn.innerHTML = '<i class="fas fa-volume-up"></i> MUSIC ON'; btn.classList.add('playing'); isPlaying = true; }
 }
-
 function showToast(msg) {
     const toast = document.getElementById("customToast");
     document.getElementById("toastMsg").innerText = msg;
@@ -460,7 +562,9 @@ function checkUrlParams() {
         currentSeed = Date.now();
         myRandom = Math.random;
         document.getElementById("startDateInput").valueAsDate = new Date();
+        loadTimeSettings(); 
         updateHistoryUI();
+        updateUrlState(); 
     }
 }
 
@@ -468,20 +572,13 @@ function initiateSync() {
     addToHistory(currentSeed);
     currentSeed = Date.now();
     myRandom = seedRandom(currentSeed); 
-    const profile = document.getElementById("profileSelect").value;
-    const inputDate = document.getElementById("startDateInput").value;
-    let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}`;
-    if(inputDate) newUrl += `&date=${inputDate}`;
-    window.history.pushState({path: newUrl}, '', newUrl);
+    updateUrlState();
     fetchDatabase();
 }
 
 function copyShareLink() {
     const url = window.location.href;
-    if (!url.includes("seed=")) {
-        showToast("KLIK 'SYNC DATA' DULU!");
-        return;
-    }
+    if (!url.includes("seed=")) { showToast("KLIK 'SYNC DATA' DULU!"); return; }
     navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! KIRIM KE DESIGNER"); });
 }
 
@@ -520,7 +617,6 @@ async function fetchDatabase() {
                 }
             }
         });
-
         generateJadwal();
         btn.disabled = false; btn.innerText = "SYNC DATA";
         if(isLocked) btn.disabled = true;
@@ -551,12 +647,9 @@ function getStrategy(prov) {
         badgeHtml = `<span class="badge" style="background:var(--primary); color:#000; margin-bottom:5px; display:inline-block;">${dcText}</span>`;
     }
 
-    let shuffledList = [...list]; 
-    shuffleArray(shuffledList);
+    let shuffledList = [...list]; shuffleArray(shuffledList);
     let selected = shuffledList.slice(0, 5);
-    
     let stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
-    // TEXT VERSION UNTUK COPY
     let stepsText = selected.map(s => `> ${s}`).join('\n');
     let fullText = `${dcText ? dcText + '\n' : ''}${stepsText}`;
 
@@ -606,11 +699,15 @@ function generateJadwal() {
     const dateInputStr = document.getElementById('startDateInput').value;
     let startDate = dateInputStr ? new Date(dateInputStr) : new Date();
     
-    let endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
+    let endDate = new Date(startDate); endDate.setDate(startDate.getDate() + 6);
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     const dateRangeStr = `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
     document.getElementById('displayDate').innerText = `PERIODE: ${dateRangeStr.toUpperCase()}`;
+
+    const tMid = document.getElementById('timeMidnight').value;
+    const tSiang = document.getElementById('timeSiang').value;
+    const tSore = document.getElementById('timeSore').value;
+    const tMalam = document.getElementById('timeMalam').value;
 
     const days = ["SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU","MINGGU"];
     uniqueCodePool = []; 
@@ -620,55 +717,46 @@ function generateJadwal() {
     let yesterday = [];
 
     days.forEach((day, dayIndex) => {
-        let currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + dayIndex);
+        let currentDate = new Date(startDate); currentDate.setDate(startDate.getDate() + dayIndex);
         let dateBadge = currentDate.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: '2-digit'});
 
         let todayGames = [];
         let dayData = { day: day, date: dateBadge, sessions: [] };
         
         const draw = (p, t) => { let res = pickGame(p, t, yesterday, todayGames); if (res.name !== "DATA KOSONG") todayGames.push(res.name); return res; }
-        const buildSession = (label, key, func, sessIndex) => {
+        const buildSession = (label, timeStr, key, func, sessIndex) => {
             let games = func();
             let depo = getDeposit(key);
-            dayData.sessions.push({ title: label, games: games.rawText, depo: depo });
+            dayData.sessions.push({ title: label, time: timeStr, games: games.rawText, depo: depo });
             
             return `
             <div class="session-box">
                 <button class="smart-copy-btn" onclick="copySession(${dayIndex}, ${sessIndex})" title="Copy FULL Data Sesi Ini"><i class="fas fa-copy"></i></button>
                 <div class="session-title">${label}</div>
+                <span class="session-time">${timeStr}</span>
                 ${games.html}${depo.html}
             </div>`;
         };
 
         html += `<div class="day-row"><span class="day-label">${day} <span class="date-badge">${dateBadge}</span></span><div class="session-grid">`;
-        html += buildSession("🌑 MIDNIGHT", "MIDNIGHT", () => {
+        html += buildSession("🌑 MIDNIGHT", tMid, "MIDNIGHT", () => {
             let p1=draw('Pragmatic','gold'), p2=draw('Pragmatic','silver'), p3=draw('Pragmatic','bronze');
             let pg1=draw('PGSoft','gold'), pg2=draw('PGSoft','silver'), stP=getStrategy('Pragmatic'), stPg=getStrategy('PGSoft');
-            
-            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n${p2.name}\n${p3.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
-            rawTxt += `--- PG SOFT ---\n${pg1.name}\n${pg2.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
-            
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n${p2.name}\n${p3.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n--- PG SOFT ---\n${pg1.name}\n${pg2.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
             return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${p2.html}${p3.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${pg2.html}${stPg.html}`, rawText: rawTxt };
         }, 0);
-        html += buildSession("☀️ SIANG", "SIANG", () => {
+        html += buildSession("☀️ SIANG", tSiang, "SIANG", () => {
             let p1=draw('Pragmatic','gold'), p2=draw('Pragmatic','silver'), pg1=draw('PGSoft','gold'), pg2=draw('PGSoft','bronze');
             let stP=getStrategy('Pragmatic'), stPg=getStrategy('PGSoft');
-
-            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n${p2.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
-            rawTxt += `--- PG SOFT ---\n${pg1.name}\n${pg2.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
-
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n${p2.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n--- PG SOFT ---\n${pg1.name}\n${pg2.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
             return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${p2.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${pg2.html}${stPg.html}`, rawText: rawTxt };
         }, 1);
-        html += buildSession("🌇 SORE", "SORE", () => {
+        html += buildSession("🌇 SORE", tSore, "SORE", () => {
             let p1=draw('Pragmatic','gold'), pg1=draw('PGSoft','gold'), stP=getStrategy('Pragmatic'), stPg=getStrategy('PGSoft');
-
-            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
-            rawTxt += `--- PG SOFT ---\n${pg1.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
-
+            let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n\nPOLA PRAGMATIC:\n${stP.text}\n\n--- PG SOFT ---\n${pg1.name}\n\nPOLA PG SOFT:\n${stPg.text}`;
             return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${stP.html}<div class="provider-label">PG SOFT</div>${pg1.html}${stPg.html}`, rawText: rawTxt };
         }, 2);
-        html += buildSession("🌙 MALAM", "MALAM", () => {
+        html += buildSession("🌙 MALAM", tMalam, "MALAM", () => {
             let p1=draw('Pragmatic','gold'), stP=getStrategy('Pragmatic');
             let rawTxt = `--- PRAGMATIC PLAY ---\n${p1.name}\n\nPOLA PRAGMATIC:\n${stP.text}`;
             return { html: `<div class="provider-label">PRAGMATIC</div>${p1.html}${stP.html}`, rawText: rawTxt };
@@ -690,7 +778,7 @@ function copySession(dayIndex, sessIndex) {
     
     let txt = `=================================\n`;
     txt += `HARI: ${dayName}, ${dateStr}\n`;
-    txt += `SESI: ${data.title}\n`;
+    txt += `SESI: ${data.title} (${data.time})\n`;
     txt += `=================================\n\n`;
     txt += `${data.games}\n\n`;
     txt += `---------------------------------\n`;
@@ -698,9 +786,7 @@ function copySession(dayIndex, sessIndex) {
     txt += `---------------------------------\n`;
     txt += `LIST DEPOSIT:\n${data.depo.text}`;
     
-    navigator.clipboard.writeText(txt).then(() => {
-        showToast(`COPIED FULL: ${dayName} ${data.title}`);
-    });
+    navigator.clipboard.writeText(txt).then(() => { showToast(`COPIED FULL: ${dayName} ${data.title}`); });
 }
 
 function copyText() {
@@ -710,7 +796,7 @@ function copyText() {
     globalMemory.forEach(d => {
         txt += `\n[ ${d.day}, ${d.date} ]\n`;
         d.sessions.forEach(s => { 
-            txt += `\n>>> ${s.title} <<<\n`;
+            txt += `\n>>> ${s.title} (${s.time}) <<<\n`;
             txt += `${s.games}\n`;
             txt += `EKOR: ${s.depo.code}\n`;
             txt += `\n${s.depo.text}`;
@@ -743,10 +829,7 @@ function resize() { w = window.innerWidth; h = window.innerHeight; bgCanvas.widt
 function spawnCursorTrail() { for(let i=0; i<2; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentPrimaryColor, s: Math.random()*3+1 }); }
 
 function loopVisuals() {
-    if (document.body.classList.contains('clean-mode')) {
-        requestAnimationFrame(loopVisuals);
-        return;
-    }
+    if (document.body.classList.contains('clean-mode')) { requestAnimationFrame(loopVisuals); return; }
     bgCtx.fillStyle = currentNebulaColors[0]; bgCtx.fillRect(0,0,w,h);
     nebulaLayers.forEach(l => {
         l.x+=l.vx; l.y+=l.vy; if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;

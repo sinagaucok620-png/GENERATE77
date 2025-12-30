@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Scheduler v16.4 - Date Range Auto</title>
+    <title>Platform Scheduler v16.5 - Clean Layout</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -44,42 +44,38 @@
             transition: all 0.3s ease;
         }
 
-        .header-area { text-align: center; margin-bottom: 30px; }
+        /* HEADER & DATE LAYOUT */
+        .header-area { 
+            text-align: center; margin-bottom: 30px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 20px;
+        }
         .header-area h2 { 
-            color: var(--primary); margin: 0; font-size: 48px; font-weight: 800; 
+            color: var(--primary); margin: 0 0 20px 0; font-size: 48px; font-weight: 800; 
             letter-spacing: 5px; text-transform: uppercase;
             text-shadow: 0 0 20px var(--primary);
         }
+        
+        /* DATE WRAPPER DI HEADER */
+        .date-range-wrapper {
+            display: inline-flex; align-items: flex-end; gap: 15px;
+            background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 12px;
+            border: 1px solid var(--glass-border); margin-bottom: 10px;
+        }
+        .date-input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+        .date-input-group label { font-size: 11px; color: var(--primary); font-weight: bold; letter-spacing: 1px; }
+        .arrow-separator { font-size: 24px; color: #fff; padding-bottom: 8px; opacity: 0.5; }
+
         #displayDate { 
-            color: #aaa; font-size: 14px; margin-top: 10px; font-weight: 700; letter-spacing: 3px; 
+            color: #aaa; font-size: 12px; margin-top: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
         }
 
+        /* CONTROLS (TOMBOL AKSI) */
         .controls { 
-            display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; 
-            background: rgba(0,0,0,0.4); padding: 25px; border-radius: 15px; margin-bottom: 20px;
+            display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; 
+            background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-bottom: 20px;
             border: 1px solid var(--glass-border);
         }
-
-        /* NEW DATE RANGE STYLE */
-        .date-range-wrapper {
-            display: flex; align-items: flex-end; gap: 10px;
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .date-input-group { display: flex; flex-direction: column; gap: 5px; }
-        .date-input-group label { font-size: 10px; color: var(--primary); font-weight: bold; letter-spacing: 1px; }
-        .arrow-separator { font-size: 20px; color: #555; padding-bottom: 10px; }
-
-        input, select { 
-            background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); 
-            padding: 12px 15px; border-radius: 8px; font-size: 14px; outline: none; 
-            font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer;
-        }
-        input:focus, select:focus { border-color: var(--primary); background: #000; }
-        input[type="date"] { text-transform: uppercase; color-scheme: dark; }
-        
-        /* Readonly input style */
-        input[readonly] { background: rgba(255,255,255,0.05); color: #888; border-color: transparent; cursor: default; }
 
         .time-settings {
             background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;
@@ -91,6 +87,15 @@
         .time-group label { display: block; font-size: 10px; color: #aaa; margin-bottom: 3px; }
         .time-group input { width: 90%; font-size: 12px; padding: 8px; }
 
+        input, select { 
+            background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
+            padding: 12px 20px; border-radius: 8px; font-size: 14px; outline: none; 
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer;
+        }
+        input:focus, select:focus { border-color: var(--primary); background: #000; }
+        input[type="date"] { text-transform: uppercase; color-scheme: dark; }
+        input[readonly] { background: rgba(0,0,0,0.3); color: #aaa; border-color: transparent; cursor: default; }
+
         #historySelect, #musicSelect {
             max-width: 150px;
             border-color: rgba(255, 255, 255, 0.3);
@@ -101,7 +106,7 @@
 
         button { 
             background: var(--primary); color: #000; border: none; 
-            padding: 12px 30px; cursor: pointer; border-radius: 8px; font-weight: 800; 
+            padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: 800; 
             text-transform: uppercase; font-size: 14px; transition: 0.3s;
             position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px;
         }
@@ -198,7 +203,7 @@
         .close-modal { position: absolute; top: 20px; right: 20px; color: #fff; background: none; border: none; font-size: 24px; cursor: pointer; }
 
         @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { .container{padding:20px;} .session-grid { grid-template-columns: 1fr; } .time-inputs{ grid-template-columns: 1fr; }}
+        @media (max-width: 700px) { .container{padding:20px;} .session-grid { grid-template-columns: 1fr; } .time-inputs{ grid-template-columns: 1fr; } .date-range-wrapper{flex-wrap: wrap; justify-content: center;} }
 
         body.clean-mode { background: #f4f6f8 !important; color: #222 !important; cursor: default; }
         body.clean-mode #nebula-canvas, body.clean-mode #cursor-canvas, body.clean-mode #particle-canvas { display: none !important; }
@@ -248,8 +253,21 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V16.4</h2>
-        <div id="displayDate">AUTO RANGE EDITION</div>
+        <h2>PLATFORM SCHEDULER V16.5</h2>
+        
+        <div class="date-range-wrapper">
+            <div class="date-input-group">
+                <label>DARI TANGGAL</label>
+                <input type="date" id="startDateInput" onchange="updateEndDate(); liveUpdateView()">
+            </div>
+            <div class="arrow-separator">➡</div>
+            <div class="date-input-group">
+                <label>SAMPAI TANGGAL</label>
+                <input type="text" id="endDateDisplay" readonly placeholder="Otomatis...">
+            </div>
+        </div>
+
+        <div id="displayDate">READY TO SYNC</div>
     </div>
     
     <details class="time-settings" id="timeSettings">
@@ -263,18 +281,6 @@
     </details>
 
     <div class="controls">
-        <div class="date-range-wrapper">
-            <div class="date-input-group">
-                <label>DARI TANGGAL (HARI KE-1)</label>
-                <input type="date" id="startDateInput" onchange="updateEndDate(); liveUpdateView()">
-            </div>
-            <div class="arrow-separator">➡</div>
-            <div class="date-input-group">
-                <label>SAMPAI TANGGAL (HARI KE-7)</label>
-                <input type="text" id="endDateDisplay" readonly placeholder="Otomatis...">
-            </div>
-        </div>
-
         <select id="profileSelect" onchange="changeProfileHandler()">
             <option value="CAPTAIN77">CAPTAIN77</option>
             <option value="PLAY77">PLAY77</option>
@@ -354,12 +360,10 @@ function updateEndDate() {
     const startVal = document.getElementById("startDateInput").value;
     if (!startVal) return;
     
-    // Hitung tanggal akhir (+6 hari)
     const startDate = new Date(startVal);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
     
-    // Format Tampilan: 7 JAN 2025
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     document.getElementById("endDateDisplay").value = endDate.toLocaleDateString('id-ID', options).toUpperCase();
 }
@@ -401,7 +405,6 @@ function loadFromHistory() {
 
 // --- LIVE SYNC LOGIC ---
 function liveUpdateView() {
-    // RESET PENTING: Kembalikan pengocok ke awal agar game tidak berubah saat ganti tanggal
     myRandom = seedRandom(currentSeed); 
     updateUrlState();
     generateJadwal(); 
@@ -589,7 +592,7 @@ function checkUrlParams() {
         document.getElementById("profileSelect").value = profile;
         if(dateParam) {
             document.getElementById("startDateInput").value = dateParam;
-            updateEndDate(); // Kalkulasi tanggal akhir
+            updateEndDate(); 
         }
         changeProfileHandler(); 
         fetchDatabase();
@@ -597,7 +600,7 @@ function checkUrlParams() {
         currentSeed = Date.now();
         myRandom = Math.random;
         document.getElementById("startDateInput").valueAsDate = new Date();
-        updateEndDate(); // Kalkulasi tanggal akhir default
+        updateEndDate(); 
         loadTimeSettings(); 
         updateHistoryUI();
         updateUrlState(); 
@@ -654,9 +657,7 @@ async function fetchDatabase() {
             }
         });
         
-        // FIX KRUSIAL: RESET RNG SEBELUM GENERATE
         myRandom = seedRandom(currentSeed); 
-        
         generateJadwal();
         btn.disabled = false; btn.innerText = "SYNC DATA";
         if(isLocked) btn.disabled = true;
@@ -744,7 +745,6 @@ function generateJadwal() {
     const dateRangeStr = `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
     document.getElementById('displayDate').innerText = `PERIODE: ${dateRangeStr.toUpperCase()}`;
 
-    // AMBIL WAKTU DARI INPUT
     const tMid = document.getElementById('timeMidnight').value;
     const tSiang = document.getElementById('timeSiang').value;
     const tSore = document.getElementById('timeSore').value;

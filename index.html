@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Scheduler v16.5 - Clean Layout</title>
+    <title>Platform Scheduler v16.6 - Fixed Tail</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -253,7 +253,7 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V16.5</h2>
+        <h2>PLATFORM SCHEDULER V16.6</h2>
         
         <div class="date-range-wrapper">
             <div class="date-input-group">
@@ -668,13 +668,21 @@ async function fetchDatabase() {
     }
 }
 
+// === FIX: HANYA GUNAKAN KODE 3 DIGIT AGAR KONSISTEN ===
 function getUniqueCode() {
     if (uniqueCodePool.length === 0) {
-        uniqueCodePool = [500,1000,1500,2000,2500,3000,3500,4000,4500,5000,111,222,333,555,777,888,999,123,234,345,600,700,800,900];
+        // Hapus kode 4 digit (1000, 1500, dst) agar ekor selalu 3 digit dan rapi
+        uniqueCodePool = [
+            111, 222, 333, 444, 555, 666, 777, 888, 999, 
+            123, 234, 345, 456, 567, 678, 789, 
+            101, 202, 303, 404, 505, 606, 707, 808, 909,
+            500, 600, 700, 800, 900
+        ];
         shuffleArray(uniqueCodePool);
     }
     return uniqueCodePool.pop();
 }
+// === END FIX ===
 
 function getStrategy(prov) {
     let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
@@ -705,12 +713,26 @@ function getDeposit(sess) {
     let html = `<div class="depo-container"><div class="depo-header">KODE JITU EKOR: ${tail}</div>`;
     let text = "";
 
+    const processValue = (rawStr) => {
+        if (!rawStr) return 0;
+        let cleanStr = rawStr.toString().replace(/\D/g, ''); 
+        let num = parseInt(cleanStr) || 0;
+        return (Math.floor(num / 1000) * 1000) + tail;
+    };
+
     data.forEach((item, i) => {
         let parts = item.range.split('-');
         let meta = item.info.split('|');
         let bonus = meta[0] || "UNK";
         let rate = meta[1] || "90%";
-        let nominal = parts.length === 2 ? `DEPO Rp ${(parseInt(parts[0])+tail).toLocaleString()} - Rp ${(parseInt(parts[1])+tail).toLocaleString()}` : `SPECIAL DEPO Rp ${(parseInt(parts[0])+tail).toLocaleString()}`;
+        
+        let minVal = processValue(parts[0]);
+        let maxVal = parts.length === 2 ? processValue(parts[1]) : 0;
+
+        let nominal = parts.length === 2 
+            ? `DEPO Rp ${minVal.toLocaleString()} - Rp ${maxVal.toLocaleString()}` 
+            : `SPECIAL DEPO Rp ${minVal.toLocaleString()}`;
+            
         html += `<div class="depo-item"><span class="depo-info">${i+1}. ${nominal}</span><div class="depo-meta"><span class="tag-bonus">BONUS ${bonus}</span><span class="tag-rate">RATE ${rate}</span></div></div>`;
         text += `${i+1}. ${nominal} (Bonus ${bonus} | Rate ${rate})\n`;
     });

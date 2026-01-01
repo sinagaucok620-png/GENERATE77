@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Scheduler v17.4 - Smart Performance</title>
+    <title>Platform Scheduler v18.1 - Final Fixed</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,13 +11,15 @@
     <style>
         :root {
             --primary: #00f2ff;
-            --glass-bg: rgba(15, 20, 30, 0.85);
+            --glass-bg: rgba(15, 20, 30, 0.90);
             --glass-border: rgba(255, 255, 255, 0.15);
             --win-green: #00ff88;
             --warn-yellow: #ffd700;
             --danger-red: #ff3e3e;
             --wa-green: #25D366;
         }
+
+        * { box-sizing: border-box; } 
 
         body { 
             font-family: 'Rajdhani', sans-serif; 
@@ -44,7 +46,6 @@
             transition: all 0.3s ease;
         }
 
-        /* HEADER & DATE LAYOUT */
         .header-area { 
             text-align: center; margin-bottom: 30px; 
             border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -69,7 +70,6 @@
             color: #aaa; font-size: 12px; margin-top: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
         }
 
-        /* CONTROLS (TOMBOL AKSI) */
         .controls { 
             display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; 
             background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-bottom: 20px;
@@ -95,7 +95,7 @@
         input[type="date"] { text-transform: uppercase; color-scheme: dark; }
         input[readonly] { background: rgba(0,0,0,0.3); color: #aaa; border-color: transparent; cursor: default; }
 
-        #historySelect, #musicSelect {
+        #musicSelect {
             max-width: 200px;
             border-color: rgba(255, 255, 255, 0.3);
             background: rgba(0, 0, 0, 0.5);
@@ -107,7 +107,7 @@
             background: var(--primary); color: #000; border: none; 
             padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: 800; 
             text-transform: uppercase; font-size: 14px; transition: 0.3s;
-            position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px;
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
         button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
@@ -115,46 +115,29 @@
         #musicBtn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
         #musicBtn.playing { background: var(--win-green); color: #000; border-color: transparent; box-shadow: 0 0 20px var(--win-green); }
 
-        #lockBtn { padding: 12px 15px; width: 50px; display: flex; justify-content: center; background: rgba(255,255,255,0.1); color: #fff; }
+        #lockBtn { padding: 12px 15px; width: 50px; background: rgba(255,255,255,0.1); color: #fff; }
         #lockBtn.locked { background: var(--danger-red); }
 
         #shareBtn { background: #6c5ce7; color: #fff; }
         #shareBtn:hover { box-shadow: 0 0 15px #6c5ce7; }
-        
         #waBtn { background: var(--wa-green); color: #fff; }
         #waBtn:hover { box-shadow: 0 0 15px var(--wa-green); }
-
         #designerBtn { background: #fff; color: #000; border: 1px solid #999; }
         #designerBtn:hover { box-shadow: 0 0 15px #fff; }
+        #dbBtn { background: #ff9f43; color: #000; }
+        #dbBtn:hover { box-shadow: 0 0 15px #ff9f43; }
 
         .btn-copy { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; }
         .btn-save { background: #10b981 !important; color: #fff !important; }
 
-        /* --- DAY ROW & TOGGLE STYLE --- */
+        /* DAY & SESSION STYLES */
         .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; transition: all 0.3s; }
-        
-        .day-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 15px;
-        }
-        
-        .day-label { 
-            font-size: 28px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-
-        .minimize-day-btn {
-            background: rgba(255,255,255,0.1); color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
-            width: 35px; height: 35px; border-radius: 8px;
-            cursor: pointer; display: flex; justify-content: center; align-items: center;
-            transition: 0.3s;
-        }
+        .day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 15px; }
+        .day-label { font-size: 28px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .minimize-day-btn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
         .minimize-day-btn:hover { background: var(--primary); color: #000; }
-
         .day-row.collapsed .session-grid { display: none; }
         .day-row.collapsed { margin-bottom: 10px; border: none; padding-top: 10px; opacity: 0.6; }
-
         .date-badge { font-size: 16px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
         
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; animation: fadeIn 0.5s; }
@@ -163,56 +146,24 @@
         .session-box { 
             background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; 
             border: 1px solid rgba(255,255,255,0.05); height: 100%; 
-            transition: 0.3s; position: relative;
-            display: flex; flex-direction: column;
-            overflow: hidden;
+            transition: 0.3s; position: relative; display: flex; flex-direction: column; overflow: hidden;
         }
         .session-box:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        /* ACTIVE PULSE EFFECT (NEW) */
-        .session-box.active-now {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-            animation: pulseBorder 2s infinite;
-        }
-        @keyframes pulseBorder {
-            0% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); }
-            50% { box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
-            100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); }
-        }
+        .session-box.active-now { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); animation: pulseBorder 2s infinite; }
+        @keyframes pulseBorder { 0% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); } 50% { box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); } 100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); } }
 
-        .session-header {
-            display: flex; flex-direction: column; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-            padding-bottom: 10px; margin-bottom: 10px;
-            position: relative;
-        }
-
+        .session-header { display: flex; flex-direction: column; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; position: relative; }
         .action-container { position: absolute; top: 0; right: 0; display: flex; gap: 5px; }
-        .action-btn {
-            background: rgba(0,0,0,0.5); color: #aaa;
-            border: 1px solid rgba(255,255,255,0.2);
-            width: 25px; height: 25px; padding: 0;
-            border-radius: 6px; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.2s; font-size: 10px;
-        }
+        .action-btn { background: rgba(0,0,0,0.5); color: #aaa; border: 1px solid rgba(255,255,255,0.2); width: 28px; height: 28px; padding: 0; border-radius: 6px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; font-size: 11px; }
         .action-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
-        .minimize-btn { font-size: 12px; }
-
         .session-content { transition: all 0.3s ease; opacity: 1; max-height: 2000px; }
         .session-box.collapsed .session-content { opacity: 0; max-height: 0; margin: 0; padding: 0; overflow: hidden; }
         .session-box.collapsed { height: auto; min-height: 80px; }
-        .session-box.collapsed:hover { transform: none; }
-
         .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 5px; text-transform: uppercase; }
         .session-time { font-size: 11px; color: #aaa; display: block; margin-bottom: 5px; font-family: monospace; }
         .provider-label { font-size: 10px; color: #888; font-weight: 700; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .game-card { 
-            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; 
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent;
-            transition: 0.2s; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05);
-        }
+        .game-card { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; transition: 0.2s; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05); }
         .game-card:hover { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 15px var(--primary); }
         .game-card:hover .game-name { color: #000; text-shadow: none; }
         .game-name { font-size: 12px; font-weight: 700; color: #ddd; }
@@ -233,28 +184,42 @@
         .toast { background: rgba(10, 10, 10, 0.95); border: 2px solid var(--primary); color: var(--primary); padding: 15px 40px; border-radius: 50px; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 0 50px var(--primary); opacity: 0; transform: translateY(20px); transition: all 0.4s; display: flex; align-items: center; gap: 12px; }
         .toast.show { opacity: 1; transform: translateY(0); }
 
-        #hover-tooltip {
-            position: fixed; display: none; z-index: 10000;
-            background: #000; border: 2px solid var(--primary);
-            border-radius: 10px; padding: 5px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            pointer-events: none; 
-            max-width: 200px;
-        }
+        #hover-tooltip { position: fixed; display: none; z-index: 10000; background: #000; border: 2px solid var(--primary); border-radius: 10px; padding: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.8); pointer-events: none; max-width: 200px; }
         #hover-tooltip img { width: 100%; border-radius: 5px; }
 
+        /* --- MODAL STYLE --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #111; padding: 20px; border: 1px solid var(--primary); border-radius: 15px; max-width: 400px; text-align: center; box-shadow: 0 0 30px var(--primary); }
+        .modal-content { background: #111; padding: 25px; border: 1px solid var(--primary); border-radius: 15px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 0 30px var(--primary); position: relative; }
         .modal-content img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
-        .close-modal { position: absolute; top: 20px; right: 20px; color: #fff; background: none; border: none; font-size: 24px; cursor: pointer; }
+        .close-modal { position: absolute; top: 15px; right: 15px; color: #fff; background: none; border: 1px solid rgba(255,255,255,0.2); width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .close-modal:hover { background: var(--danger-red); border-color: var(--danger-red); }
+        .modal-title { font-size: 18px; color: #fff; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        /* DATABASE TABLE STYLE FIXED */
+        .db-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+        .db-search { flex: 1; background: #222; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; }
+        .db-table-container { max-height: 300px; overflow-y: auto; text-align: left; }
+        .db-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .db-table th { position: sticky; top: 0; background: #000; color: var(--primary); padding: 10px; border-bottom: 2px solid var(--primary); text-transform: uppercase; text-align: left; }
+        .db-table td { padding: 8px 10px; border-bottom: 1px solid #333; color: #ccc; vertical-align: middle; }
+        .db-table tr:hover { background: rgba(255,255,255,0.05); }
+        
+        .db-action-group { display: flex; gap: 8px; align-items: center; justify-content: flex-start; }
+        .btn-db-action { border: none; padding: 0 12px; height: 32px; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-db-load { background: rgba(0, 255, 136, 0.1); border: 1px solid var(--win-green); color: var(--win-green); }
+        .btn-db-load:hover { background: var(--win-green); color: #000; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .btn-db-del { background: rgba(255, 62, 62, 0.1); border: 1px solid var(--danger-red); color: var(--danger-red); min-width: 32px; padding: 0; }
+        .btn-db-del:hover { background: var(--danger-red); color: #fff; box-shadow: 0 0 15px rgba(255, 62, 62, 0.4); }
+        .btn-csv { background: #10b981; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 6px; margin-top: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-csv:hover { box-shadow: 0 0 15px #10b981; }
 
-        /* --- STYLE FOR SCANNING EFFECT --- */
-        #scanOverlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); z-index: 20000;
-            justify-content: center; align-items: center;
-            backdrop-filter: blur(10px);
-        }
+        .preview-date { font-size: 14px; color: var(--warn-yellow); font-weight: 800; margin-bottom: 15px; }
+        .preview-textarea { width: 100%; height: 300px; background: #000; color: var(--primary); border: 1px solid #333; border-radius: 8px; padding: 15px; font-family: 'Courier New', monospace; font-size: 11px; resize: none; margin-bottom: 15px; }
+        .preview-textarea:focus { outline: none; border-color: var(--primary); }
+        .btn-action-copy { background: var(--primary); color: #000; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 14px; }
+
+        /* SCANNING */
+        #scanOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .scan-content { text-align: center; width: 300px; font-family: 'Courier New', monospace; }
         .scan-icon { font-size: 50px; color: var(--primary); margin-bottom: 20px; text-shadow: 0 0 20px var(--primary); }
         .scan-text { color: #fff; font-size: 18px; font-weight: bold; margin-bottom: 10px; letter-spacing: 2px; }
@@ -263,13 +228,7 @@
         .scan-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.1s linear; }
 
         @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { 
-            .container{ padding:15px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); } 
-            .session-grid { grid-template-columns: 1fr; } 
-            .time-inputs{ grid-template-columns: 1fr; } 
-            .date-range-wrapper{flex-wrap: wrap; justify-content: center;} 
-            .header-area h2 { font-size: 32px; }
-        }
+        @media (max-width: 700px) { .container{padding:15px;} .session-grid { grid-template-columns: 1fr; } .time-inputs{ grid-template-columns: 1fr; } .date-range-wrapper{flex-wrap: wrap; justify-content: center;} .header-area h2 { font-size: 32px; } }
 
         body.clean-mode { background: #f4f6f8 !important; color: #222 !important; cursor: default; }
         body.clean-mode #nebula-canvas, body.clean-mode #cursor-canvas, body.clean-mode #particle-canvas { display: none !important; }
@@ -280,7 +239,7 @@
         body.clean-mode .time-settings summary { color: #333; }
         body.clean-mode .time-group label { color: #555; }
         body.clean-mode .time-group input { background: #fff; color: #000; border: 1px solid #ccc; }
-        body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #waBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+        body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #waBtn, body.clean-mode #dbBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
         body.clean-mode .minimize-day-btn { background: #ccc; color: #000; border-color: #999; }
         body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
@@ -297,6 +256,11 @@
         body.clean-mode .depo-info { color: #222; font-family: monospace; font-size: 12px; font-weight: bold; }
         body.clean-mode .badge { background: #eee !important; color: #000 !important; border: 1px solid #ccc; }
         body.clean-mode #designerBtn { background: #000; color: #fff; border-color: #000; }
+        body.clean-mode .preview-textarea { background: #fff; color: #000; border-color: #ccc; }
+        body.clean-mode .db-table th { background: #eee; color: #000; border-bottom: 2px solid #ccc; }
+        body.clean-mode .db-table td { color: #000; border-bottom: 1px solid #ccc; }
+        body.clean-mode .btn-db-load { background: #fff; border: 1px solid #ccc; color: #333; }
+        body.clean-mode .btn-db-del { background: #fff; border: 1px solid #ffcccc; color: red; }
     </style>
 </head>
 <body>
@@ -319,7 +283,7 @@
 <div class="toast-container"><div id="customToast" class="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">ACTION SUCCESSFUL</span></div></div>
 <div id="hover-tooltip"><img id="tooltip-img" src="" alt=""></div>
 
-<div id="youtube-player" style="display: none;"></div>
+<audio id="bgMusic" loop style="display:none;"></audio>
 
 <div id="gameModal" class="modal" onclick="document.getElementById('gameModal').style.display='none'">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -329,9 +293,48 @@
     </div>
 </div>
 
+<div id="dbModal" class="modal" onclick="document.getElementById('dbModal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()" style="width: 800px; max-width: 95%;">
+        <button class="close-modal" onclick="document.getElementById('dbModal').style.display='none'"><i class="fas fa-times"></i></button>
+        <div class="modal-title"><i class="fas fa-database"></i> RIWAYAT SEED (CART)</div>
+        
+        <div class="db-controls">
+            <input type="text" id="dbSearch" class="db-search" placeholder="Cari Web / Tanggal..." onkeyup="renderDatabase()">
+            <select id="dbFilter" class="db-search" onchange="renderDatabase()">
+                <option value="">SEMUA WEB</option>
+                <option value="CAPTAIN77">CAPTAIN77</option>
+                <option value="PLAY77">PLAY77</option>
+                <option value="JAGUAR77">JAGUAR77</option>
+                <option value="FUN77">FUN77</option>
+                <option value="INDOPEDIA77">INDOPEDIA77</option>
+                <option value="INDOFUN17">INDOFUN17</option>
+                <option value="HOLYPLAY17">HOLYPLAY17</option>
+                <option value="MUSTANG77">MUSTANG77</option>
+            </select>
+        </div>
+
+        <div class="db-table-container">
+            <table class="db-table" id="dbTableBody">
+                </table>
+        </div>
+        
+        <button class="btn-csv" onclick="exportDatabaseToCSV()"><i class="fas fa-file-csv"></i> DOWNLOAD CSV (UNTUK GOOGLE SHEETS)</button>
+    </div>
+</div>
+
+<div id="resultModal" class="modal" onclick="document.getElementById('resultModal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="close-modal" onclick="document.getElementById('resultModal').style.display='none'"><i class="fas fa-times"></i></button>
+        <div class="modal-title"><i class="fas fa-clipboard-list"></i> PREVIEW JADWAL</div>
+        <div id="modalDateRange" class="preview-date">BERLAKU: -</div>
+        <textarea id="resultText" class="preview-textarea" readonly></textarea>
+        <button class="btn-action-copy" onclick="finalCopy()"><i class="fas fa-copy"></i> SALIN SEMUA TEKS</button>
+    </div>
+</div>
+
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V17.4</h2>
+        <h2>PLATFORM SCHEDULER V18.1</h2>
         
         <div class="date-range-wrapper">
             <div class="date-input-group">
@@ -373,21 +376,15 @@
         <button id="lockBtn" onclick="toggleLock()" title="Kunci Tombol Sync"><i class="fas fa-unlock"></i></button>
         <button id="genBtn" onclick="initiateSync()">SYNC DATA</button>
         
-        <select id="historySelect" onchange="loadFromHistory()">
-            <option value="">⏳ RIWAYAT</option>
-        </select>
+        <button id="dbBtn" onclick="openDatabaseModal()"><i class="fas fa-database"></i> DATABASE SEED</button>
         
         <button id="musicBtn" onclick="toggleMusic()"><i class="fas fa-music"></i> MUSIC OFF</button>
         <select id="musicSelect" onchange="changeMusic()">
-            <option value="1144186596">DJ TIKTOK VIRAL</option>
-            <option value="9j2kZ9t6g3M">DJ RUNT AH (REMIX)</option>
-            <option value="k3Xk_3W0f6I">MAHALINI - SIAL</option>
-            <option value="7T4m2b8m8b0">DENNY CAKNAN KOPLO</option>
-            <option value="7a8j_3g4b5c">BERNADYA GALAU</option>
-            <option value="d6x5y3z1a0b">DEWA 19 BEST</option>
-            <option value="gCWaRhNUvfc">GAMING (NCS)</option>
-            <option value="2OEL4P1Rz04">JAZZ CAFE</option>
-            <option value="3l0k6wQ6e6k">PHONK</option>
+            <option value="https://stream.zeno.fm/wc3040338q5tv">RADIO HITS INDONESIA</option>
+            <option value="https://stream.zeno.fm/0r0xa792kwzuv">LOFI HIPHOP (FOKUS)</option>
+            <option value="https://stream.zeno.fm/f3wvbbqmdg8uv">GAMING TRAP</option>
+            <option value="https://stream.zeno.fm/kp051187768uv">CYBERPUNK AMBIENT</option>
+            <option value="https://stream.zeno.fm/20m06v32n18uv">CAFE JAZZ RELAX</option>
         </select>
 
         <button id="waBtn" onclick="sendToWhatsApp()" title="Kirim ke Designer (+628988385486)">
@@ -399,17 +396,16 @@
             <i class="fas fa-eye"></i> MODE DESIGNER
         </button>
 
-        <button id="copyBtn" class="btn-copy" style="display:none" onclick="copyText()">COPY ALL</button>
+        <button id="copyBtn" class="btn-copy" style="display:none" onclick="openPreviewAll()"><i class="fas fa-clipboard"></i> PREVIEW & COPY</button>
         <button id="saveBtn" class="btn-save" style="display:none" onclick="downloadPNG()">EXPORT PNG</button>
     </div>
 
     <div id="capture-area"><div id="hasil"></div></div>
 </div>
-
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// --- ALGORITMA RNG MULBERRY32 (ANTI-ERROR BEDA PERANGKAT) ---
+// --- ALGORITMA RNG MULBERRY32 ---
 let currentSeed = Date.now(); 
 
 function mulberry32(a) {
@@ -421,7 +417,6 @@ function mulberry32(a) {
     }
 }
 
-// Wrapper untuk kompabilitas
 function seedRandom(seed) {
     return mulberry32(seed);
 }
@@ -438,55 +433,111 @@ function shuffleArray(array) {
     return array;
 }
 
-// --- LOGIKA TANGGAL RANGE BARU ---
+// --- DATABASE & HISTORY SYSTEM (LOCAL STORAGE) ---
+function saveSeedToStorage(profile, seed, dateStart) {
+    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
+    const exists = db.some(item => item.seed === seed && item.profile === profile);
+    if(exists) return;
+
+    const newItem = {
+        id: Date.now(),
+        profile: profile,
+        seed: seed,
+        dateStart: dateStart,
+        timestamp: new Date().toLocaleString('id-ID')
+    };
+    
+    db.unshift(newItem);
+    if(db.length > 100) db.pop();
+    
+    localStorage.setItem('schedulerDB', JSON.stringify(db));
+}
+
+function openDatabaseModal() {
+    renderDatabase();
+    document.getElementById('dbModal').style.display = 'flex';
+}
+
+function renderDatabase() {
+    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
+    const tableBody = document.getElementById('dbTableBody');
+    const searchVal = document.getElementById('dbSearch').value.toLowerCase();
+    const filterVal = document.getElementById('dbFilter').value;
+
+    let html = `<thead><tr><th>WEB</th><th>TANGGAL BERLAKU</th><th>WAKTU GENERATE</th><th style="width: 100px; text-align:center;">AKSI</th></tr></thead><tbody>`;
+    
+    const filtered = db.filter(item => {
+        const matchSearch = item.profile.toLowerCase().includes(searchVal) || item.dateStart.toLowerCase().includes(searchVal);
+        const matchFilter = filterVal === "" || item.profile === filterVal;
+        return matchSearch && matchFilter;
+    });
+
+    if(filtered.length === 0) {
+        html += `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #666;">BELUM ADA DATA</td></tr>`;
+    } else {
+        filtered.forEach(item => {
+            html += `
+            <tr>
+                <td style="color:var(--primary); font-weight:bold;">${item.profile}</td>
+                <td>${item.dateStart}</td>
+                <td>${item.timestamp}</td>
+                <td>
+                    <div class="db-action-group">
+                        <button class="btn-db-action btn-db-load" onclick="loadFromDatabase(${item.seed}, '${item.profile}', '${item.dateStart}')"><i class="fas fa-upload"></i> LOAD</button>
+                        <button class="btn-db-action btn-db-del" onclick="deleteFromDatabase(${item.id})"><i class="fas fa-times"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+    }
+    html += `</tbody>`;
+    tableBody.innerHTML = html;
+}
+
+function loadFromDatabase(seed, profile, dateStart) {
+    currentSeed = parseInt(seed);
+    myRandom = seedRandom(currentSeed);
+    document.getElementById("profileSelect").value = profile;
+    document.getElementById("startDateInput").value = dateStart;
+    updateEndDate();
+    changeTheme();
+    updateUrlState();
+    document.getElementById('dbModal').style.display = 'none';
+    fetchDatabase();
+    showToast(`LOADED: ${profile}`);
+}
+
+function deleteFromDatabase(id) {
+    if(!confirm("Hapus data ini dari riwayat?")) return;
+    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
+    db = db.filter(item => item.id !== id);
+    localStorage.setItem('schedulerDB', JSON.stringify(db));
+    renderDatabase();
+}
+
+function exportDatabaseToCSV() {
+    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
+    if(db.length === 0) { showToast("DATABASE KOSONG!"); return; }
+    let csvContent = "data:text/csv;charset=utf-8,ID,WEBSITE,TANGGAL_BERLAKU,SEED_CODE,TIMESTAMP\n"; 
+    db.forEach(row => { csvContent += `${row.id},${row.profile},${row.dateStart},${row.seed},${row.timestamp}\n`; });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "database_seed_scheduler.csv");
+    document.body.appendChild(link);
+    link.click();
+}
+
 function updateEndDate() {
     const startVal = document.getElementById("startDateInput").value;
     if (!startVal) return;
-    
     const startDate = new Date(startVal);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
-    
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     document.getElementById("endDateDisplay").value = endDate.toLocaleDateString('id-ID', options).toUpperCase();
 }
 
-// --- HISTORY SYSTEM ---
-let seedHistory = []; 
-function addToHistory(oldSeed) {
-    if (!oldSeed) return;
-    const currentProfile = document.getElementById("profileSelect").value;
-    const time = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    seedHistory.unshift({ seed: oldSeed, time: time, profile: currentProfile });
-    if (seedHistory.length > 50) seedHistory.pop();
-    updateHistoryUI();
-}
-function updateHistoryUI() {
-    const sel = document.getElementById("historySelect");
-    const currentProfile = document.getElementById("profileSelect").value;
-    sel.innerHTML = '<option value="">⏳ RIWAYAT</option>';
-    const filteredHistory = seedHistory.filter(item => item.profile === currentProfile);
-    filteredHistory.slice(0, 5).forEach((item) => {
-        const originalIndex = seedHistory.indexOf(item);
-        sel.innerHTML += `<option value="${originalIndex}">${item.time} (Seed: ${item.seed.toString().slice(-4)})</option>`;
-    });
-}
-function loadFromHistory() {
-    const sel = document.getElementById("historySelect");
-    if (sel.value === "") return;
-    const index = parseInt(sel.value);
-    const item = seedHistory[index];
-    if (item) {
-        currentSeed = item.seed;
-        myRandom = seedRandom(currentSeed);
-        updateUrlState(); 
-        fetchDatabase();
-        showToast(`RESTORED: ${item.time}`);
-    }
-    sel.value = ""; 
-}
-
-// --- LIVE SYNC LOGIC ---
 function liveUpdateView() {
     myRandom = seedRandom(currentSeed); 
     updateUrlState();
@@ -497,12 +548,10 @@ function liveUpdateView() {
 function updateUrlState() {
     const profile = document.getElementById("profileSelect").value;
     const inputDate = document.getElementById("startDateInput").value;
-    
     const tM = encodeURIComponent(document.getElementById('timeMidnight').value);
     const tS = encodeURIComponent(document.getElementById('timeSiang').value);
     const tSo = encodeURIComponent(document.getElementById('timeSore').value);
     const tMa = encodeURIComponent(document.getElementById('timeMalam').value);
-
     let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}&tM=${tM}&tS=${tS}&tSo=${tSo}&tMa=${tMa}`;
     if(inputDate) newUrl += `&date=${inputDate}`;
     window.history.pushState({path: newUrl}, '', newUrl);
@@ -510,15 +559,11 @@ function updateUrlState() {
 
 function changeProfileHandler() { 
     changeTheme(); 
-    updateHistoryUI(); 
     liveUpdateView(); 
 }
 
 function sendToWhatsApp() {
-    if (!window.location.href.includes("seed=")) {
-        showToast("KLIK 'SYNC DATA' DULU!");
-        return;
-    }
+    if (!window.location.href.includes("seed=")) { showToast("KLIK 'SYNC DATA' DULU!"); return; }
     updateUrlState();
     const prof = document.getElementById("profileSelect").value;
     const dateRange = document.getElementById("displayDate").innerText.replace("PERIODE: ", "");
@@ -532,15 +577,9 @@ function triggerScanEffect(callback) {
     const bar = document.getElementById('scanBar');
     const txt = document.getElementById('scanText');
     const detail = document.getElementById('scanDetail');
-    
     overlay.style.display = 'flex';
     let progress = 0;
-    
-    const processes = [
-        "CONNECTING SERVER...", "BYPASSING FIREWALL...", "CALCULATING RTP...", 
-        "ANALYZING PATTERNS...", "INJECTING ALGORITHM...", "FINALIZING DATA..."
-    ];
-    
+    const processes = ["CONNECTING SERVER...", "BYPASSING FIREWALL...", "CALCULATING RTP...", "ANALYZING PATTERNS...", "INJECTING ALGORITHM...", "FINALIZING DATA..."];
     const interval = setInterval(() => {
         progress += Math.random() * 5; 
         if (progress > 100) progress = 100;
@@ -548,7 +587,6 @@ function triggerScanEffect(callback) {
         let processIndex = Math.floor((progress / 100) * processes.length);
         if(processes[processIndex]) txt.innerText = processes[processIndex];
         detail.innerText = "CODE: " + Math.floor(Math.random() * 999999);
-
         if (progress === 100) {
             clearInterval(interval);
             setTimeout(() => {
@@ -561,12 +599,14 @@ function triggerScanEffect(callback) {
 
 function initiateSync() {
     triggerScanEffect(() => {
-        addToHistory(currentSeed);
+        const prof = document.getElementById("profileSelect").value;
+        const date = document.getElementById("startDateInput").value;
         currentSeed = Date.now();
+        saveSeedToStorage(prof, currentSeed, date);
         myRandom = seedRandom(currentSeed); 
         updateUrlState();
         fetchDatabase(); 
-        showToast("DATA TERBARU SELESAI");
+        showToast("DATA BARU & TERSIMPAN!");
     });
 }
 
@@ -583,7 +623,6 @@ function toggleLock() {
     const lockBtn = document.getElementById("lockBtn");
     const genBtn = document.getElementById("genBtn");
     const dateInput = document.getElementById("startDateInput");
-    
     if (isLocked) {
         lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
         lockBtn.classList.add("locked");
@@ -618,7 +657,6 @@ function handleTooltip(e) {
     const target = e.target.closest('.game-card');
     const tooltip = document.getElementById('hover-tooltip');
     const tooltipImg = document.getElementById('tooltip-img');
-    
     if (target) {
         const name = target.querySelector('.game-name').innerText;
         if (gameImageMap[name]) {
@@ -632,58 +670,111 @@ function handleTooltip(e) {
     }
 }
 
-// --- OPTIMIZED YOUTUBE PLAYER ---
-var player; var isPlaying = false;
-function onYouTubeIframeAPIReady() {
-    const defaultVid = document.getElementById("musicSelect").value;
-    player = new YT.Player('youtube-player', {
-        height: '0', width: '0', videoId: defaultVid,
-        playerVars: { 
-            'autoplay': 0, 
-            'controls': 0, 
-            'loop': 1, 
-            'playlist': defaultVid,
-            'playsinline': 1 // Penting untuk Mobile
-        },
-        events: {
-            'onError': onPlayerError
-        }
-    });
-}
-function onPlayerError(event) {
-    showToast("MUSIK ERROR / TIDAK TERSEDIA");
-    document.getElementById('musicBtn').innerHTML = '<i class="fas fa-exclamation-circle"></i> ERROR';
-}
+// --- NATIVE AUDIO PLAYER ---
+const audioPlayer = document.getElementById('bgMusic');
+let isPlaying = false;
+
 function changeMusic() {
-    const vid = document.getElementById("musicSelect").value;
-    if (player && typeof player.loadVideoById === 'function') { 
-        player.loadVideoById(vid); 
-        if (isPlaying) player.playVideo(); 
+    const url = document.getElementById("musicSelect").value;
+    audioPlayer.src = url;
+    if(isPlaying) {
+        audioPlayer.play().catch(e => {
+            showToast("KLIK PLAY MANUAL");
+            isPlaying = false;
+            updateMusicBtn();
+        });
     }
 }
+
 function toggleMusic() {
     const btn = document.getElementById('musicBtn');
-    if (!player || typeof player.playVideo !== 'function') {
-        showToast("TUNGGU PLAYER..."); return;
-    }
-    if (isPlaying) { 
-        player.pauseVideo(); 
-        btn.innerHTML = '<i class="fas fa-music"></i> MUSIC OFF'; 
-        btn.classList.remove('playing'); 
-        isPlaying = false; 
-    } else { 
-        player.playVideo(); 
-        btn.innerHTML = '<i class="fas fa-volume-up"></i> MUSIC ON'; 
-        btn.classList.add('playing'); 
-        isPlaying = true; 
+    if (audioPlayer.paused) {
+        if (!audioPlayer.src) audioPlayer.src = document.getElementById("musicSelect").value;
+        audioPlayer.play().then(() => { isPlaying = true; updateMusicBtn(); }).catch(e => { showToast("STREAM OFFLINE"); });
+    } else {
+        audioPlayer.pause();
+        isPlaying = false;
+        updateMusicBtn();
     }
 }
+
+function updateMusicBtn() {
+    const btn = document.getElementById('musicBtn');
+    if (isPlaying) { btn.innerHTML = '<i class="fas fa-volume-up"></i> MUSIC ON'; btn.classList.add('playing'); } 
+    else { btn.innerHTML = '<i class="fas fa-music"></i> MUSIC OFF'; btn.classList.remove('playing'); }
+}
+
 function showToast(msg) {
     const toast = document.getElementById("customToast");
     document.getElementById("toastMsg").innerText = msg;
     toast.classList.add("show");
     setTimeout(() => { toast.classList.remove("show"); }, 3000);
 }
+
+function loadFromHistory() {
+    const sel = document.getElementById("historySelect");
+    if (sel.value === "") return;
+    const index = parseInt(sel.value);
+    const item = seedHistory[index];
+    if (item) {
+        currentSeed = item.seed;
+        myRandom = seedRandom(currentSeed);
+        updateUrlState(); 
+        fetchDatabase();
+        showToast(`RESTORED: ${item.time}`);
+    }
+    sel.value = ""; 
+}
+
+// --- VISUALS ---
+const bgCanvas = document.getElementById('nebula-canvas'); const bgCtx = bgCanvas.getContext('2d');
+const cursorCanvas = document.getElementById('cursor-canvas'); const cCtx = cursorCanvas.getContext('2d');
+const pCanvas = document.getElementById('particle-canvas'); const pCtx = pCanvas.getContext('2d');
+let w, h, nebulaLayers = [], stars = [], cursorParticles = [], mouse = { x: 0, y: 0 };
+let animationFrameId;
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        cancelAnimationFrame(animationFrameId); 
+        if(audioPlayer && !audioPlayer.paused && isPlaying) audioPlayer.pause();
+    } else {
+        loopVisuals();
+        if(audioPlayer && audioPlayer.paused && isPlaying) audioPlayer.play();
+    }
+});
+
+function initVisuals() {
+    resize(); window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; spawnCursorTrail(); });
+    const isMobile = window.innerWidth < 700;
+    const starCount = isMobile ? 50 : 150; 
+    const layerCount = isMobile ? 3 : 5;
+    nebulaLayers = []; stars = [];
+    for(let i=0; i<layerCount; i++) nebulaLayers.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*300+300, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.floor(Math.random()*(currentNebulaColors.length-1)+1) });
+    for(let i=0; i<starCount; i++) stars.push({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2, a: Math.random(), vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1 });
+    loopVisuals();
+}
+function resize() { w = window.innerWidth; h = window.innerHeight; bgCanvas.width = cursorCanvas.width = pCanvas.width = w; bgCanvas.height = cursorCanvas.height = pCanvas.height = h; }
+function spawnCursorTrail() { 
+    if(cursorParticles.length > 20) return;
+    for(let i=0; i<1; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentNebulaColors[1], s: Math.random()*3+1 }); 
+}
+
+function loopVisuals() {
+    if (document.body.classList.contains('clean-mode')) { animationFrameId = requestAnimationFrame(loopVisuals); return; }
+    bgCtx.fillStyle = currentNebulaColors[0]; bgCtx.fillRect(0,0,w,h);
+    nebulaLayers.forEach(l => {
+        l.x+=l.vx; l.y+=l.vy; if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;
+        let g = bgCtx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r); g.addColorStop(0, hexToRgba(currentNebulaColors[l.c]||currentNebulaColors[1],0.2)); g.addColorStop(1,'transparent');
+        bgCtx.fillStyle=g; bgCtx.beginPath(); bgCtx.arc(l.x,l.y,l.r,0,Math.PI*2); bgCtx.fill();
+    });
+    pCtx.clearRect(0,0,w,h);
+    stars.forEach(s => { s.x+=s.vx; s.y+=s.vy; if(s.x<0)s.x=w; if(s.x>w)s.x=0; if(s.y<0)s.y=h; if(s.y>h)s.y=0; s.a+=(Math.random()-0.5)*0.02; if(s.a<0)s.a=0; if(s.a>1)s.a=1; pCtx.fillStyle=`rgba(255,255,255,${s.a})`; pCtx.beginPath(); pCtx.arc(s.x,s.y,s.s,0,Math.PI*2); pCtx.fill(); });
+    cCtx.clearRect(0,0,w,h); 
+    cursorParticles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.life-=0.05; p.s*=0.9; if(p.life>0){ cCtx.globalAlpha=p.life; cCtx.fillStyle=p.c; cCtx.beginPath(); cCtx.arc(p.x,p.y,p.s,0,Math.PI*2); cCtx.fill(); } else cursorParticles.splice(i,1); });
+    animationFrameId = requestAnimationFrame(loopVisuals);
+}
+function hexToRgba(hex,a) { let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
 
 const PROFILE_CONFIG = {
     "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
@@ -762,17 +853,14 @@ async function fetchDatabase() {
     const selected = document.getElementById("profileSelect").value;
     const btn = document.getElementById("genBtn");
     btn.disabled = true; btn.innerText = "LOADING...";
-    
     try {
         const response = await fetch(PROFILE_CONFIG[selected]);
         const data = await response.text();
         const lines = data.split(/\r?\n/).filter(l => l.trim() !== "");
-
         poolPragmatic = { gold:[], silver:[], bronze:[], guide:[] };
         poolPGSoft = { gold:[], silver:[], bronze:[], guide:[] };
         gameImageMap = {};
         depositSettings = { "MIDNIGHT":[], "SIANG":[], "SORE":[], "MALAM":[] };
-
         lines.slice(1).forEach(line => {
             let cleanLine = line.replace(/"/g, ''); 
             let cols = cleanLine.split(',').map(c => c.trim());
@@ -781,7 +869,6 @@ async function fetchDatabase() {
                 let meta = cols[3] || ""; let extra = cols[4] || ""; 
                 if (!meta.includes('|') && extra !== "") { meta = meta + "|" + extra; }
                 meta = meta.replace(/\*\*/g, '');
-
                 if (prov === "SETTING" && tier.startsWith("DEPO_")) {
                     const sess = tier.replace("DEPO_", "");
                     if (depositSettings[sess]) depositSettings[sess].push({ range: name, info: meta });
@@ -793,12 +880,10 @@ async function fetchDatabase() {
                 }
             }
         });
-        
         myRandom = seedRandom(currentSeed); 
         generateJadwal();
         btn.disabled = false; btn.innerText = "SYNC DATA";
         if(isLocked) btn.disabled = true;
-
     } catch (e) {
         alert("Gagal mengambil data! Cek koneksi.");
         btn.disabled = false; btn.innerText = "RETRY";
@@ -816,7 +901,6 @@ function getUniqueCode() {
 function getStrategy(prov) {
     let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
     if (!list || list.length < 3) return { html: "<div>Pola Kurang</div>", text: "" };
-    
     let dcText = "";
     let badgeHtml = "";
     if (prov === 'Pragmatic') {
@@ -824,44 +908,29 @@ function getStrategy(prov) {
         dcText = `FITUR GANDA ${state}`;
         badgeHtml = `<span class="badge" style="background:var(--primary); color:#000; margin-bottom:5px; display:inline-block;">${dcText}</span>`;
     }
-
-    let shuffledList = [...list]; 
-    shuffleArray(shuffledList);
-
+    let shuffledList = [...list]; shuffleArray(shuffledList);
     let selected = [];
     let lastType = "";
-
     const getType = (str) => {
         if(!str) return "";
         let words = str.trim().split(' ');
         if (words.length >= 2) return (words[0] + " " + words[1]).toUpperCase();
         return words[0].toUpperCase();
     };
-
     let attempts = 0;
     while (selected.length < 5 && shuffledList.length > 0 && attempts < 100) {
         let foundIndex = -1;
         for (let i = 0; i < shuffledList.length; i++) {
             let currentType = getType(shuffledList[i]);
-            if (currentType !== lastType) {
-                foundIndex = i;
-                break;
-            }
+            if (currentType !== lastType) { foundIndex = i; break; }
         }
         if (foundIndex !== -1) {
-            let item = shuffledList[foundIndex];
-            selected.push(item);
-            lastType = getType(item);
-            shuffledList.splice(foundIndex, 1);
+            let item = shuffledList[foundIndex]; selected.push(item); lastType = getType(item); shuffledList.splice(foundIndex, 1);
         } else {
-            let item = shuffledList[0];
-            selected.push(item);
-            lastType = getType(item);
-            shuffledList.shift();
+            let item = shuffledList[0]; selected.push(item); lastType = getType(item); shuffledList.shift();
         }
         attempts++;
     }
-
     let stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
     let stepsText = selected.map(s => `> ${s}`).join('\n');
     let fullText = `${dcText ? dcText + '\n' : ''}${stepsText}`;
@@ -872,27 +941,22 @@ function getDeposit(sess) {
     let tail = getUniqueCode();
     let data = depositSettings[sess];
     if (!data || data.length === 0) return { html: "", text: "", code: tail };
-
     let html = `<div class="depo-container"><div class="depo-header">KODE JITU EKOR: ${tail}</div>`;
     let text = "";
-
     const processValue = (rawStr) => {
         if (!rawStr) return 0;
         let cleanStr = rawStr.toString().replace(/\D/g, ''); 
         let num = parseInt(cleanStr) || 0;
         return (Math.floor(num / 1000) * 1000) + tail;
     };
-
     data.forEach((item, i) => {
         let parts = item.range.split('-');
         let meta = item.info.split('|');
         let bonus = meta[0] || "UNK";
         let rate = meta[1] || "90%";
-        
         let minVal = processValue(parts[0]);
         let maxVal = parts.length === 2 ? processValue(parts[1]) : 0;
         let nominal = parts.length === 2 ? `DEPO Rp ${minVal.toLocaleString()} - Rp ${maxVal.toLocaleString()}` : `SPECIAL DEPO Rp ${minVal.toLocaleString()}`;
-            
         html += `<div class="depo-item"><span class="depo-info">${i+1}. ${nominal}</span><div class="depo-meta"><span class="tag-bonus">BONUS ${bonus}</span><span class="tag-rate">RATE ${rate}</span></div></div>`;
         text += `${i+1}. ${nominal} (Bonus ${bonus} | Rate ${rate})\n`;
     });
@@ -906,10 +970,7 @@ function pickGame(prov, tier, blacklist, daily) {
     let available = list.filter(g => !blacklist.includes(g) && !daily.includes(g));
     if (available.length === 0) available = list;
     const chosen = available[Math.floor(myRandom() * available.length)];
-    return { 
-        name: chosen, 
-        html: `<div class="game-card" onclick="showImg('${chosen}')"><span class="game-name">${chosen}</span><span class="badge" style="background:${tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32'};color:#000">${tier}</span></div>`
-    };
+    return { name: chosen, html: `<div class="game-card" onclick="showImg('${chosen}')"><span class="game-name">${chosen}</span><span class="badge" style="background:${tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32'};color:#000">${tier}</span></div>` };
 }
 
 function showImg(name) {
@@ -925,51 +986,40 @@ function resolveGameCounts(profile, sessionName) {
         if(sessionName === "SIANG") return { pp:2, pg:2 };
         if(sessionName === "SORE") return { pp:2, pg:0 };
         if(sessionName === "MALAM") return r > 0.5 ? { pp:1, pg:0 } : { pp:0, pg:1 };
-    }
-    else if (profile === "JAGUAR77") {
+    } else if (profile === "JAGUAR77") {
         if(sessionName === "MIDNIGHT") return { pp:3, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
         if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:1 };
         if(sessionName === "MALAM") return r > 0.5 ? { pp:1, pg:0 } : { pp:0, pg:1 };
-    }
-    else if (profile === "FUN77") {
+    } else if (profile === "FUN77") {
         if(sessionName === "MIDNIGHT") return { pp:3, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
         if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:1 };
         if(sessionName === "MALAM") return { pp:1, pg:1 };
-    }
-    else if (profile === "MUSTANG77") {
+    } else if (profile === "MUSTANG77") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
         if(sessionName === "SORE") return { pp:1, pg:0 };
         if(sessionName === "MALAM") return { pp:0, pg:1 };
-    }
-    else if (profile === "INDOPEDIA77") {
+    } else if (profile === "INDOPEDIA77") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
         if(sessionName === "SIANG") return { pp:3, pg:3 };
         if(sessionName === "SORE") return r > 0.5 ? { pp:1, pg:0 } : { pp:2, pg:0 };
         if(sessionName === "MALAM") return r > 0.5 ? { pp:1, pg:0 } : { pp:0, pg:1 };
-    }
-    else if (profile === "HOLYPLAY17") {
+    } else if (profile === "HOLYPLAY17") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
         if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 };
         if(sessionName === "MALAM") return { pp:0, pg:2 };
-    }
-    else if (profile === "INDOFUN17") {
+    } else if (profile === "INDOFUN17") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
         if(sessionName === "SORE") return { pp:2, pg:0 };
         if(sessionName === "MALAM") return { pp:0, pg:1 };
-    }
-    else if (profile === "PLAY77") {
+    } else if (profile === "PLAY77") {
         if(sessionName === "MIDNIGHT") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
-        if(sessionName === "SORE") {
-            if (r < 0.33) return { pp:1, pg:0 };
-            else if (r < 0.66) return { pp:2, pg:0 };
-            else return { pp:1, pg:1 };
-        }
+        if(sessionName === "SORE") { if (r < 0.33) return { pp:1, pg:0 }; else if (r < 0.66) return { pp:2, pg:0 }; else return { pp:1, pg:1 }; }
         if(sessionName === "MALAM") return { pp:0, pg:1 };
     }
     return { pp:2, pg:2 };
@@ -983,36 +1033,28 @@ function generateJadwal() {
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     const dateRangeStr = `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
     document.getElementById('displayDate').innerText = `PERIODE: ${dateRangeStr.toUpperCase()}`;
-
     const times = {
         "MIDNIGHT": document.getElementById('timeMidnight').value,
         "SIANG": document.getElementById('timeSiang').value,
         "SORE": document.getElementById('timeSore').value,
         "MALAM": document.getElementById('timeMalam').value
     };
-
     const days = ["SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU","MINGGU"];
     uniqueCodePool = []; 
-    
     let html = "";
     globalMemory = [];
     let yesterday = [];
-
     days.forEach((day, dayIndex) => {
         let currentDate = new Date(startDate); currentDate.setDate(startDate.getDate() + dayIndex);
         let dateBadge = currentDate.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: '2-digit'});
-
         let todayGames = [];
         let dayData = { day: day, date: dateBadge, sessions: [] };
-        
         const draw = (p, t) => { let res = pickGame(p, t, yesterday, todayGames); if (res.name !== "DATA KOSONG") todayGames.push(res.name); return res; }
-        
         const buildSession = (label, sessKey, sessIndex) => {
             const timeStr = times[sessKey];
             const counts = resolveGameCounts(profile, sessKey);
             let sessionHtml = "";
             let rawTxt = "";
-
             if (counts.pp > 0) {
                 let ppContent = ""; let ppText = "";
                 for(let i=0; i<counts.pp; i++) {
@@ -1024,7 +1066,6 @@ function generateJadwal() {
                 sessionHtml += `<div class="provider-label">PRAGMATIC PLAY</div>${ppContent}${stP.html}`;
                 rawTxt += `--- PRAGMATIC PLAY ---\n${ppText}\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
             }
-
             if (counts.pg > 0) {
                 let pgContent = ""; let pgText = "";
                 for(let i=0; i<counts.pg; i++) {
@@ -1036,16 +1077,10 @@ function generateJadwal() {
                 sessionHtml += `<div class="provider-label">PG SOFT</div>${pgContent}${stPg.html}`;
                 rawTxt += `--- PG SOFT ---\n${pgText}\nPOLA PG SOFT:\n${stPg.text}`;
             }
-
             let depo = getDeposit(sessKey);
             dayData.sessions.push({ title: label, time: timeStr, games: rawTxt.trim(), depo: depo });
-            
-            // Logic Active Pulse (Cek jam sekarang)
-            let isActive = false;
-            // (Fitur sederhana: tidak deteksi jam real-time JS, hanya visual placeholder jika mau)
-            
             return `
-            <div class="session-box ${isActive ? 'active-now' : ''}">
+            <div class="session-box">
                 <div class="session-header">
                     <div class="session-title">${label}</div>
                     <span class="session-time">${timeStr}</span>
@@ -1057,14 +1092,11 @@ function generateJadwal() {
                 <div class="session-content">${sessionHtml}${depo.html}</div>
             </div>`;
         };
-
         html += `
         <div class="day-row">
             <div class="day-header">
                 <span class="day-label">${day} <span class="date-badge">${dateBadge}</span></span>
-                <button class="minimize-day-btn" onclick="toggleDay(this)" title="Toggle Hari">
-                    <i class="fas fa-window-minimize"></i>
-                </button>
+                <button class="minimize-day-btn" onclick="toggleDay(this)" title="Toggle Hari"><i class="fas fa-window-minimize"></i></button>
             </div>
             <div class="session-grid">`;
         html += buildSession("🌑 MIDNIGHT", "MIDNIGHT", 0);
@@ -1072,27 +1104,23 @@ function generateJadwal() {
         html += buildSession("🌇 SORE", "SORE", 2);
         html += buildSession("🌙 MALAM", "MALAM", 3);
         html += `</div></div>`;
-        
         globalMemory.push(dayData);
         yesterday = [...todayGames];
     });
-
     document.getElementById("hasil").innerHTML = html;
     document.getElementById("copyBtn").style.display = "inline-block";
     document.getElementById("saveBtn").style.display = "inline-block";
 }
 
 function toggleSession(btn) {
-    const box = btn.closest('.session-box');
-    box.classList.toggle('collapsed');
+    const box = btn.closest('.session-box'); box.classList.toggle('collapsed');
     const icon = btn.querySelector('i');
     if (box.classList.contains('collapsed')) { icon.classList.remove('fa-window-minimize'); icon.classList.add('fa-window-maximize'); } 
     else { icon.classList.remove('fa-window-maximize'); icon.classList.add('fa-window-minimize'); }
 }
 
 function toggleDay(btn) {
-    const row = btn.closest('.day-row');
-    row.classList.toggle('collapsed');
+    const row = btn.closest('.day-row'); row.classList.toggle('collapsed');
     const icon = btn.querySelector('i');
     if (row.classList.contains('collapsed')) { icon.classList.remove('fa-window-minimize'); icon.classList.add('fa-window-maximize'); } 
     else { icon.classList.remove('fa-window-maximize'); icon.classList.add('fa-window-minimize'); }
@@ -1119,23 +1147,40 @@ function loadTimeSettings() {
     }
 }
 
-function copySession(dayIndex, sessIndex) {
-    const data = globalMemory[dayIndex].sessions[sessIndex];
-    const dayName = globalMemory[dayIndex].day;
-    let txt = `=== ${dayName}, ${data.time} ===\n\n${data.games}\n\nKODE: ${data.depo.code}`;
-    navigator.clipboard.writeText(txt).then(() => { showToast("COPIED!"); });
+function openResultModal(text) {
+    const modal = document.getElementById("resultModal");
+    const txtArea = document.getElementById("resultText");
+    const dateLabel = document.getElementById("modalDateRange");
+    const dateStr = document.getElementById("displayDate").innerText.replace("PERIODE: ", "");
+    dateLabel.innerText = "BERLAKU: " + dateStr;
+    txtArea.value = text;
+    modal.style.display = 'flex';
 }
 
-function copyText() {
+function finalCopy() {
+    const txtArea = document.getElementById("resultText"); txtArea.select(); document.execCommand('copy'); showToast("TEKS BERHASIL DISALIN!");
+}
+
+function openPreviewAll() {
     const prof = document.getElementById("profileSelect").value;
     const dateRange = document.getElementById("displayDate").innerText;
     let txt = `=== JADWAL GACOR ${prof} ===\n${dateRange}\n\n`;
     globalMemory.forEach(d => {
-        txt += `\n[ ${d.day} ]\n`;
+        txt += `\n[ ${d.day}, ${d.date} ]\n`;
         d.sessions.forEach(s => { txt += `\n>>> ${s.title} (${s.time}) <<<\n${s.games}\nEKOR: ${s.depo.code}\n\n`; });
     });
-    navigator.clipboard.writeText(txt).then(() => showToast("ALL DATA COPIED!"));
+    openResultModal(txt);
 }
+
+function copySession(dayIndex, sessIndex) {
+    const data = globalMemory[dayIndex].sessions[sessIndex];
+    const dayName = globalMemory[dayIndex].day;
+    const dateStr = globalMemory[dayIndex].date;
+    let txt = `=================================\nHARI: ${dayName}, ${dateStr}\nSESI: ${data.title} (${data.time})\n=================================\n\n${data.games}\n\n---------------------------------\nKODE EKOR: ${data.depo.code}\n---------------------------------\nLIST DEPOSIT:\n${data.depo.text}`;
+    openResultModal(txt);
+}
+
+function copyText() { openPreviewAll(); }
 
 function downloadPNG() {
     const sel = document.getElementById("profileSelect").value;
@@ -1144,85 +1189,7 @@ function downloadPNG() {
     });
 }
 
-// --- VISUALS & SMART PAUSE ---
-const bgCanvas = document.getElementById('nebula-canvas'); const bgCtx = bgCanvas.getContext('2d');
-const cursorCanvas = document.getElementById('cursor-canvas'); const cCtx = cursorCanvas.getContext('2d');
-const pCanvas = document.getElementById('particle-canvas'); const pCtx = pCanvas.getContext('2d');
-let w, h, nebulaLayers = [], stars = [], cursorParticles = [], mouse = { x: 0, y: 0 };
-let animationFrameId; // Variabel kontrol animasi
-
-// Listener untuk tab aktif/non-aktif
-document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-        cancelAnimationFrame(animationFrameId); 
-        if(player && typeof player.pauseVideo === 'function' && isPlaying) player.pauseVideo();
-    } else {
-        loopVisuals();
-        if(player && typeof player.playVideo === 'function' && isPlaying) player.playVideo();
-    }
-});
-
-function initVisuals() {
-    resize(); window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; spawnCursorTrail(); });
-    
-    // OPTIMASI: Kurangi partikel jika layar kecil
-    const isMobile = window.innerWidth < 700;
-    const starCount = isMobile ? 50 : 150; 
-    const layerCount = isMobile ? 3 : 5;
-
-    nebulaLayers = []; stars = [];
-    for(let i=0; i<layerCount; i++) nebulaLayers.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*300+300, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.floor(Math.random()*(currentNebulaColors.length-1)+1) });
-    for(let i=0; i<starCount; i++) stars.push({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2, a: Math.random(), vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1 });
-    
-    loopVisuals();
-}
-function resize() { w = window.innerWidth; h = window.innerHeight; bgCanvas.width = cursorCanvas.width = pCanvas.width = w; bgCanvas.height = cursorCanvas.height = pCanvas.height = h; }
-function spawnCursorTrail() { 
-    if(cursorParticles.length > 20) return;
-    for(let i=0; i<1; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentNebulaColors[1], s: Math.random()*3+1 }); 
-}
-
-function loopVisuals() {
-    if (document.body.classList.contains('clean-mode')) { 
-        animationFrameId = requestAnimationFrame(loopVisuals); return; 
-    }
-    
-    bgCtx.fillStyle = currentNebulaColors[0]; bgCtx.fillRect(0,0,w,h);
-    nebulaLayers.forEach(l => {
-        l.x+=l.vx; l.y+=l.vy; 
-        if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; 
-        if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;
-        let g = bgCtx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r); 
-        g.addColorStop(0, hexToRgba(currentNebulaColors[l.c]||currentNebulaColors[1],0.2)); 
-        g.addColorStop(1,'transparent');
-        bgCtx.fillStyle=g; bgCtx.beginPath(); bgCtx.arc(l.x,l.y,l.r,0,Math.PI*2); bgCtx.fill();
-    });
-
-    pCtx.clearRect(0,0,w,h);
-    stars.forEach(s => { 
-        s.x+=s.vx; s.y+=s.vy; 
-        if(s.x<0)s.x=w; if(s.x>w)s.x=0; 
-        if(s.y<0)s.y=h; if(s.y>h)s.y=0; 
-        s.a+=(Math.random()-0.5)*0.02; if(s.a<0)s.a=0; if(s.a>1)s.a=1; 
-        pCtx.fillStyle=`rgba(255,255,255,${s.a})`; pCtx.beginPath(); pCtx.arc(s.x,s.y,s.s,0,Math.PI*2); pCtx.fill(); 
-    });
-
-    cCtx.clearRect(0,0,w,h); 
-    cursorParticles.forEach((p,i) => { 
-        p.x+=p.vx; p.y+=p.vy; p.life-=0.05; p.s*=0.9; 
-        if(p.life>0){ cCtx.globalAlpha=p.life; cCtx.fillStyle=p.c; cCtx.beginPath(); cCtx.arc(p.x,p.y,p.s,0,Math.PI*2); cCtx.fill(); } 
-        else cursorParticles.splice(i,1); 
-    });
-    
-    animationFrameId = requestAnimationFrame(loopVisuals);
-}
-function hexToRgba(hex,a) { let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
-
-window.onload = function() { 
-    checkUrlParams(); 
-    initVisuals(); 
-};
+window.onload = function() { checkUrlParams(); initVisuals(); };
 </script>
 </body>
 </html>

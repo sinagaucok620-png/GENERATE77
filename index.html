@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Scheduler v16.9 - Unique Rules Logic</title>
+    <title>Platform Scheduler v17.4 - Smart Performance</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -35,7 +35,7 @@
         .container { 
             max-width: 1300px; margin: auto; 
             background: var(--glass-bg);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             padding: 40px; border-radius: 20px; 
             border: 1px solid var(--glass-border);
             border-top: 1px solid rgba(255, 255, 255, 0.3);
@@ -56,7 +56,6 @@
             text-shadow: 0 0 20px var(--primary);
         }
         
-        /* DATE WRAPPER DI HEADER */
         .date-range-wrapper {
             display: inline-flex; align-items: flex-end; gap: 15px;
             background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 12px;
@@ -97,7 +96,7 @@
         input[readonly] { background: rgba(0,0,0,0.3); color: #aaa; border-color: transparent; cursor: default; }
 
         #historySelect, #musicSelect {
-            max-width: 150px;
+            max-width: 200px;
             border-color: rgba(255, 255, 255, 0.3);
             background: rgba(0, 0, 0, 0.5);
             color: #aaa;
@@ -131,36 +130,82 @@
         .btn-copy { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; }
         .btn-save { background: #10b981 !important; color: #fff !important; }
 
-        .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        /* --- DAY ROW & TOGGLE STYLE --- */
+        .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; transition: all 0.3s; }
+        
+        .day-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 15px;
+        }
+        
         .day-label { 
-            font-size: 28px; color: #fff; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
-            border-left: 5px solid var(--primary); padding-left: 15px; 
+            font-size: 28px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px;
             text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
+
+        .minimize-day-btn {
+            background: rgba(255,255,255,0.1); color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 35px; height: 35px; border-radius: 8px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+            transition: 0.3s;
+        }
+        .minimize-day-btn:hover { background: var(--primary); color: #000; }
+
+        .day-row.collapsed .session-grid { display: none; }
+        .day-row.collapsed { margin-bottom: 10px; border: none; padding-top: 10px; opacity: 0.6; }
+
         .date-badge { font-size: 16px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
         
-        .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .session-box { 
             background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; 
             border: 1px solid rgba(255,255,255,0.05); height: 100%; 
             transition: 0.3s; position: relative;
             display: flex; flex-direction: column;
+            overflow: hidden;
         }
         .session-box:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-        .smart-copy-btn {
-            position: absolute; top: 10px; right: 10px;
-            background: rgba(0,0,0,0.5); color: var(--primary);
-            border: 1px solid var(--primary);
-            width: 30px; height: 30px; padding: 0;
-            border-radius: 6px; display: flex; justify-content: center; align-items: center;
-            opacity: 0.6; cursor: pointer; transition: 0.2s; z-index: 10;
+        
+        /* ACTIVE PULSE EFFECT (NEW) */
+        .session-box.active-now {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            animation: pulseBorder 2s infinite;
         }
-        .smart-copy-btn:hover { opacity: 1; background: var(--primary); color: #000; }
+        @keyframes pulseBorder {
+            0% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); }
+        }
 
-        .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 5px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .session-time { font-size: 11px; color: #aaa; display: block; margin-bottom: 10px; font-family: monospace; }
+        .session-header {
+            display: flex; flex-direction: column; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            padding-bottom: 10px; margin-bottom: 10px;
+            position: relative;
+        }
+
+        .action-container { position: absolute; top: 0; right: 0; display: flex; gap: 5px; }
+        .action-btn {
+            background: rgba(0,0,0,0.5); color: #aaa;
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 25px; height: 25px; padding: 0;
+            border-radius: 6px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: 0.2s; font-size: 10px;
+        }
+        .action-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        .minimize-btn { font-size: 12px; }
+
+        .session-content { transition: all 0.3s ease; opacity: 1; max-height: 2000px; }
+        .session-box.collapsed .session-content { opacity: 0; max-height: 0; margin: 0; padding: 0; overflow: hidden; }
+        .session-box.collapsed { height: auto; min-height: 80px; }
+        .session-box.collapsed:hover { transform: none; }
+
+        .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 5px; text-transform: uppercase; }
+        .session-time { font-size: 11px; color: #aaa; display: block; margin-bottom: 5px; font-family: monospace; }
         .provider-label { font-size: 10px; color: #888; font-weight: 700; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 1px; }
 
         .game-card { 
@@ -218,7 +263,13 @@
         .scan-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.1s linear; }
 
         @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { .container{padding:20px;} .session-grid { grid-template-columns: 1fr; } .time-inputs{ grid-template-columns: 1fr; } .date-range-wrapper{flex-wrap: wrap; justify-content: center;} }
+        @media (max-width: 700px) { 
+            .container{ padding:15px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); } 
+            .session-grid { grid-template-columns: 1fr; } 
+            .time-inputs{ grid-template-columns: 1fr; } 
+            .date-range-wrapper{flex-wrap: wrap; justify-content: center;} 
+            .header-area h2 { font-size: 32px; }
+        }
 
         body.clean-mode { background: #f4f6f8 !important; color: #222 !important; cursor: default; }
         body.clean-mode #nebula-canvas, body.clean-mode #cursor-canvas, body.clean-mode #particle-canvas { display: none !important; }
@@ -231,11 +282,12 @@
         body.clean-mode .time-group input { background: #fff; color: #000; border: 1px solid #ccc; }
         body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #waBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
+        body.clean-mode .minimize-day-btn { background: #ccc; color: #000; border-color: #999; }
         body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
         body.clean-mode .session-box { background: #fff; border: 2px solid #e5e7eb; box-shadow: none; }
         body.clean-mode .session-title { color: #000; border-bottom: 2px solid #000; }
         body.clean-mode .session-time { color: #666; font-weight: bold; }
-        body.clean-mode .smart-copy-btn { background: #000; color: #fff; border: none; opacity: 1; }
+        body.clean-mode .action-btn { background: #eee; color: #000; border-color: #ccc; }
         body.clean-mode .provider-label { color: #666; background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         body.clean-mode .game-card { background: #f9fafb; border: 1px solid #d1d5db; color: #111; }
         body.clean-mode .game-card .game-name { color: #000; font-size: 13px; }
@@ -279,7 +331,7 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V16.9</h2>
+        <h2>PLATFORM SCHEDULER V17.4</h2>
         
         <div class="date-range-wrapper">
             <div class="date-input-group">
@@ -299,10 +351,10 @@
     <details class="time-settings" id="timeSettings">
         <summary><i class="fas fa-clock"></i> PENGATURAN JAM (EDITABLE)</summary>
         <div class="time-inputs">
-            <div class="time-group"><label>MIDNIGHT</label><input type="text" id="timeMidnight" value="00:00 - 06:00 WIB" onchange="saveTimeSettings()"></div>
-            <div class="time-group"><label>SIANG</label><input type="text" id="timeSiang" value="06:00 - 15:00 WIB" onchange="saveTimeSettings()"></div>
-            <div class="time-group"><label>SORE</label><input type="text" id="timeSore" value="15:00 - 19:00 WIB" onchange="saveTimeSettings()"></div>
-            <div class="time-group"><label>MALAM</label><input type="text" id="timeMalam" value="19:00 - 00:00 WIB" onchange="saveTimeSettings()"></div>
+            <div class="time-group"><label>MIDNIGHT</label><input type="text" id="timeMidnight" value="00:00 - 06:00 WIB" onchange="updateUrlState()"></div>
+            <div class="time-group"><label>SIANG</label><input type="text" id="timeSiang" value="06:00 - 15:00 WIB" onchange="updateUrlState()"></div>
+            <div class="time-group"><label>SORE</label><input type="text" id="timeSore" value="15:00 - 19:00 WIB" onchange="updateUrlState()"></div>
+            <div class="time-group"><label>MALAM</label><input type="text" id="timeMalam" value="19:00 - 00:00 WIB" onchange="updateUrlState()"></div>
         </div>
     </details>
 
@@ -327,10 +379,15 @@
         
         <button id="musicBtn" onclick="toggleMusic()"><i class="fas fa-music"></i> MUSIC OFF</button>
         <select id="musicSelect" onchange="changeMusic()">
+            <option value="1144186596">DJ TIKTOK VIRAL</option>
+            <option value="9j2kZ9t6g3M">DJ RUNT AH (REMIX)</option>
+            <option value="k3Xk_3W0f6I">MAHALINI - SIAL</option>
+            <option value="7T4m2b8m8b0">DENNY CAKNAN KOPLO</option>
+            <option value="7a8j_3g4b5c">BERNADYA GALAU</option>
+            <option value="d6x5y3z1a0b">DEWA 19 BEST</option>
             <option value="gCWaRhNUvfc">GAMING (NCS)</option>
-            <option value="jfKfPfyJRdk">LOFI CHILL</option>
+            <option value="2OEL4P1Rz04">JAZZ CAFE</option>
             <option value="3l0k6wQ6e6k">PHONK</option>
-            <option value="S-M1Q8Zc">EDM MIX</option>
         </select>
 
         <button id="waBtn" onclick="sendToWhatsApp()" title="Kirim ke Designer (+628988385486)">
@@ -440,7 +497,13 @@ function liveUpdateView() {
 function updateUrlState() {
     const profile = document.getElementById("profileSelect").value;
     const inputDate = document.getElementById("startDateInput").value;
-    let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}`;
+    
+    const tM = encodeURIComponent(document.getElementById('timeMidnight').value);
+    const tS = encodeURIComponent(document.getElementById('timeSiang').value);
+    const tSo = encodeURIComponent(document.getElementById('timeSore').value);
+    const tMa = encodeURIComponent(document.getElementById('timeMalam').value);
+
+    let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}&tM=${tM}&tS=${tS}&tSo=${tSo}&tMa=${tMa}`;
     if(inputDate) newUrl += `&date=${inputDate}`;
     window.history.pushState({path: newUrl}, '', newUrl);
 }
@@ -451,44 +514,19 @@ function changeProfileHandler() {
     liveUpdateView(); 
 }
 
-// --- TIME SETTINGS STORAGE ---
-function saveTimeSettings() {
-    const settings = {
-        midnight: document.getElementById('timeMidnight').value,
-        siang: document.getElementById('timeSiang').value,
-        sore: document.getElementById('timeSore').value,
-        malam: document.getElementById('timeMalam').value
-    };
-    localStorage.setItem('schedulerTimeSettings', JSON.stringify(settings));
-    liveUpdateView(); 
-}
-function loadTimeSettings() {
-    const saved = localStorage.getItem('schedulerTimeSettings');
-    if (saved) {
-        const s = JSON.parse(saved);
-        if(s.midnight) document.getElementById('timeMidnight').value = s.midnight;
-        if(s.siang) document.getElementById('timeSiang').value = s.siang;
-        if(s.sore) document.getElementById('timeSore').value = s.sore;
-        if(s.malam) document.getElementById('timeMalam').value = s.malam;
-    }
-}
-
-// --- WHATSAPP FEATURE ---
 function sendToWhatsApp() {
     if (!window.location.href.includes("seed=")) {
         showToast("KLIK 'SYNC DATA' DULU!");
         return;
     }
+    updateUrlState();
     const prof = document.getElementById("profileSelect").value;
     const dateRange = document.getElementById("displayDate").innerText.replace("PERIODE: ", "");
     const url = encodeURIComponent(window.location.href);
-    
     let msg = `Halo Designer, ini jadwal *${prof}* untuk periode *${dateRange}*.\n\nSilakan diproses:\n${url}`;
-    
     window.open(`https://wa.me/628988385486?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-// --- TRIGGER SCANNING ---
 function triggerScanEffect(callback) {
     const overlay = document.getElementById('scanOverlay');
     const bar = document.getElementById('scanBar');
@@ -506,12 +544,9 @@ function triggerScanEffect(callback) {
     const interval = setInterval(() => {
         progress += Math.random() * 5; 
         if (progress > 100) progress = 100;
-        
         bar.style.width = progress + "%";
-        
         let processIndex = Math.floor((progress / 100) * processes.length);
         if(processes[processIndex]) txt.innerText = processes[processIndex];
-        
         detail.innerText = "CODE: " + Math.floor(Math.random() * 999999);
 
         if (progress === 100) {
@@ -536,12 +571,12 @@ function initiateSync() {
 }
 
 function copyShareLink() {
+    updateUrlState(); 
     const url = window.location.href;
     if (!url.includes("seed=")) { showToast("KLIK 'SYNC DATA' DULU!"); return; }
     navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! KIRIM KE DESIGNER"); });
 }
 
-// --- LOGIKA UTAMA ---
 let isLocked = false;
 function toggleLock() {
     isLocked = !isLocked;
@@ -597,23 +632,51 @@ function handleTooltip(e) {
     }
 }
 
+// --- OPTIMIZED YOUTUBE PLAYER ---
 var player; var isPlaying = false;
 function onYouTubeIframeAPIReady() {
     const defaultVid = document.getElementById("musicSelect").value;
     player = new YT.Player('youtube-player', {
         height: '0', width: '0', videoId: defaultVid,
-        playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': defaultVid }
+        playerVars: { 
+            'autoplay': 0, 
+            'controls': 0, 
+            'loop': 1, 
+            'playlist': defaultVid,
+            'playsinline': 1 // Penting untuk Mobile
+        },
+        events: {
+            'onError': onPlayerError
+        }
     });
+}
+function onPlayerError(event) {
+    showToast("MUSIK ERROR / TIDAK TERSEDIA");
+    document.getElementById('musicBtn').innerHTML = '<i class="fas fa-exclamation-circle"></i> ERROR';
 }
 function changeMusic() {
     const vid = document.getElementById("musicSelect").value;
-    if (player) { player.loadVideoById(vid); if (isPlaying) player.playVideo(); else player.pauseVideo(); }
+    if (player && typeof player.loadVideoById === 'function') { 
+        player.loadVideoById(vid); 
+        if (isPlaying) player.playVideo(); 
+    }
 }
 function toggleMusic() {
     const btn = document.getElementById('musicBtn');
-    if (!player) return;
-    if (isPlaying) { player.pauseVideo(); btn.innerHTML = '<i class="fas fa-music"></i> MUSIC OFF'; btn.classList.remove('playing'); isPlaying = false; } 
-    else { player.playVideo(); btn.innerHTML = '<i class="fas fa-volume-up"></i> MUSIC ON'; btn.classList.add('playing'); isPlaying = true; }
+    if (!player || typeof player.playVideo !== 'function') {
+        showToast("TUNGGU PLAYER..."); return;
+    }
+    if (isPlaying) { 
+        player.pauseVideo(); 
+        btn.innerHTML = '<i class="fas fa-music"></i> MUSIC OFF'; 
+        btn.classList.remove('playing'); 
+        isPlaying = false; 
+    } else { 
+        player.playVideo(); 
+        btn.innerHTML = '<i class="fas fa-volume-up"></i> MUSIC ON'; 
+        btn.classList.add('playing'); 
+        isPlaying = true; 
+    }
 }
 function showToast(msg) {
     const toast = document.getElementById("customToast");
@@ -664,7 +727,16 @@ function checkUrlParams() {
     const seed = urlParams.get('seed');
     const profile = urlParams.get('profile');
     const dateParam = urlParams.get('date');
-    
+    const tM = urlParams.get('tM');
+    const tS = urlParams.get('tS');
+    const tSo = urlParams.get('tSo');
+    const tMa = urlParams.get('tMa');
+
+    if(tM) document.getElementById('timeMidnight').value = decodeURIComponent(tM);
+    if(tS) document.getElementById('timeSiang').value = decodeURIComponent(tS);
+    if(tSo) document.getElementById('timeSore').value = decodeURIComponent(tSo);
+    if(tMa) document.getElementById('timeMalam').value = decodeURIComponent(tMa);
+
     if (seed && profile) {
         currentSeed = parseInt(seed); 
         myRandom = seedRandom(currentSeed); 
@@ -680,7 +752,7 @@ function checkUrlParams() {
         myRandom = Math.random;
         document.getElementById("startDateInput").valueAsDate = new Date();
         updateEndDate(); 
-        loadTimeSettings(); 
+        if(!tM && !tS) loadTimeSettings(); 
         updateHistoryUI();
         updateUrlState(); 
     }
@@ -733,7 +805,6 @@ async function fetchDatabase() {
     }
 }
 
-// === FIX: HANYA GUNAKAN EKOR RIBUAN (1000-9000) ===
 function getUniqueCode() {
     if (uniqueCodePool.length === 0) {
         uniqueCodePool = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000];
@@ -742,7 +813,6 @@ function getUniqueCode() {
     return uniqueCodePool.pop();
 }
 
-// === SMART STRATEGY: MENCEGAH DUPLIKAT BERURUTAN ===
 function getStrategy(prov) {
     let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
     if (!list || list.length < 3) return { html: "<div>Pola Kurang</div>", text: "" };
@@ -848,11 +918,8 @@ function showImg(name) {
     document.getElementById('gameModal').style.display = 'flex';
 }
 
-// === NEW: GAME RULES ENGINE (UNIQUE PER PROFILE) ===
 function resolveGameCounts(profile, sessionName) {
     const r = myRandom(); 
-    // Logic: Return object { pp: jumlah_game_pp, pg: jumlah_game_pg }
-    
     if (profile === "CAPTAIN77") {
         if(sessionName === "MIDNIGHT") return { pp:3, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
@@ -905,8 +972,6 @@ function resolveGameCounts(profile, sessionName) {
         }
         if(sessionName === "MALAM") return { pp:0, pg:1 };
     }
-    
-    // Default Fallback
     return { pp:2, pg:2 };
 }
 
@@ -914,7 +979,6 @@ function generateJadwal() {
     const profile = document.getElementById("profileSelect").value;
     const dateInputStr = document.getElementById('startDateInput').value;
     let startDate = dateInputStr ? new Date(dateInputStr) : new Date();
-    
     let endDate = new Date(startDate); endDate.setDate(startDate.getDate() + 6);
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     const dateRangeStr = `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
@@ -943,39 +1007,30 @@ function generateJadwal() {
         
         const draw = (p, t) => { let res = pickGame(p, t, yesterday, todayGames); if (res.name !== "DATA KOSONG") todayGames.push(res.name); return res; }
         
-        // --- NEW DYNAMIC BUILDER ---
         const buildSession = (label, sessKey, sessIndex) => {
             const timeStr = times[sessKey];
             const counts = resolveGameCounts(profile, sessKey);
-            
             let sessionHtml = "";
             let rawTxt = "";
 
-            // DRAW PRAGMATIC
             if (counts.pp > 0) {
-                let ppContent = "";
-                let ppText = "";
+                let ppContent = ""; let ppText = "";
                 for(let i=0; i<counts.pp; i++) {
-                    // Random tier rotation: Gold -> Silver -> Bronze -> Gold...
                     let tier = i===0 ? 'gold' : (i===1 ? 'silver' : 'bronze');
                     let g = draw('Pragmatic', tier);
-                    ppContent += g.html;
-                    ppText += `${g.name}\n`;
+                    ppContent += g.html; ppText += `${g.name}\n`;
                 }
                 let stP = getStrategy('Pragmatic');
                 sessionHtml += `<div class="provider-label">PRAGMATIC PLAY</div>${ppContent}${stP.html}`;
                 rawTxt += `--- PRAGMATIC PLAY ---\n${ppText}\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
             }
 
-            // DRAW PG SOFT
             if (counts.pg > 0) {
-                let pgContent = "";
-                let pgText = "";
+                let pgContent = ""; let pgText = "";
                 for(let i=0; i<counts.pg; i++) {
                     let tier = i===0 ? 'gold' : 'silver';
                     let g = draw('PGSoft', tier);
-                    pgContent += g.html;
-                    pgText += `${g.name}\n`;
+                    pgContent += g.html; pgText += `${g.name}\n`;
                 }
                 let stPg = getStrategy('PGSoft');
                 sessionHtml += `<div class="provider-label">PG SOFT</div>${pgContent}${stPg.html}`;
@@ -985,16 +1040,33 @@ function generateJadwal() {
             let depo = getDeposit(sessKey);
             dayData.sessions.push({ title: label, time: timeStr, games: rawTxt.trim(), depo: depo });
             
+            // Logic Active Pulse (Cek jam sekarang)
+            let isActive = false;
+            // (Fitur sederhana: tidak deteksi jam real-time JS, hanya visual placeholder jika mau)
+            
             return `
-            <div class="session-box">
-                <button class="smart-copy-btn" onclick="copySession(${dayIndex}, ${sessIndex})" title="Copy FULL Data Sesi Ini"><i class="fas fa-copy"></i></button>
-                <div class="session-title">${label}</div>
-                <span class="session-time">${timeStr}</span>
-                ${sessionHtml}${depo.html}
+            <div class="session-box ${isActive ? 'active-now' : ''}">
+                <div class="session-header">
+                    <div class="session-title">${label}</div>
+                    <span class="session-time">${timeStr}</span>
+                    <div class="action-container">
+                        <button class="action-btn minimize-btn" onclick="toggleSession(this)"><i class="fas fa-window-minimize"></i></button>
+                        <button class="action-btn copy-btn" onclick="copySession(${dayIndex}, ${sessIndex})"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+                <div class="session-content">${sessionHtml}${depo.html}</div>
             </div>`;
         };
 
-        html += `<div class="day-row"><span class="day-label">${day} <span class="date-badge">${dateBadge}</span></span><div class="session-grid">`;
+        html += `
+        <div class="day-row">
+            <div class="day-header">
+                <span class="day-label">${day} <span class="date-badge">${dateBadge}</span></span>
+                <button class="minimize-day-btn" onclick="toggleDay(this)" title="Toggle Hari">
+                    <i class="fas fa-window-minimize"></i>
+                </button>
+            </div>
+            <div class="session-grid">`;
         html += buildSession("🌑 MIDNIGHT", "MIDNIGHT", 0);
         html += buildSession("☀️ SIANG", "SIANG", 1);
         html += buildSession("🌇 SORE", "SORE", 2);
@@ -1009,24 +1081,49 @@ function generateJadwal() {
     document.getElementById("copyBtn").style.display = "inline-block";
     document.getElementById("saveBtn").style.display = "inline-block";
 }
-// --- END NEW GENERATOR ---
+
+function toggleSession(btn) {
+    const box = btn.closest('.session-box');
+    box.classList.toggle('collapsed');
+    const icon = btn.querySelector('i');
+    if (box.classList.contains('collapsed')) { icon.classList.remove('fa-window-minimize'); icon.classList.add('fa-window-maximize'); } 
+    else { icon.classList.remove('fa-window-maximize'); icon.classList.add('fa-window-minimize'); }
+}
+
+function toggleDay(btn) {
+    const row = btn.closest('.day-row');
+    row.classList.toggle('collapsed');
+    const icon = btn.querySelector('i');
+    if (row.classList.contains('collapsed')) { icon.classList.remove('fa-window-minimize'); icon.classList.add('fa-window-maximize'); } 
+    else { icon.classList.remove('fa-window-maximize'); icon.classList.add('fa-window-minimize'); }
+}
+
+function saveTimeSettings() {
+    const settings = {
+        midnight: document.getElementById('timeMidnight').value,
+        siang: document.getElementById('timeSiang').value,
+        sore: document.getElementById('timeSore').value,
+        malam: document.getElementById('timeMalam').value
+    };
+    localStorage.setItem('schedulerTimeSettings', JSON.stringify(settings));
+    liveUpdateView(); 
+}
+function loadTimeSettings() {
+    const saved = localStorage.getItem('schedulerTimeSettings');
+    if (saved) {
+        const s = JSON.parse(saved);
+        if(s.midnight) document.getElementById('timeMidnight').value = s.midnight;
+        if(s.siang) document.getElementById('timeSiang').value = s.siang;
+        if(s.sore) document.getElementById('timeSore').value = s.sore;
+        if(s.malam) document.getElementById('timeMalam').value = s.malam;
+    }
+}
 
 function copySession(dayIndex, sessIndex) {
     const data = globalMemory[dayIndex].sessions[sessIndex];
     const dayName = globalMemory[dayIndex].day;
-    const dateStr = globalMemory[dayIndex].date;
-    
-    let txt = `=================================\n`;
-    txt += `HARI: ${dayName}, ${dateStr}\n`;
-    txt += `SESI: ${data.title} (${data.time})\n`;
-    txt += `=================================\n\n`;
-    txt += `${data.games}\n\n`;
-    txt += `---------------------------------\n`;
-    txt += `KODE EKOR: ${data.depo.code}\n`;
-    txt += `---------------------------------\n`;
-    txt += `LIST DEPOSIT:\n${data.depo.text}`;
-    
-    navigator.clipboard.writeText(txt).then(() => { showToast(`COPIED FULL: ${dayName} ${data.title}`); });
+    let txt = `=== ${dayName}, ${data.time} ===\n\n${data.games}\n\nKODE: ${data.depo.code}`;
+    navigator.clipboard.writeText(txt).then(() => { showToast("COPIED!"); });
 }
 
 function copyText() {
@@ -1034,14 +1131,8 @@ function copyText() {
     const dateRange = document.getElementById("displayDate").innerText;
     let txt = `=== JADWAL GACOR ${prof} ===\n${dateRange}\n\n`;
     globalMemory.forEach(d => {
-        txt += `\n[ ${d.day}, ${d.date} ]\n`;
-        d.sessions.forEach(s => { 
-            txt += `\n>>> ${s.title} (${s.time}) <<<\n`;
-            txt += `${s.games}\n`;
-            txt += `EKOR: ${s.depo.code}\n`;
-            txt += `\n${s.depo.text}`;
-        });
-        txt += `\n------------------------\n`;
+        txt += `\n[ ${d.day} ]\n`;
+        d.sessions.forEach(s => { txt += `\n>>> ${s.title} (${s.time}) <<<\n${s.games}\nEKOR: ${s.depo.code}\n\n`; });
     });
     navigator.clipboard.writeText(txt).then(() => showToast("ALL DATA COPIED!"));
 }
@@ -1053,33 +1144,78 @@ function downloadPNG() {
     });
 }
 
+// --- VISUALS & SMART PAUSE ---
 const bgCanvas = document.getElementById('nebula-canvas'); const bgCtx = bgCanvas.getContext('2d');
 const cursorCanvas = document.getElementById('cursor-canvas'); const cCtx = cursorCanvas.getContext('2d');
 const pCanvas = document.getElementById('particle-canvas'); const pCtx = pCanvas.getContext('2d');
 let w, h, nebulaLayers = [], stars = [], cursorParticles = [], mouse = { x: 0, y: 0 };
+let animationFrameId; // Variabel kontrol animasi
+
+// Listener untuk tab aktif/non-aktif
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        cancelAnimationFrame(animationFrameId); 
+        if(player && typeof player.pauseVideo === 'function' && isPlaying) player.pauseVideo();
+    } else {
+        loopVisuals();
+        if(player && typeof player.playVideo === 'function' && isPlaying) player.playVideo();
+    }
+});
 
 function initVisuals() {
     resize(); window.addEventListener('resize', resize);
     window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; spawnCursorTrail(); });
-    for(let i=0; i<6; i++) nebulaLayers.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*300+300, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.floor(Math.random()*(currentNebulaColors.length-1)+1) });
-    for(let i=0; i<200; i++) stars.push({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2, a: Math.random(), vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1 });
+    
+    // OPTIMASI: Kurangi partikel jika layar kecil
+    const isMobile = window.innerWidth < 700;
+    const starCount = isMobile ? 50 : 150; 
+    const layerCount = isMobile ? 3 : 5;
+
+    nebulaLayers = []; stars = [];
+    for(let i=0; i<layerCount; i++) nebulaLayers.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*300+300, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.floor(Math.random()*(currentNebulaColors.length-1)+1) });
+    for(let i=0; i<starCount; i++) stars.push({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2, a: Math.random(), vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1 });
+    
     loopVisuals();
 }
 function resize() { w = window.innerWidth; h = window.innerHeight; bgCanvas.width = cursorCanvas.width = pCanvas.width = w; bgCanvas.height = cursorCanvas.height = pCanvas.height = h; }
-function spawnCursorTrail() { for(let i=0; i<2; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentNebulaColors[1], s: Math.random()*3+1 }); }
+function spawnCursorTrail() { 
+    if(cursorParticles.length > 20) return;
+    for(let i=0; i<1; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentNebulaColors[1], s: Math.random()*3+1 }); 
+}
 
 function loopVisuals() {
-    if (document.body.classList.contains('clean-mode')) { requestAnimationFrame(loopVisuals); return; }
+    if (document.body.classList.contains('clean-mode')) { 
+        animationFrameId = requestAnimationFrame(loopVisuals); return; 
+    }
+    
     bgCtx.fillStyle = currentNebulaColors[0]; bgCtx.fillRect(0,0,w,h);
     nebulaLayers.forEach(l => {
-        l.x+=l.vx; l.y+=l.vy; if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;
-        let g = bgCtx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r); g.addColorStop(0, hexToRgba(currentNebulaColors[l.c]||currentNebulaColors[1],0.2)); g.addColorStop(1,'transparent');
-        bgCtx.globalCompositeOperation='lighter'; bgCtx.fillStyle=g; bgCtx.beginPath(); bgCtx.arc(l.x,l.y,l.r,0,Math.PI*2); bgCtx.fill();
+        l.x+=l.vx; l.y+=l.vy; 
+        if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; 
+        if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;
+        let g = bgCtx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r); 
+        g.addColorStop(0, hexToRgba(currentNebulaColors[l.c]||currentNebulaColors[1],0.2)); 
+        g.addColorStop(1,'transparent');
+        bgCtx.fillStyle=g; bgCtx.beginPath(); bgCtx.arc(l.x,l.y,l.r,0,Math.PI*2); bgCtx.fill();
     });
-    bgCtx.globalCompositeOperation='source-over';
-    stars.forEach(s => { s.x+=s.vx; s.y+=s.vy; if(s.x<0)s.x=w; if(s.x>w)s.x=0; if(s.y<0)s.y=h; if(s.y>h)s.y=0; s.a+=(Math.random()-0.5)*0.02; if(s.a<0)s.a=0; if(s.a>1)s.a=1; bgCtx.fillStyle=`rgba(255,255,255,${s.a})`; bgCtx.beginPath(); bgCtx.arc(s.x,s.y,s.s,0,Math.PI*2); bgCtx.fill(); });
-    cCtx.clearRect(0,0,w,h); cursorParticles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.life-=0.05; p.s*=0.9; if(p.life>0){ cCtx.globalAlpha=p.life; cCtx.fillStyle=p.c; cCtx.beginPath(); cCtx.arc(p.x,p.y,p.s,0,Math.PI*2); cCtx.fill(); } else cursorParticles.splice(i,1); });
-    requestAnimationFrame(loopVisuals);
+
+    pCtx.clearRect(0,0,w,h);
+    stars.forEach(s => { 
+        s.x+=s.vx; s.y+=s.vy; 
+        if(s.x<0)s.x=w; if(s.x>w)s.x=0; 
+        if(s.y<0)s.y=h; if(s.y>h)s.y=0; 
+        s.a+=(Math.random()-0.5)*0.02; if(s.a<0)s.a=0; if(s.a>1)s.a=1; 
+        pCtx.fillStyle=`rgba(255,255,255,${s.a})`; pCtx.beginPath(); pCtx.arc(s.x,s.y,s.s,0,Math.PI*2); pCtx.fill(); 
+    });
+
+    cCtx.clearRect(0,0,w,h); 
+    cursorParticles.forEach((p,i) => { 
+        p.x+=p.vx; p.y+=p.vy; p.life-=0.05; p.s*=0.9; 
+        if(p.life>0){ cCtx.globalAlpha=p.life; cCtx.fillStyle=p.c; cCtx.beginPath(); cCtx.arc(p.x,p.y,p.s,0,Math.PI*2); cCtx.fill(); } 
+        else cursorParticles.splice(i,1); 
+    });
+    
+    animationFrameId = requestAnimationFrame(loopVisuals);
 }
 function hexToRgba(hex,a) { let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
 

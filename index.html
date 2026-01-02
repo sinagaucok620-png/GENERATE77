@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Final Fixed</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>GO-BAK2 GENERATE - Advanced Logic V19</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -16,7 +15,6 @@
             --win-green: #00ff88;
             --warn-yellow: #ffd700;
             --danger-red: #ff3e3e;
-            --wa-green: #25D366;
         }
 
         * { box-sizing: border-box; } 
@@ -95,14 +93,6 @@
         input[type="date"] { text-transform: uppercase; color-scheme: dark; }
         input[readonly] { background: rgba(0,0,0,0.3); color: #aaa; border-color: transparent; cursor: default; }
 
-        #musicSelect {
-            max-width: 200px;
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(0, 0, 0, 0.5);
-            color: #aaa;
-        }
-        #musicSelect { color: var(--win-green); border-color: var(--win-green); }
-
         button { 
             background: var(--primary); color: #000; border: none; 
             padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: 800; 
@@ -112,23 +102,17 @@
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
         button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
         
-        #musicBtn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        #musicBtn.playing { background: var(--win-green); color: #000; border-color: transparent; box-shadow: 0 0 20px var(--win-green); }
-
         #lockBtn { padding: 12px 15px; width: 50px; background: rgba(255,255,255,0.1); color: #fff; }
         #lockBtn.locked { background: var(--danger-red); }
 
         #shareBtn { background: #6c5ce7; color: #fff; }
         #shareBtn:hover { box-shadow: 0 0 15px #6c5ce7; }
-        #waBtn { background: var(--wa-green); color: #fff; }
-        #waBtn:hover { box-shadow: 0 0 15px var(--wa-green); }
+        
         #designerBtn { background: #fff; color: #000; border: 1px solid #999; }
         #designerBtn:hover { box-shadow: 0 0 15px #fff; }
+        
         #dbBtn { background: #ff9f43; color: #000; }
         #dbBtn:hover { box-shadow: 0 0 15px #ff9f43; }
-
-        .btn-copy { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; }
-        .btn-save { background: #10b981 !important; color: #fff !important; }
 
         /* DAY & SESSION STYLES */
         .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; transition: all 0.3s; }
@@ -239,7 +223,7 @@
         body.clean-mode .time-settings summary { color: #333; }
         body.clean-mode .time-group label { color: #555; }
         body.clean-mode .time-group input { background: #fff; color: #000; border: 1px solid #ccc; }
-        body.clean-mode #musicBtn, body.clean-mode #musicSelect, body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #waBtn, body.clean-mode #dbBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+        body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #dbBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
         body.clean-mode .minimize-day-btn { background: #ccc; color: #000; border-color: #999; }
         body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
@@ -282,8 +266,6 @@
 
 <div class="toast-container"><div id="customToast" class="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">ACTION SUCCESSFUL</span></div></div>
 <div id="hover-tooltip"><img id="tooltip-img" src="" alt=""></div>
-
-<audio id="bgMusic" loop style="display:none;"></audio>
 
 <div id="gameModal" class="modal" onclick="document.getElementById('gameModal').style.display='none'">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -334,7 +316,7 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V18.1</h2>
+        <h2>PLATFORM SCHEDULER V19.0 AI</h2>
         
         <div class="date-range-wrapper">
             <div class="date-input-group">
@@ -377,32 +359,15 @@
         <button id="genBtn" onclick="initiateSync()">SYNC DATA</button>
         
         <button id="dbBtn" onclick="openDatabaseModal()"><i class="fas fa-database"></i> DATABASE SEED</button>
-        
-        <button id="musicBtn" onclick="toggleMusic()"><i class="fas fa-music"></i> MUSIC OFF</button>
-        <select id="musicSelect" onchange="changeMusic()">
-            <option value="https://stream.zeno.fm/wc3040338q5tv">RADIO HITS INDONESIA</option>
-            <option value="https://stream.zeno.fm/0r0xa792kwzuv">LOFI HIPHOP (FOKUS)</option>
-            <option value="https://stream.zeno.fm/f3wvbbqmdg8uv">GAMING TRAP</option>
-            <option value="https://stream.zeno.fm/kp051187768uv">CYBERPUNK AMBIENT</option>
-            <option value="https://stream.zeno.fm/20m06v32n18uv">CAFE JAZZ RELAX</option>
-        </select>
-
-        <button id="waBtn" onclick="sendToWhatsApp()" title="Kirim ke Designer (+628988385486)">
-            <i class="fab fa-whatsapp"></i> KIRIM
-        </button>
         <button id="shareBtn" onclick="copyShareLink()" title="Copy Link Manual"><i class="fas fa-link"></i> LINK</button>
         
         <button id="designerBtn" onclick="toggleDesignerMode()" title="Mode Baca Mudah untuk Designer">
             <i class="fas fa-eye"></i> MODE DESIGNER
         </button>
-
-        <button id="copyBtn" class="btn-copy" style="display:none" onclick="openPreviewAll()"><i class="fas fa-clipboard"></i> PREVIEW & COPY</button>
-        <button id="saveBtn" class="btn-save" style="display:none" onclick="downloadPNG()">EXPORT PNG</button>
     </div>
 
     <div id="capture-area"><div id="hasil"></div></div>
 </div>
-<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 // --- ALGORITMA RNG MULBERRY32 ---
@@ -431,6 +396,28 @@ function shuffleArray(array) {
         [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
     }
     return array;
+}
+
+// --- INTELLIGENT THEME LOGIC ---
+function getGameTheme(gameName) {
+    if (!gameName) return "";
+    let n = gameName.toLowerCase();
+    
+    // Manual overrides untuk seri game populer
+    if(n.includes("olympus")) return "olympus";
+    if(n.includes("starlight")) return "starlight";
+    if(n.includes("bonanza")) return "bonanza";
+    if(n.includes("mahjong")) return "mahjong";
+    if(n.includes("neko")) return "neko";
+    if(n.includes("aztec")) return "aztec";
+    if(n.includes("thor")) return "thor";
+    if(n.includes("wild bandito")) return "bandito";
+    if(n.includes("sugar")) return "sugar";
+    if(n.includes("gatot")) return "gatot";
+    if(n.includes("princess")) return "princess"; // Backup jika tidak ada starlight
+    
+    // Default: Ambil kata pertama
+    return n.split(" ")[0];
 }
 
 // --- DATABASE & HISTORY SYSTEM (LOCAL STORAGE) ---
@@ -562,16 +549,6 @@ function changeProfileHandler() {
     liveUpdateView(); 
 }
 
-function sendToWhatsApp() {
-    if (!window.location.href.includes("seed=")) { showToast("KLIK 'SYNC DATA' DULU!"); return; }
-    updateUrlState();
-    const prof = document.getElementById("profileSelect").value;
-    const dateRange = document.getElementById("displayDate").innerText.replace("PERIODE: ", "");
-    const url = encodeURIComponent(window.location.href);
-    let msg = `Halo Designer, ini jadwal *${prof}* untuk periode *${dateRange}*.\n\nSilakan diproses:\n${url}`;
-    window.open(`https://wa.me/628988385486?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
 function triggerScanEffect(callback) {
     const overlay = document.getElementById('scanOverlay');
     const bar = document.getElementById('scanBar');
@@ -614,7 +591,7 @@ function copyShareLink() {
     updateUrlState(); 
     const url = window.location.href;
     if (!url.includes("seed=")) { showToast("KLIK 'SYNC DATA' DULU!"); return; }
-    navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! KIRIM KE DESIGNER"); });
+    navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! SIAP DIBAGIKAN"); });
 }
 
 let isLocked = false;
@@ -670,60 +647,11 @@ function handleTooltip(e) {
     }
 }
 
-// --- NATIVE AUDIO PLAYER ---
-const audioPlayer = document.getElementById('bgMusic');
-let isPlaying = false;
-
-function changeMusic() {
-    const url = document.getElementById("musicSelect").value;
-    audioPlayer.src = url;
-    if(isPlaying) {
-        audioPlayer.play().catch(e => {
-            showToast("KLIK PLAY MANUAL");
-            isPlaying = false;
-            updateMusicBtn();
-        });
-    }
-}
-
-function toggleMusic() {
-    const btn = document.getElementById('musicBtn');
-    if (audioPlayer.paused) {
-        if (!audioPlayer.src) audioPlayer.src = document.getElementById("musicSelect").value;
-        audioPlayer.play().then(() => { isPlaying = true; updateMusicBtn(); }).catch(e => { showToast("STREAM OFFLINE"); });
-    } else {
-        audioPlayer.pause();
-        isPlaying = false;
-        updateMusicBtn();
-    }
-}
-
-function updateMusicBtn() {
-    const btn = document.getElementById('musicBtn');
-    if (isPlaying) { btn.innerHTML = '<i class="fas fa-volume-up"></i> MUSIC ON'; btn.classList.add('playing'); } 
-    else { btn.innerHTML = '<i class="fas fa-music"></i> MUSIC OFF'; btn.classList.remove('playing'); }
-}
-
 function showToast(msg) {
     const toast = document.getElementById("customToast");
     document.getElementById("toastMsg").innerText = msg;
     toast.classList.add("show");
     setTimeout(() => { toast.classList.remove("show"); }, 3000);
-}
-
-function loadFromHistory() {
-    const sel = document.getElementById("historySelect");
-    if (sel.value === "") return;
-    const index = parseInt(sel.value);
-    const item = seedHistory[index];
-    if (item) {
-        currentSeed = item.seed;
-        myRandom = seedRandom(currentSeed);
-        updateUrlState(); 
-        fetchDatabase();
-        showToast(`RESTORED: ${item.time}`);
-    }
-    sel.value = ""; 
 }
 
 // --- VISUALS ---
@@ -736,10 +664,8 @@ let animationFrameId;
 document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
         cancelAnimationFrame(animationFrameId); 
-        if(audioPlayer && !audioPlayer.paused && isPlaying) audioPlayer.pause();
     } else {
         loopVisuals();
-        if(audioPlayer && audioPlayer.paused && isPlaying) audioPlayer.play();
     }
 });
 
@@ -844,7 +770,6 @@ function checkUrlParams() {
         document.getElementById("startDateInput").valueAsDate = new Date();
         updateEndDate(); 
         if(!tM && !tS) loadTimeSettings(); 
-        updateHistoryUI();
         updateUrlState(); 
     }
 }
@@ -964,13 +889,45 @@ function getDeposit(sess) {
     return { html, text, code: tail };
 }
 
-function pickGame(prov, tier, blacklist, daily) {
+// UPDATE: pickGame now accepts session history logic
+function pickGame(prov, tier, blacklist, daily, previousThemes, currentThemes, yesterdaySameSessionThemes) {
     let list = (prov === 'Pragmatic') ? poolPragmatic[tier] : poolPGSoft[tier];
-    if (!list || list.length === 0) return { name: "DATA KOSONG", html: "" };
-    let available = list.filter(g => !blacklist.includes(g) && !daily.includes(g));
-    if (available.length === 0) available = list;
+    if (!list || list.length === 0) return { name: "DATA KOSONG", html: "", theme: "" };
+    
+    // Filter games
+    let available = list.filter(g => {
+        let theme = getGameTheme(g);
+        
+        // 1. Cek Blacklist (game sama persis tidak boleh muncul 2x sehari)
+        if(blacklist.includes(g) || daily.includes(g)) return false;
+        
+        // 2. Cek Tema di Sesi INI (Starlight Princess & Starlight Christmas gak boleh bareng)
+        if(currentThemes.includes(theme)) return false;
+        
+        // 3. Cek Tema di Sesi SEBELUMNYA (Cooldown 1 Sesi)
+        if(previousThemes.includes(theme)) return false;
+
+        // 4. Cek Tema di Sesi SAMA pada HARI SEBELUMNYA (Rule baru)
+        if(yesterdaySameSessionThemes && yesterdaySameSessionThemes.includes(theme)) return false;
+
+        return true;
+    });
+
+    if (available.length === 0) {
+        // Fallback: Jika terlalu ketat, longgarkan aturan "Sesi Sebelumnya"
+        available = list.filter(g => !blacklist.includes(g) && !daily.includes(g));
+    }
+
+    if (available.length === 0) available = list; // Fallback total
+
     const chosen = available[Math.floor(myRandom() * available.length)];
-    return { name: chosen, html: `<div class="game-card" onclick="showImg('${chosen}')"><span class="game-name">${chosen}</span><span class="badge" style="background:${tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32'};color:#000">${tier}</span></div>` };
+    const chosenTheme = getGameTheme(chosen);
+    
+    return { 
+        name: chosen, 
+        theme: chosenTheme,
+        html: `<div class="game-card" onclick="showImg('${chosen}')"><span class="game-name">${chosen}</span><span class="badge" style="background:${tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32'};color:#000">${tier}</span></div>` 
+    };
 }
 
 function showImg(name) {
@@ -1044,22 +1001,40 @@ function generateJadwal() {
     let html = "";
     globalMemory = [];
     let yesterday = [];
+    
+    // NEW: Store themes from previous day's specific sessions (e.g., Yesterday Midnight)
+    let historyPerSession = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] };
+
     days.forEach((day, dayIndex) => {
         let currentDate = new Date(startDate); currentDate.setDate(startDate.getDate() + dayIndex);
         let dateBadge = currentDate.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: '2-digit'});
         let todayGames = [];
         let dayData = { day: day, date: dateBadge, sessions: [] };
-        const draw = (p, t) => { let res = pickGame(p, t, yesterday, todayGames); if (res.name !== "DATA KOSONG") todayGames.push(res.name); return res; }
+        
+        let previousSessionThemes = []; // Reset setiap hari baru agar fresh
+        let todaySessionThemes = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] }; // Store themes to pass to tomorrow
+
+        const draw = (p, t, currentThemes, sessKey) => { 
+            // Pass historyPerSession[sessKey] to pickGame
+            let res = pickGame(p, t, yesterday, todayGames, previousSessionThemes, currentThemes, historyPerSession[sessKey]); 
+            if (res.name !== "DATA KOSONG") todayGames.push(res.name); 
+            return res; 
+        }
+
         const buildSession = (label, sessKey, sessIndex) => {
             const timeStr = times[sessKey];
             const counts = resolveGameCounts(profile, sessKey);
             let sessionHtml = "";
             let rawTxt = "";
+            let currentSessionThemes = [];
+
             if (counts.pp > 0) {
                 let ppContent = ""; let ppText = "";
                 for(let i=0; i<counts.pp; i++) {
                     let tier = i===0 ? 'gold' : (i===1 ? 'silver' : 'bronze');
-                    let g = draw('Pragmatic', tier);
+                    let g = draw('Pragmatic', tier, currentSessionThemes, sessKey);
+                    currentSessionThemes.push(g.theme); 
+                    todaySessionThemes[sessKey].push(g.theme); // Save for tomorrow
                     ppContent += g.html; ppText += `${g.name}\n`;
                 }
                 let stP = getStrategy('Pragmatic');
@@ -1070,13 +1045,19 @@ function generateJadwal() {
                 let pgContent = ""; let pgText = "";
                 for(let i=0; i<counts.pg; i++) {
                     let tier = i===0 ? 'gold' : 'silver';
-                    let g = draw('PGSoft', tier);
+                    let g = draw('PGSoft', tier, currentSessionThemes, sessKey);
+                    currentSessionThemes.push(g.theme);
+                    todaySessionThemes[sessKey].push(g.theme); // Save for tomorrow
                     pgContent += g.html; pgText += `${g.name}\n`;
                 }
                 let stPg = getStrategy('PGSoft');
                 sessionHtml += `<div class="provider-label">PG SOFT</div>${pgContent}${stPg.html}`;
                 rawTxt += `--- PG SOFT ---\n${pgText}\nPOLA PG SOFT:\n${stPg.text}`;
             }
+            
+            // Simpan tema sesi ini untuk pengecekan sesi berikutnya (dalam hari yang sama)
+            previousSessionThemes = [...currentSessionThemes];
+
             let depo = getDeposit(sessKey);
             dayData.sessions.push({ title: label, time: timeStr, games: rawTxt.trim(), depo: depo });
             return `
@@ -1104,12 +1085,14 @@ function generateJadwal() {
         html += buildSession("🌇 SORE", "SORE", 2);
         html += buildSession("🌙 MALAM", "MALAM", 3);
         html += `</div></div>`;
+        
         globalMemory.push(dayData);
         yesterday = [...todayGames];
+        
+        // Update historyPerSession with today's data for the next loop iteration (tomorrow)
+        historyPerSession = todaySessionThemes;
     });
     document.getElementById("hasil").innerHTML = html;
-    document.getElementById("copyBtn").style.display = "inline-block";
-    document.getElementById("saveBtn").style.display = "inline-block";
 }
 
 function toggleSession(btn) {
@@ -1161,17 +1144,6 @@ function finalCopy() {
     const txtArea = document.getElementById("resultText"); txtArea.select(); document.execCommand('copy'); showToast("TEKS BERHASIL DISALIN!");
 }
 
-function openPreviewAll() {
-    const prof = document.getElementById("profileSelect").value;
-    const dateRange = document.getElementById("displayDate").innerText;
-    let txt = `=== JADWAL GACOR ${prof} ===\n${dateRange}\n\n`;
-    globalMemory.forEach(d => {
-        txt += `\n[ ${d.day}, ${d.date} ]\n`;
-        d.sessions.forEach(s => { txt += `\n>>> ${s.title} (${s.time}) <<<\n${s.games}\nEKOR: ${s.depo.code}\n\n`; });
-    });
-    openResultModal(txt);
-}
-
 function copySession(dayIndex, sessIndex) {
     const data = globalMemory[dayIndex].sessions[sessIndex];
     const dayName = globalMemory[dayIndex].day;
@@ -1180,17 +1152,7 @@ function copySession(dayIndex, sessIndex) {
     openResultModal(txt);
 }
 
-function copyText() { openPreviewAll(); }
-
-function downloadPNG() {
-    const sel = document.getElementById("profileSelect").value;
-    html2canvas(document.getElementById("capture-area"), { scale: 2, backgroundColor: "#000" }).then(canvas => {
-        const a = document.createElement("a"); a.href = canvas.toDataURL(); a.download = `Jadwal_${sel}.png`; a.click();
-    });
-}
-
 window.onload = function() { checkUrlParams(); initVisuals(); };
 </script>
 </body>
 </html>
-

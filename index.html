@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V19 (Sore Gold Only)</title>
+    <title>GO-BAK2 GENERATE - Advanced Logic V21.1 (PG Pattern Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -316,7 +316,7 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V19.0 AI</h2>
+        <h2>PLATFORM SCHEDULER V21.1 AI</h2>
         
         <div class="date-range-wrapper">
             <div class="date-input-group">
@@ -825,7 +825,12 @@ function getUniqueCode() {
 
 function getStrategy(prov) {
     let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
-    if (!list || list.length < 3) return { html: "<div>Pola Kurang</div>", text: "" };
+    if (!list || list.length === 0) return { html: "<div>Pola Kurang</div>", text: "" };
+    
+    // --- HEADER TEXT ---
+    let headerText = "BET NOMINAL BEBAS";
+    let headerHtml = `<div style="color: #fff; font-size: 10px; margin-bottom: 3px; font-weight: bold; letter-spacing:1px; text-transform:uppercase;">${headerText}</div>`;
+    
     let dcText = "";
     let badgeHtml = "";
     if (prov === 'Pragmatic') {
@@ -833,33 +838,72 @@ function getStrategy(prov) {
         dcText = `FITUR GANDA ${state}`;
         badgeHtml = `<span class="badge" style="background:var(--primary); color:#000; margin-bottom:5px; display:inline-block;">${dcText}</span>`;
     }
-    let shuffledList = [...list]; shuffleArray(shuffledList);
+    
+    let shuffledList = [...list]; 
+    shuffleArray(shuffledList);
+    
     let selected = [];
-    let lastType = "";
+    let usedTypes = []; 
+
     const getType = (str) => {
-        if(!str) return "";
-        let words = str.trim().split(' ');
-        if (words.length >= 2) return (words[0] + " " + words[1]).toUpperCase();
-        return words[0].toUpperCase();
+        if (!str) return "";
+        let clean = str.toUpperCase();
+        if (clean.includes("MANUAL")) return "MANUAL";
+        if (clean.includes("AUTO")) return "AUTO"; 
+        if (clean.includes("TURBO")) return "TURBO";
+        if (clean.includes("BUY")) return "BUY";
+        return clean.replace(/[0-9X\.\-]/g, '').trim();
     };
+
     let attempts = 0;
-    while (selected.length < 5 && shuffledList.length > 0 && attempts < 100) {
+    while (selected.length < 5 && shuffledList.length > 0 && attempts < 50) {
         let foundIndex = -1;
+        
         for (let i = 0; i < shuffledList.length; i++) {
-            let currentType = getType(shuffledList[i]);
-            if (currentType !== lastType) { foundIndex = i; break; }
+            let currentRaw = shuffledList[i];
+            let currentType = getType(currentRaw);
+
+            if (!usedTypes.includes(currentType)) {
+                foundIndex = i;
+                break; 
+            }
         }
+
         if (foundIndex !== -1) {
-            let item = shuffledList[foundIndex]; selected.push(item); lastType = getType(item); shuffledList.splice(foundIndex, 1);
+            let item = shuffledList[foundIndex];
+            let type = getType(item);
+            selected.push(item);
+            usedTypes.push(type);
+            shuffledList.splice(foundIndex, 1);
         } else {
-            let item = shuffledList[0]; selected.push(item); lastType = getType(item); shuffledList.shift();
+            break;
         }
         attempts++;
     }
+
+    if (selected.length < 5) {
+        let backupList = [...list];
+        shuffleArray(backupList);
+        for (let item of backupList) {
+            if (selected.length >= 5) break;
+            if (!selected.includes(item)) {
+                selected.push(item);
+            }
+        }
+        while (selected.length < 5) {
+             selected.push(list[Math.floor(Math.random() * list.length)]);
+        }
+    }
+    
     let stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
     let stepsText = selected.map(s => `> ${s}`).join('\n');
-    let fullText = `${dcText ? dcText + '\n' : ''}${stepsText}`;
-    return { html: `<div class="guide-container">${badgeHtml}${stepsHtml}</div>`, text: fullText };
+    
+    // --- NEW FOOTER MSG ---
+    const footerMsg = "NAIKAN BET SECARA BERTAHAP & ULANGI POLA";
+    let footerHtml = `<div class="step-row" style="margin-top:5px; border-top:1px dashed #444; padding-top:5px;"><span style="color:var(--warn-yellow); font-weight:800; font-size:9px;">${footerMsg}</span></div>`;
+    
+    let fullText = `${headerText}\n${dcText ? dcText + '\n' : ''}${stepsText}\n\n${footerMsg}`;
+    return { html: `<div class="guide-container">${headerHtml}${badgeHtml}${stepsHtml}${footerHtml}</div>`, text: fullText };
 }
 
 function getDeposit(sess) {
@@ -976,7 +1020,8 @@ function resolveGameCounts(profile, sessionName) {
     } else if (profile === "HOLYPLAY17") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
-        if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 };
+        // FIX: Sesi SORE wajib 2 PP (Gold dihandle di buildSession)
+        if(sessionName === "SORE") return { pp:2, pg:0 }; 
         if(sessionName === "MALAM") return { pp:0, pg:2 };
     } else if (profile === "INDOFUN17") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };

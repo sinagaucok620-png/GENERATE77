@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V21.1 (PG Pattern Fix)</title>
+    <title>GO-BAK2 GENERATE - Advanced Logic V22 (Pragmatic BuySpin Slot)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -316,7 +316,7 @@
 
 <div class="container">
     <div class="header-area">
-        <h2>PLATFORM SCHEDULER V21.1 AI</h2>
+        <h2>PLATFORM SCHEDULER V22.0 AI</h2>
         
         <div class="date-range-wrapper">
             <div class="date-input-group">
@@ -826,8 +826,8 @@ function getUniqueCode() {
 function getStrategy(prov) {
     let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
     if (!list || list.length === 0) return { html: "<div>Pola Kurang</div>", text: "" };
-    
-    // --- HEADER TEXT ---
+
+    // --- HEADER & BADGE ---
     let headerText = "BET NOMINAL BEBAS";
     let headerHtml = `<div style="color: #fff; font-size: 10px; margin-bottom: 3px; font-weight: bold; letter-spacing:1px; text-transform:uppercase;">${headerText}</div>`;
     
@@ -838,67 +838,112 @@ function getStrategy(prov) {
         dcText = `FITUR GANDA ${state}`;
         badgeHtml = `<span class="badge" style="background:var(--primary); color:#000; margin-bottom:5px; display:inline-block;">${dcText}</span>`;
     }
-    
-    let shuffledList = [...list]; 
-    shuffleArray(shuffledList);
-    
+
     let selected = [];
-    let usedTypes = []; 
+    let stepsHtml = "";
+    let stepsText = "";
 
-    const getType = (str) => {
-        if (!str) return "";
-        let clean = str.toUpperCase();
-        if (clean.includes("MANUAL")) return "MANUAL";
-        if (clean.includes("AUTO")) return "AUTO"; 
-        if (clean.includes("TURBO")) return "TURBO";
-        if (clean.includes("BUY")) return "BUY";
-        return clean.replace(/[0-9X\.\-]/g, '').trim();
-    };
-
-    let attempts = 0;
-    while (selected.length < 5 && shuffledList.length > 0 && attempts < 50) {
-        let foundIndex = -1;
+    // --- LOGIC PRAGMATIC (6 Lines: 5 Normal + 1 BuySpin) ---
+    if (prov === 'Pragmatic') {
+        // Pisahkan pola Buy Spin dan Pola Biasa
+        let buySpinList = list.filter(item => item.toUpperCase().includes("BUY") || item.toUpperCase().includes("BELI"));
+        let normalList = list.filter(item => !item.toUpperCase().includes("BUY") && !item.toUpperCase().includes("BELI"));
         
-        for (let i = 0; i < shuffledList.length; i++) {
-            let currentRaw = shuffledList[i];
-            let currentType = getType(currentRaw);
+        // Jika normal list kosong (jaga-jaga), pakai semua list
+        if (normalList.length === 0) normalList = [...list];
 
-            if (!usedTypes.includes(currentType)) {
-                foundIndex = i;
-                break; 
-            }
-        }
+        // 1. Ambil 5 Pola Normal (Unik)
+        let shuffledNormal = [...normalList];
+        shuffleArray(shuffledNormal);
+        let usedTypes = [];
+        
+        const getType = (str) => {
+            let clean = str.toUpperCase();
+            if (clean.includes("MANUAL")) return "MANUAL";
+            if (clean.includes("AUTO")) return "AUTO"; 
+            if (clean.includes("TURBO")) return "TURBO";
+            return clean.replace(/[0-9X\.\-]/g, '').trim(); // Fallback
+        };
 
-        if (foundIndex !== -1) {
-            let item = shuffledList[foundIndex];
-            let type = getType(item);
-            selected.push(item);
-            usedTypes.push(type);
-            shuffledList.splice(foundIndex, 1);
-        } else {
-            break;
-        }
-        attempts++;
-    }
-
-    if (selected.length < 5) {
-        let backupList = [...list];
-        shuffleArray(backupList);
-        for (let item of backupList) {
+        // Logic unik untuk 5 baris pertama
+        for (let i = 0; i < shuffledNormal.length; i++) {
             if (selected.length >= 5) break;
-            if (!selected.includes(item)) {
+            let item = shuffledNormal[i];
+            let type = getType(item);
+            if (!usedTypes.includes(type)) {
                 selected.push(item);
+                usedTypes.push(type);
             }
         }
+        
+        // Fallback jika kurang dari 5 (isi sisa slot dengan random normal)
         while (selected.length < 5) {
-             selected.push(list[Math.floor(Math.random() * list.length)]);
+            let randomItem = normalList[Math.floor(myRandom() * normalList.length)];
+            // Usahakan tidak duplikat persis sebelah
+            if (selected.length > 0 && selected[selected.length-1] === randomItem && normalList.length > 1) continue;
+            selected.push(randomItem);
+        }
+
+        // 2. Ambil 1 Pola Buy Spin (Baris ke-6)
+        let buySpinItem = "BUY SPIN MANUAL (Data Kosong)"; // Default text
+        if (buySpinList.length > 0) {
+            buySpinItem = buySpinList[Math.floor(myRandom() * buySpinList.length)];
+        } else {
+            // Jika tidak ada data Buy Spin di sheet, ambil random dari normal atau placeholder
+            buySpinItem = "POLA KHUSUS: BUY SPIN"; 
+        }
+        selected.push(buySpinItem);
+
+    } else {
+        // --- LOGIC PG SOFT & OTHERS (Tetap 5 Baris standar V21.1) ---
+        let shuffledList = [...list];
+        shuffleArray(shuffledList);
+        let usedTypes = [];
+        
+        const getType = (str) => {
+            let clean = str.toUpperCase();
+            if (clean.includes("MANUAL")) return "MANUAL";
+            if (clean.includes("AUTO")) return "AUTO"; 
+            if (clean.includes("TURBO")) return "TURBO";
+            if (clean.includes("BUY")) return "BUY";
+            return clean.replace(/[0-9X\.\-]/g, '').trim();
+        };
+
+        let attempts = 0;
+        while (selected.length < 5 && shuffledList.length > 0 && attempts < 50) {
+            let foundIndex = -1;
+            for (let i = 0; i < shuffledList.length; i++) {
+                let currentRaw = shuffledList[i];
+                let currentType = getType(currentRaw);
+                if (!usedTypes.includes(currentType)) {
+                    foundIndex = i; break; 
+                }
+            }
+            if (foundIndex !== -1) {
+                let item = shuffledList[foundIndex];
+                selected.push(item);
+                usedTypes.push(getType(item));
+                shuffledList.splice(foundIndex, 1);
+            } else { break; }
+            attempts++;
+        }
+        
+        // Fallback PG Soft
+        if (selected.length < 5) {
+            let backupList = [...list]; shuffleArray(backupList);
+            for (let item of backupList) {
+                if (selected.length >= 5) break;
+                if (!selected.includes(item)) selected.push(item);
+            }
+            while (selected.length < 5) selected.push(list[Math.floor(myRandom() * list.length)]);
         }
     }
-    
-    let stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
-    let stepsText = selected.map(s => `> ${s}`).join('\n');
-    
-    // --- NEW FOOTER MSG ---
+
+    // Render HTML & Text
+    stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
+    stepsText = selected.map(s => `> ${s}`).join('\n');
+
+    // Footer
     const footerMsg = "NAIKAN BET SECARA BERTAHAP & ULANGI POLA";
     let footerHtml = `<div class="step-row" style="margin-top:5px; border-top:1px dashed #444; padding-top:5px;"><span style="color:var(--warn-yellow); font-weight:800; font-size:9px;">${footerMsg}</span></div>`;
     

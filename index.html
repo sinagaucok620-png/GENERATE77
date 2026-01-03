@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V22 (Pragmatic BuySpin Slot)</title>
+    <title>GO-BAK2 GENERATE - Advanced Logic V22 (Smart Pattern)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -878,6 +878,8 @@ function getStrategy(prov) {
     }
 
     let selected = [];
+    
+    // Helper untuk mengenali tipe pola
     const getType = (str) => {
         let clean = str.toUpperCase();
         if (clean.includes("MANUAL")) return "MANUAL";
@@ -890,32 +892,75 @@ function getStrategy(prov) {
     if (prov === 'Pragmatic') {
         let buySpinList = list.filter(item => getType(item) === "BUY");
         let normalList = list.filter(item => getType(item) !== "BUY");
-        if (normalList.length === 0) normalList = [...list];
-        let shuffled = shuffleArray([...normalList]);
         
-        for (let item of shuffled) {
-            if (selected.length >= 5) break;
-            if (selected.length > 0) {
-                let lastType = getType(selected[selected.length - 1]);
-                let currentType = getType(item);
-                if (lastType === currentType && myRandom() > 0.3) continue;
-            }
-            selected.push(item);
+        if (normalList.length === 0) normalList = [...list];
+
+        // LOGIKA BARU: GROUPING BERDASARKAN TIPE
+        let grouped = {};
+        normalList.forEach(item => {
+            let t = getType(item);
+            if(!grouped[t]) grouped[t] = [];
+            grouped[t].push(item);
+        });
+        
+        let availableTypes = Object.keys(grouped); // ['MANUAL', 'AUTO', 'TURBO']
+
+        // Loop 5 kali untuk pola normal
+        for(let i=0; i<5; i++) {
+            let forbiddenType = (selected.length > 0) ? getType(selected[selected.length-1]) : null;
+            let validPool = [];
+
+            // Kumpulkan semua item yang BUKAN tipe sebelumnya
+            availableTypes.forEach(t => {
+                if(t !== forbiddenType) {
+                    validPool = validPool.concat(grouped[t]);
+                }
+            });
+
+            // Jika pool kosong (misal cuma ada 1 tipe data), terpaksa pakai semua normalList
+            if(validPool.length === 0) validPool = normalList;
+
+            // Prioritaskan yang belum terpilih (Text Unik)
+            let uniquePool = validPool.filter(item => !selected.includes(item));
+            if(uniquePool.length > 0) validPool = uniquePool;
+
+            let chosen = validPool[Math.floor(myRandom() * validPool.length)];
+            selected.push(chosen);
         }
-        while (selected.length < 5) selected.push(normalList[Math.floor(myRandom() * normalList.length)]);
+
+        // Tambah Buy Spin di akhir
         let buyItem = buySpinList.length > 0 ? buySpinList[Math.floor(myRandom() * buySpinList.length)] : "POLA KHUSUS: BUY SPIN SECUKUPNYA";
         selected.push(buyItem);
 
     } else {
-        let shuffled = shuffleArray([...list]);
-        for (let item of shuffled) {
-            if (selected.length >= 5) break;
-            if (!selected.includes(item)) selected.push(item);
+        // PG SOFT LOGIC (Mirip Pragmatic, tapi tanpa buy spin)
+        let normalList = [...list];
+        let grouped = {};
+        normalList.forEach(item => {
+            let t = getType(item);
+            if(!grouped[t]) grouped[t] = [];
+            grouped[t].push(item);
+        });
+        let availableTypes = Object.keys(grouped);
+
+        for(let i=0; i<5; i++) {
+            let forbiddenType = (selected.length > 0) ? getType(selected[selected.length-1]) : null;
+            let validPool = [];
+            
+            availableTypes.forEach(t => {
+                if(t !== forbiddenType) validPool = validPool.concat(grouped[t]);
+            });
+
+            if(validPool.length === 0) validPool = normalList;
+            
+            let uniquePool = validPool.filter(item => !selected.includes(item));
+            if(uniquePool.length > 0) validPool = uniquePool;
+
+            let chosen = validPool[Math.floor(myRandom() * validPool.length)];
+            selected.push(chosen);
         }
-        while (selected.length < 5) selected.push(list[Math.floor(myRandom() * list.length)]);
     }
 
-    // UPDATE: Struktur HTML dirapikan untuk CSS Flexbox
     let stepsHtml = selected.map(s => `
         <div class="step-row">
             <span class="step-text">${s}</span>

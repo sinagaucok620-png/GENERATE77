@@ -108,6 +108,9 @@
         #shareBtn { background: #6c5ce7; color: #fff; }
         #shareBtn:hover { box-shadow: 0 0 15px #6c5ce7; }
         
+        #copyAllBtn { background: #e056fd; color: #fff; }
+        #copyAllBtn:hover { box-shadow: 0 0 15px #e056fd; }
+        
         #designerBtn { background: #fff; color: #000; border: 1px solid #999; }
         #designerBtn:hover { box-shadow: 0 0 15px #fff; }
         
@@ -162,7 +165,42 @@
         .tag-bonus { color: #ff9f43; font-weight: 800; } .tag-rate { color: var(--win-green); font-weight: 800; }
 
         .guide-container { margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; }
-        .step-row { font-size: 10px; color: #888; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; display: flex; justify-content: space-between; }
+
+        /* --- STYLING BARU UNTUK POLA & TOMBOL HAPUS --- */
+        .step-row {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 4px 0;
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-text { flex: 1; text-align: left; }
+        .delete-item-btn {
+            background: rgba(255, 62, 62, 0.1);
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+        .delete-item-btn:hover {
+            background: var(--danger-red);
+            color: #fff;
+            opacity: 1;
+            box-shadow: 0 0 10px rgba(255, 62, 62, 0.4);
+        }
 
         .toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10000; pointer-events: none; }
         .toast { background: rgba(10, 10, 10, 0.95); border: 2px solid var(--primary); color: var(--primary); padding: 15px 40px; border-radius: 50px; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 0 50px var(--primary); opacity: 0; transform: translateY(20px); transition: all 0.4s; display: flex; align-items: center; gap: 12px; }
@@ -223,7 +261,7 @@
         body.clean-mode .time-settings summary { color: #333; }
         body.clean-mode .time-group label { color: #555; }
         body.clean-mode .time-group input { background: #fff; color: #000; border: 1px solid #ccc; }
-        body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #dbBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+        body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #dbBtn, body.clean-mode #copyAllBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
         body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
         body.clean-mode .minimize-day-btn { background: #ccc; color: #000; border-color: #999; }
         body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
@@ -357,7 +395,8 @@
         
         <button id="lockBtn" onclick="toggleLock()" title="Kunci Tombol Sync"><i class="fas fa-unlock"></i></button>
         <button id="genBtn" onclick="initiateSync()">SYNC DATA</button>
-        
+        <button id="copyAllBtn" onclick="copyFullWeek()" title="Salin Semua Hari"><i class="fas fa-copy"></i> MINGGUAN</button>
+
         <button id="dbBtn" onclick="openDatabaseModal()"><i class="fas fa-database"></i> DATABASE SEED</button>
         <button id="shareBtn" onclick="copyShareLink()" title="Copy Link Manual"><i class="fas fa-link"></i> LINK</button>
         
@@ -827,7 +866,6 @@ function getStrategy(prov) {
     let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
     if (!list || list.length === 0) return { html: "<div>Pola Kurang</div>", text: "" };
 
-    // --- HEADER & BADGE ---
     let headerText = "BET NOMINAL BEBAS";
     let headerHtml = `<div style="color: #fff; font-size: 10px; margin-bottom: 3px; font-weight: bold; letter-spacing:1px; text-transform:uppercase;">${headerText}</div>`;
     
@@ -840,115 +878,55 @@ function getStrategy(prov) {
     }
 
     let selected = [];
-    let stepsHtml = "";
-    let stepsText = "";
+    const getType = (str) => {
+        let clean = str.toUpperCase();
+        if (clean.includes("MANUAL")) return "MANUAL";
+        if (clean.includes("AUTO")) return "AUTO"; 
+        if (clean.includes("TURBO")) return "TURBO";
+        if (clean.includes("BUY") || clean.includes("BELI")) return "BUY";
+        return "OTHER";
+    };
 
-    // --- LOGIC PRAGMATIC (6 Lines: 5 Normal + 1 BuySpin) ---
     if (prov === 'Pragmatic') {
-        // Pisahkan pola Buy Spin dan Pola Biasa
-        let buySpinList = list.filter(item => item.toUpperCase().includes("BUY") || item.toUpperCase().includes("BELI"));
-        let normalList = list.filter(item => !item.toUpperCase().includes("BUY") && !item.toUpperCase().includes("BELI"));
-        
-        // Jika normal list kosong (jaga-jaga), pakai semua list
+        let buySpinList = list.filter(item => getType(item) === "BUY");
+        let normalList = list.filter(item => getType(item) !== "BUY");
         if (normalList.length === 0) normalList = [...list];
-
-        // 1. Ambil 5 Pola Normal (Unik)
-        let shuffledNormal = [...normalList];
-        shuffleArray(shuffledNormal);
-        let usedTypes = [];
+        let shuffled = shuffleArray([...normalList]);
         
-        const getType = (str) => {
-            let clean = str.toUpperCase();
-            if (clean.includes("MANUAL")) return "MANUAL";
-            if (clean.includes("AUTO")) return "AUTO"; 
-            if (clean.includes("TURBO")) return "TURBO";
-            return clean.replace(/[0-9X\.\-]/g, '').trim(); // Fallback
-        };
-
-        // Logic unik untuk 5 baris pertama
-        for (let i = 0; i < shuffledNormal.length; i++) {
+        for (let item of shuffled) {
             if (selected.length >= 5) break;
-            let item = shuffledNormal[i];
-            let type = getType(item);
-            if (!usedTypes.includes(type)) {
-                selected.push(item);
-                usedTypes.push(type);
+            if (selected.length > 0) {
+                let lastType = getType(selected[selected.length - 1]);
+                let currentType = getType(item);
+                if (lastType === currentType && myRandom() > 0.3) continue;
             }
+            selected.push(item);
         }
-        
-        // Fallback jika kurang dari 5 (isi sisa slot dengan random normal)
-        while (selected.length < 5) {
-            let randomItem = normalList[Math.floor(myRandom() * normalList.length)];
-            // Usahakan tidak duplikat persis sebelah
-            if (selected.length > 0 && selected[selected.length-1] === randomItem && normalList.length > 1) continue;
-            selected.push(randomItem);
-        }
-
-        // 2. Ambil 1 Pola Buy Spin (Baris ke-6)
-        let buySpinItem = "BUY SPIN MANUAL (Data Kosong)"; // Default text
-        if (buySpinList.length > 0) {
-            buySpinItem = buySpinList[Math.floor(myRandom() * buySpinList.length)];
-        } else {
-            // Jika tidak ada data Buy Spin di sheet, ambil random dari normal atau placeholder
-            buySpinItem = "POLA KHUSUS: BUY SPIN"; 
-        }
-        selected.push(buySpinItem);
+        while (selected.length < 5) selected.push(normalList[Math.floor(myRandom() * normalList.length)]);
+        let buyItem = buySpinList.length > 0 ? buySpinList[Math.floor(myRandom() * buySpinList.length)] : "POLA KHUSUS: BUY SPIN SECUKUPNYA";
+        selected.push(buyItem);
 
     } else {
-        // --- LOGIC PG SOFT & OTHERS (Tetap 5 Baris standar V21.1) ---
-        let shuffledList = [...list];
-        shuffleArray(shuffledList);
-        let usedTypes = [];
-        
-        const getType = (str) => {
-            let clean = str.toUpperCase();
-            if (clean.includes("MANUAL")) return "MANUAL";
-            if (clean.includes("AUTO")) return "AUTO"; 
-            if (clean.includes("TURBO")) return "TURBO";
-            if (clean.includes("BUY")) return "BUY";
-            return clean.replace(/[0-9X\.\-]/g, '').trim();
-        };
-
-        let attempts = 0;
-        while (selected.length < 5 && shuffledList.length > 0 && attempts < 50) {
-            let foundIndex = -1;
-            for (let i = 0; i < shuffledList.length; i++) {
-                let currentRaw = shuffledList[i];
-                let currentType = getType(currentRaw);
-                if (!usedTypes.includes(currentType)) {
-                    foundIndex = i; break; 
-                }
-            }
-            if (foundIndex !== -1) {
-                let item = shuffledList[foundIndex];
-                selected.push(item);
-                usedTypes.push(getType(item));
-                shuffledList.splice(foundIndex, 1);
-            } else { break; }
-            attempts++;
+        let shuffled = shuffleArray([...list]);
+        for (let item of shuffled) {
+            if (selected.length >= 5) break;
+            if (!selected.includes(item)) selected.push(item);
         }
-        
-        // Fallback PG Soft
-        if (selected.length < 5) {
-            let backupList = [...list]; shuffleArray(backupList);
-            for (let item of backupList) {
-                if (selected.length >= 5) break;
-                if (!selected.includes(item)) selected.push(item);
-            }
-            while (selected.length < 5) selected.push(list[Math.floor(myRandom() * list.length)]);
-        }
+        while (selected.length < 5) selected.push(list[Math.floor(myRandom() * list.length)]);
     }
 
-    // Render HTML & Text
-    stepsHtml = selected.map(s => `<div class="step-row"><span>${s}</span></div>`).join('');
-    stepsText = selected.map(s => `> ${s}`).join('\n');
+    // UPDATE: Struktur HTML dirapikan untuk CSS Flexbox
+    let stepsHtml = selected.map(s => `
+        <div class="step-row">
+            <span class="step-text">${s}</span>
+            <button class="delete-item-btn" onclick="removeElement(this, event)" title="Hapus Pola Ini"><i class="fas fa-times"></i></button>
+        </div>`
+    ).join('');
 
-    // Footer
     const footerMsg = "NAIKAN BET SECARA BERTAHAP & ULANGI POLA";
-    let footerHtml = `<div class="step-row" style="margin-top:5px; border-top:1px dashed #444; padding-top:5px;"><span style="color:var(--warn-yellow); font-weight:800; font-size:9px;">${footerMsg}</span></div>`;
+    let footerHtml = `<div class="step-row" style="margin-top:5px; border-top:1px dashed #444; padding-top:5px; justify-content:center;"><span style="color:var(--warn-yellow); font-weight:800; font-size:9px;">${footerMsg}</span></div>`;
     
-    let fullText = `${headerText}\n${dcText ? dcText + '\n' : ''}${stepsText}\n\n${footerMsg}`;
-    return { html: `<div class="guide-container">${headerHtml}${badgeHtml}${stepsHtml}${footerHtml}</div>`, text: fullText };
+    return { html: `<div class="guide-container">${headerHtml}${badgeHtml}${stepsHtml}${footerHtml}</div>`, text: "" };
 }
 
 function getDeposit(sess) {
@@ -993,46 +971,43 @@ function pickGame(prov, tier, blacklist, daily, previousThemes, currentThemes, y
     let list = (prov === 'Pragmatic') ? poolPragmatic[tier] : poolPGSoft[tier];
     if (!list || list.length === 0) return { name: "DATA KOSONG", html: "", theme: "" };
     
-    // Filter games
-    let available = list.filter(g => {
-        let theme = getGameTheme(g);
-        
-        // 1. Cek Blacklist (game sama persis tidak boleh muncul 2x sehari)
-        if(blacklist.includes(g) || daily.includes(g)) return false;
-        
-        // 2. Cek Tema di Sesi INI (Starlight Princess & Starlight Christmas gak boleh bareng)
-        if(currentThemes.includes(theme)) return false;
-        
-        // 3. Cek Tema di Sesi SEBELUMNYA (Cooldown 1 Sesi)
-        if(previousThemes.includes(theme)) return false;
+    // Filter games (Logic Anti-Kembar V22)
+    const filterGames = (strictLevel) => {
+        return list.filter(g => {
+            let theme = getGameTheme(g);
+            if (blacklist.includes(g)) return false; 
+            if (strictLevel > 1 && daily.includes(g)) return false; 
+            if (strictLevel > 2 && currentThemes.includes(theme)) return false;
+            if (strictLevel > 3 && previousThemes.includes(theme)) return false;
+            if (strictLevel > 4 && yesterdaySameSessionThemes && yesterdaySameSessionThemes.includes(theme)) return false;
+            return true;
+        });
+    };
 
-        // 4. Cek Tema di Sesi SAMA pada HARI SEBELUMNYA (Rule baru)
-        if(yesterdaySameSessionThemes && yesterdaySameSessionThemes.includes(theme)) return false;
-
-        return true;
-    });
-
-    if (available.length === 0) {
-        // Fallback: Jika terlalu ketat, longgarkan aturan "Sesi Sebelumnya"
-        available = list.filter(g => !blacklist.includes(g) && !daily.includes(g));
+    let available = [];
+    for (let level = 5; level >= 1; level--) {
+        available = filterGames(level);
+        if (available.length > 0) break;
     }
 
-    if (available.length === 0) available = list; // Fallback total
+    if (available.length === 0) {
+        available = list.filter(g => !blacklist.includes(g)); 
+        if (available.length === 0) available = list;
+    }
 
     const chosen = available[Math.floor(myRandom() * available.length)];
     const chosenTheme = getGameTheme(chosen);
+    let badgeColor = tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32';
     
+    // REVISI: TOMBOL DELETE DIHAPUS DARI SINI
     return { 
         name: chosen, 
         theme: chosenTheme,
-        html: `<div class="game-card" onclick="showImg('${chosen}')"><span class="game-name">${chosen}</span><span class="badge" style="background:${tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32'};color:#000">${tier}</span></div>` 
+        html: `<div class="game-card" onclick="showImg('${chosen}')">
+                <span class="game-name">${chosen}</span>
+                <span class="badge" style="background:${badgeColor};color:#000">${tier}</span>
+               </div>` 
     };
-}
-
-function showImg(name) {
-    document.getElementById('modalName').innerText = name;
-    document.getElementById('modalImg').src = gameImageMap[name] || 'https://via.placeholder.com/400x250?text=NO+IMAGE';
-    document.getElementById('gameModal').style.display = 'flex';
 }
 
 function resolveGameCounts(profile, sessionName) {
@@ -1050,7 +1025,8 @@ function resolveGameCounts(profile, sessionName) {
     } else if (profile === "FUN77") {
         if(sessionName === "MIDNIGHT") return { pp:3, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
-        if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:1 };
+        // UPDATE LOGIKA SORE: 2 PP atau 1 PP (Tanpa PG Soft)
+        if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 };
         if(sessionName === "MALAM") return { pp:1, pg:1 };
     } else if (profile === "MUSTANG77") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
@@ -1065,7 +1041,6 @@ function resolveGameCounts(profile, sessionName) {
     } else if (profile === "HOLYPLAY17") {
         if(sessionName === "MIDNIGHT") return { pp:2, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
-        // FIX: Sesi SORE wajib 2 PP (Gold dihandle di buildSession)
         if(sessionName === "SORE") return { pp:2, pg:0 }; 
         if(sessionName === "MALAM") return { pp:0, pg:2 };
     } else if (profile === "INDOFUN17") {
@@ -1248,14 +1223,145 @@ function finalCopy() {
     const txtArea = document.getElementById("resultText"); txtArea.select(); document.execCommand('copy'); showToast("TEKS BERHASIL DISALIN!");
 }
 
+// --- FITUR HAPUS & SMART COPY ---
+
+// 1. Fungsi untuk menghapus elemen saat tombol X diklik
+function removeElement(btn, event) {
+    if(event) event.stopPropagation(); // Mencegah klik tembus ke game card
+    const elementToRemove = btn.parentElement;
+    
+    // Animasi hapus sedikit agar smooth
+    elementToRemove.style.opacity = '0';
+    elementToRemove.style.transform = 'translateX(20px)';
+    
+    setTimeout(() => {
+        elementToRemove.remove();
+    }, 200);
+}
+
+// 2. Fungsi PINTAR untuk mengekstrak teks langsung dari LAYAR (DOM)
+// Ini memastikan apa yang sudah dihapus tidak ikut tersalin
+function extractTextFromDOM(sessionBox) {
+    let result = "";
+    
+    // Ambil konten di dalam session-content
+    const contentDiv = sessionBox.querySelector('.session-content');
+    if (!contentDiv) return "";
+
+    // Loop semua elemen anak
+    const children = contentDiv.querySelectorAll('.provider-label, .game-card, .guide-container');
+    
+    children.forEach(child => {
+        // Jika Header Provider (PRAGMATIC / PG SOFT)
+        if (child.classList.contains('provider-label')) {
+            result += `\n--- ${child.innerText} ---\n`;
+        }
+        // Jika Game Card
+        else if (child.classList.contains('game-card')) {
+            const gameName = child.querySelector('.game-name').innerText;
+            result += `${gameName}\n`;
+        }
+        // Jika Pola (Guide Container)
+        else if (child.classList.contains('guide-container')) {
+            // Ambil header pola
+            const header = child.innerText.split('\n')[0]; // Ambil baris pertama (BET NOMINAL...)
+            result += `${header}\n`;
+            
+            // Cek ada badge DC ON/OFF gak
+            const badge = child.querySelector('.badge');
+            if (badge) result += `${badge.innerText}\n`;
+
+            // Ambil langkah-langkah (step-row)
+            const steps = child.querySelectorAll('.step-row .step-text');
+            steps.forEach(step => {
+                if (!step.innerText.includes("NAIKAN BET")) {
+                    result += `> ${step.innerText}\n`;
+                }
+            });
+            
+            result += `\nNAIKAN BET SECARA BERTAHAP & ULANGI POLA\n`;
+        }
+    });
+
+    return result.trim();
+}
+
+// 3. Override (Timpa) fungsi copySession yang lama
 function copySession(dayIndex, sessIndex) {
-    const data = globalMemory[dayIndex].sessions[sessIndex];
-    const dayName = globalMemory[dayIndex].day;
-    const dateStr = globalMemory[dayIndex].date;
-    let txt = `=================================\nHARI: ${dayName}, ${dateStr}\nSESI: ${data.title} (${data.time})\n=================================\n\n${data.games}\n\n---------------------------------\nKODE EKOR: ${data.depo.code}\n---------------------------------\nLIST DEPOSIT:\n${data.depo.text}`;
+    // Cari elemen session box di layar berdasarkan index
+    const dayRows = document.querySelectorAll('.day-row');
+    if (!dayRows[dayIndex]) return;
+    
+    const sessionBoxes = dayRows[dayIndex].querySelectorAll('.session-box');
+    if (!sessionBoxes[sessIndex]) return;
+
+    const targetBox = sessionBoxes[sessIndex];
+    
+    // Ambil data dasar
+    const dayData = globalMemory[dayIndex];
+    const sessionTitle = targetBox.querySelector('.session-title').innerText;
+    const sessionTime = targetBox.querySelector('.session-time').innerText;
+    
+    // Generate Text Game & Pola DARI LAYAR (bukan dari memori)
+    const gamesText = extractTextFromDOM(targetBox);
+
+    // Ambil data Deposit (ini tetap dari memori karena strukturnya beda, kecuali mau dihapus juga)
+    // Untuk saat ini deposit kita biarkan static dari memori
+    const depoData = dayData.sessions[sessIndex].depo; 
+
+    let txt = `=================================\n`;
+    txt += `HARI: ${dayData.day}, ${dayData.date}\n`;
+    txt += `SESI: ${sessionTitle} (${sessionTime})\n`;
+    txt += `=================================\n\n`;
+    txt += `${gamesText}\n\n`;
+    txt += `---------------------------------\n`;
+    txt += `KODE EKOR: ${depoData.code}\n`;
+    txt += `---------------------------------\n`;
+    txt += `LIST DEPOSIT:\n${depoData.text}`;
+
     openResultModal(txt);
 }
 
+// 4. Override (Timpa) fungsi copyFullWeek (jika kamu pakai fitur Mingguan)
+function copyFullWeek() {
+    if (globalMemory.length === 0) { showToast("DATA BELUM DI-SYNC!"); return; }
+    
+    let fullText = "";
+    const headerTitle = document.querySelector('.header-area h2').innerText;
+    const period = document.getElementById('displayDate').innerText;
+    
+    fullText += `=== ${headerTitle} ===\n${period}\n\n`;
+
+    const dayRows = document.querySelectorAll('.day-row');
+    
+    dayRows.forEach((row, dIndex) => {
+        const dayLabel = row.querySelector('.day-label').innerText;
+        
+        fullText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        fullText += `📅 ${dayLabel}\n`;
+        fullText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        
+        const sessions = row.querySelectorAll('.session-box');
+        sessions.forEach((sessBox, sIndex) => {
+            const title = sessBox.querySelector('.session-title').innerText;
+            const time = sessBox.querySelector('.session-time').innerText;
+            
+            // Ambil text real-time dari layar
+            const gamesTxt = extractTextFromDOM(sessBox);
+            const depoCode = globalMemory[dIndex].sessions[sIndex].depo.code;
+
+            fullText += `\n[ ${title} | ${time} ]\n`;
+            fullText += `==============================\n`;
+            fullText += `${gamesTxt}\n`;
+            fullText += `------------------------------\n`;
+            fullText += `KODE: ${depoCode}\n`;
+        });
+        fullText += `\n\n`;
+    });
+
+    openResultModal(fullText);
+    showToast("PREVIEW MINGGUAN SIAP!");
+}
 window.onload = function() { checkUrlParams(); initVisuals(); };
 </script>
 </body>

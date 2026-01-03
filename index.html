@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V19 (Fixed Fun77)</title>
+    <title>GO-BAK2 GENERATE - Advanced Logic V19 (Sore Gold Only)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -706,7 +706,7 @@ const PROFILE_CONFIG = {
     "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
     "JAGUAR77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1165225864&single=true&output=csv",
     "INDOPEDIA77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=288756155&single=true&output=csv",
-    "FUN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=7296733&single=true&output=csv",
+    "FUN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=288756155&single=true&output=csv",
     "PLAY77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=410917478&single=true&output=csv",
     "MUSTANG77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1769820056&single=true&output=csv",
     "HOLYPLAY17": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=265631998&single=true&output=csv",
@@ -1041,7 +1041,9 @@ function generateJadwal() {
             if (counts.pp > 0) {
                 let ppContent = ""; let ppText = "";
                 for(let i=0; i<counts.pp; i++) {
-                    let tier = i===0 ? 'gold' : (i===1 ? 'silver' : 'bronze');
+                    // LOGIC CHANGE: FORCE GOLD IF SESSION IS "SORE"
+                    let tier = (sessKey === "SORE") ? 'gold' : (i===0 ? 'gold' : (i===1 ? 'silver' : 'bronze'));
+                    
                     let g = draw('Pragmatic', tier, currentSessionThemes, sessKey);
                     currentSessionThemes.push(g.theme); 
                     todaySessionThemes[sessKey].push(g.theme); // Save for tomorrow
@@ -1054,7 +1056,9 @@ function generateJadwal() {
             if (counts.pg > 0) {
                 let pgContent = ""; let pgText = "";
                 for(let i=0; i<counts.pg; i++) {
-                    let tier = i===0 ? 'gold' : 'silver';
+                    // LOGIC CHANGE: FORCE GOLD IF SESSION IS "SORE"
+                    let tier = (sessKey === "SORE") ? 'gold' : (i===0 ? 'gold' : 'silver');
+
                     let g = draw('PGSoft', tier, currentSessionThemes, sessKey);
                     currentSessionThemes.push(g.theme);
                     todaySessionThemes[sessKey].push(g.theme); // Save for tomorrow

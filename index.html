@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V19</title>
+    <title>GO-BAK2 GENERATE - Advanced Logic V19 (Fixed Fun77)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -864,8 +864,18 @@ function getStrategy(prov) {
 
 function getDeposit(sess) {
     let tail = getUniqueCode();
+    
+    // AMBIL DATA & LOGIKA BARU UNTUK FUN77
     let data = depositSettings[sess];
+    const currentProfile = document.getElementById("profileSelect").value;
+
+    // JIKA FUN77, HANYA AMBIL 1 DATA PERTAMA
+    if (currentProfile === "FUN77" && data && data.length > 0) {
+        data = [data[0]]; 
+    }
+
     if (!data || data.length === 0) return { html: "", text: "", code: tail };
+    
     let html = `<div class="depo-container"><div class="depo-header">KODE JITU EKOR: ${tail}</div>`;
     let text = "";
     const processValue = (rawStr) => {
@@ -1156,4 +1166,3 @@ window.onload = function() { checkUrlParams(); initVisuals(); };
 </script>
 </body>
 </html>
-

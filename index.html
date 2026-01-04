@@ -3,760 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V22 (Final Config)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>SCHEDULER V31 - SMART VISIBILITY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #00f2ff;
-            --glass-bg: rgba(15, 20, 30, 0.90);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --win-green: #00ff88;
-            --warn-yellow: #ffd700;
-            --danger-red: #ff3e3e;
+            --bg-deep: #050505;
+            --bg-card: #0F0F0F;
+            --accent-gold: #D4AF37; 
+            --text-main: #Eaeaea;
+            --text-muted: #888888;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --danger: #ff4757;
+            --success: #00b894;
         }
 
-        * { box-sizing: border-box; } 
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body { 
-            font-family: 'Rajdhani', sans-serif; 
+            font-family: 'Outfit', sans-serif; 
             margin: 0; padding: 40px 20px;
-            color: #fff; -webkit-font-smoothing: antialiased;
-            min-height: 100vh; background-color: #000;
-            overflow-x: hidden; cursor: crosshair;
-            transition: background 0.3s ease;
+            color: var(--text-main); 
+            background-color: var(--bg-deep);
+            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 70%);
+            min-height: 100vh; overflow-x: hidden;
         }
 
-        #nebula-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; }
-        #cursor-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; pointer-events: none; }
-        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9998; pointer-events: none; }
+        #nebula-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; pointer-events: none; }
+        .main-wrapper { max-width: 1400px; margin: 0 auto; position: relative; z-index: 1; display: none; }
 
-        .container { 
-            max-width: 1300px; margin: auto; 
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 40px; border-radius: 20px; 
+        /* HEADER */
+        .header-section { text-align: center; margin-bottom: 40px; }
+        .header-title {
+            font-size: 42px; font-weight: 800; letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff 30%, var(--accent-gold) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 0; text-transform: uppercase;
+        }
+        .header-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 5px;}
+
+        /* CONTROL DOCK */
+        .control-dock {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
-            position: relative; z-index: 1;
-            transition: all 0.3s ease;
+            border-radius: 24px; padding: 20px;
+            display: flex; flex-wrap: wrap; gap: 15px;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            margin-bottom: 40px; position: sticky; top: 20px; z-index: 100;
         }
+        .dock-left { display: flex; gap: 15px; flex: 1; min-width: 300px; }
+        .dock-right { display: flex; gap: 10px; }
 
-        .header-area { 
-            text-align: center; margin-bottom: 30px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 20px;
-        }
-        .header-area h2 { 
-            color: var(--primary); margin: 0 0 20px 0; font-size: 48px; font-weight: 800; 
-            letter-spacing: 5px; text-transform: uppercase;
-            text-shadow: 0 0 20px var(--primary);
-        }
+        .input-group { position: relative; flex: 1; }
+        .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--accent-gold); pointer-events: none; font-size: 14px;}
         
-        .date-range-wrapper {
-            display: inline-flex; align-items: flex-end; gap: 15px;
-            background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 12px;
-            border: 1px solid var(--glass-border); margin-bottom: 10px;
-        }
-        .date-input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; }
-        .date-input-group label { font-size: 11px; color: var(--primary); font-weight: bold; letter-spacing: 1px; }
-        .arrow-separator { font-size: 24px; color: #fff; padding-bottom: 8px; opacity: 0.5; }
-
-        #displayDate { 
-            color: #aaa; font-size: 12px; margin-top: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-        }
-
-        .controls { 
-            display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; 
-            background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-bottom: 20px;
+        select, input {
+            width: 100%; background: var(--bg-deep); color: #fff;
             border: 1px solid var(--glass-border);
+            padding: 12px 15px 12px 40px; border-radius: 12px;
+            font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+            transition: 0.3s; cursor: pointer;
         }
+        select:focus, input:focus { border-color: var(--accent-gold); background: #000; }
 
-        .time-settings {
-            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;
-            margin-bottom: 30px; border: 1px dashed rgba(255,255,255,0.2);
-            width: 100%; max-width: 1220px; margin: 0 auto 30px;
+        .btn {
+            border: none; padding: 12px 20px; border-radius: 12px;
+            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-transform: uppercase;
         }
-        .time-settings summary { cursor: pointer; color: var(--warn-yellow); font-weight: bold; margin-bottom: 10px; outline: none; }
-        .time-inputs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-        .time-group label { display: block; font-size: 10px; color: #aaa; margin-bottom: 3px; }
-        .time-group input { width: 90%; font-size: 12px; padding: 8px; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), #b38f26); color: #000; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
+        .btn-secondary:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
+        .btn-danger { color: var(--danger); border-color: rgba(255, 77, 77, 0.3); }
+        .btn-danger:hover { background: rgba(255, 77, 77, 0.1); }
 
-        input, select { 
-            background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
-            padding: 12px 20px; border-radius: 8px; font-size: 14px; outline: none; 
-            font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer;
+        /* SETTINGS & GRID */
+        .settings-panel { background: var(--bg-card); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 16px; margin-bottom: 30px; display: none; }
+        .settings-panel.active { display: block; animation: slideIn 0.3s; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .time-input-wrap label { display: block; font-size: 10px; color: var(--accent-gold); margin-bottom: 5px; font-weight: 700; }
+
+        /* DAY SECTION & VISIBILITY LOGIC */
+        .day-section { 
+            margin-bottom: 40px; padding: 20px; border-radius: 24px; border: 1px solid transparent; 
+            transition: 0.5s; animation: fadeIn 0.5s forwards; 
         }
-        input:focus, select:focus { border-color: var(--primary); background: #000; }
-        input[type="date"] { text-transform: uppercase; color-scheme: dark; }
-        input[readonly] { background: rgba(0,0,0,0.3); color: #aaa; border-color: transparent; cursor: default; }
-
-        button { 
-            background: var(--primary); color: #000; border: none; 
-            padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: 800; 
-            text-transform: uppercase; font-size: 14px; transition: 0.3s;
-            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;
+        
+        /* CLASS PENTING UNTUK MENYEMBUNYIKAN HARI LALU */
+        .day-section.day-past { display: none; } 
+        
+        .day-section.today-highlight {
+            border-color: var(--success);
+            background: rgba(0, 184, 148, 0.05);
+            box-shadow: 0 0 50px rgba(0, 184, 148, 0.1);
         }
-        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px var(--primary); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         
-        #lockBtn { padding: 12px 15px; width: 50px; background: rgba(255,255,255,0.1); color: #fff; }
-        #lockBtn.locked { background: var(--danger-red); }
-
-        #shareBtn { background: #6c5ce7; color: #fff; }
-        #shareBtn:hover { box-shadow: 0 0 15px #6c5ce7; }
-        
-        #copyAllBtn { background: #e056fd; color: #fff; }
-        #copyAllBtn:hover { box-shadow: 0 0 15px #e056fd; }
-        
-        #designerBtn { background: #fff; color: #000; border: 1px solid #999; }
-        #designerBtn:hover { box-shadow: 0 0 15px #fff; }
-        
-        #dbBtn { background: #ff9f43; color: #000; }
-        #dbBtn:hover { box-shadow: 0 0 15px #ff9f43; }
-
-        /* DAY & SESSION STYLES */
-        .day-row { margin-bottom: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; transition: all 0.3s; }
-        .day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 15px; }
-        .day-label { font-size: 28px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-        .minimize-day-btn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
-        .minimize-day-btn:hover { background: var(--primary); color: #000; }
-        .day-row.collapsed .session-grid { display: none; }
-        .day-row.collapsed { margin-bottom: 10px; border: none; padding-top: 10px; opacity: 0.6; }
-        .date-badge { font-size: 16px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
-        
-        .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .session-box { 
-            background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; 
-            border: 1px solid rgba(255,255,255,0.05); height: 100%; 
-            transition: 0.3s; position: relative; display: flex; flex-direction: column; overflow: hidden;
+        .day-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 15px; border-left: 3px solid var(--accent-gold); padding-left: 15px; display: flex; align-items: center; gap: 10px; }
+        .date-badge { font-weight: 400; color: var(--text-muted); font-size: 16px; }
+        .today-badge { 
+            background: var(--success); color: #000; font-size: 10px; font-weight: 800; 
+            padding: 3px 8px; border-radius: 4px; display: none; animation: pulse 2s infinite; 
         }
-        .session-box:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .session-box.active-now { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); animation: pulseBorder 2s infinite; }
-        @keyframes pulseBorder { 0% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); } 50% { box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); } 100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); } }
+        .today-highlight .today-badge { display: inline-block; }
+        @keyframes pulse { 0%{opacity:1} 50%{opacity:0.6} 100%{opacity:1} }
 
-        .session-header { display: flex; flex-direction: column; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; position: relative; }
-        .action-container { position: absolute; top: 0; right: 0; display: flex; gap: 5px; }
-        .action-btn { background: rgba(0,0,0,0.5); color: #aaa; border: 1px solid rgba(255,255,255,0.2); width: 28px; height: 28px; padding: 0; border-radius: 6px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; font-size: 11px; }
-        .action-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
-        .session-content { transition: all 0.3s ease; opacity: 1; max-height: 2000px; }
-        .session-box.collapsed .session-content { opacity: 0; max-height: 0; margin: 0; padding: 0; overflow: hidden; }
-        .session-box.collapsed { height: auto; min-height: 80px; }
-        .session-title { color: var(--primary); font-weight: 800; font-size: 16px; margin-bottom: 5px; text-transform: uppercase; }
-        .session-time { font-size: 11px; color: #aaa; display: block; margin-bottom: 5px; font-family: monospace; }
-        .provider-label { font-size: 10px; color: #888; font-weight: 700; margin: 15px 0 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-        .game-card { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; transition: 0.2s; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05); }
-        .game-card:hover { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 15px var(--primary); }
-        .game-card:hover .game-name { color: #000; text-shadow: none; }
-        .game-name { font-size: 12px; font-weight: 700; color: #ddd; }
-        .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #000; border: 1px solid #333; }
-
-        .depo-container { margin-top: auto; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.2); border-radius: 10px; padding: 15px; }
-        .depo-header { font-size: 11px; color: var(--primary); font-weight: 800; text-align: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .depo-item { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
-        .depo-item:last-child { border: none; margin: 0; }
-        .depo-info { font-size: 11px; color: #fff; display: block; margin-bottom: 3px; }
-        .depo-meta { font-size: 10px; display: flex; justify-content: space-between; }
-        .tag-bonus { color: #ff9f43; font-weight: 800; } .tag-rate { color: var(--win-green); font-weight: 800; }
-
-        .guide-container { margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; }
-
-        /* --- STYLING BARU UNTUK POLA & TOMBOL HAPUS --- */
-        .step-row {
-            font-size: 10px;
-            color: #888;
-            margin-bottom: 4px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding: 4px 0;
-            display: flex; 
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
+        /* TOMBOL HISTORY */
+        .history-toggle-btn {
+            width: 100%; padding: 15px; background: rgba(255,255,255,0.03); 
+            border: 1px dashed rgba(255,255,255,0.2); color: #888; cursor: pointer; 
+            margin-bottom: 30px; border-radius: 16px; font-weight: 700; font-size: 12px;
+            display: none; transition: 0.3s;
         }
-        .step-text { flex: 1; text-align: left; }
-        .delete-item-btn {
-            background: rgba(255, 62, 62, 0.1);
-            color: var(--danger-red);
-            border: 1px solid var(--danger-red);
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            font-size: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            opacity: 0.7;
-            flex-shrink: 0;
-        }
-        .delete-item-btn:hover {
-            background: var(--danger-red);
-            color: #fff;
-            opacity: 1;
-            box-shadow: 0 0 10px rgba(255, 62, 62, 0.4);
-        }
+        .history-toggle-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: var(--accent-gold); }
 
-        .toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10000; pointer-events: none; }
-        .toast { background: rgba(10, 10, 10, 0.95); border: 2px solid var(--primary); color: var(--primary); padding: 15px 40px; border-radius: 50px; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 0 50px var(--primary); opacity: 0; transform: translateY(20px); transition: all 0.4s; display: flex; align-items: center; gap: 12px; }
-        .toast.show { opacity: 1; transform: translateY(0); }
-
-        #hover-tooltip { position: fixed; display: none; z-index: 10000; background: #000; border: 2px solid var(--primary); border-radius: 10px; padding: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.8); pointer-events: none; max-width: 200px; }
-        #hover-tooltip img { width: 100%; border-radius: 5px; }
-
-        /* --- MODAL STYLE --- */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #111; padding: 25px; border: 1px solid var(--primary); border-radius: 15px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 0 30px var(--primary); position: relative; }
-        .modal-content img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
-        .close-modal { position: absolute; top: 15px; right: 15px; color: #fff; background: none; border: 1px solid rgba(255,255,255,0.2); width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .close-modal:hover { background: var(--danger-red); border-color: var(--danger-red); }
-        .modal-title { font-size: 18px; color: #fff; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         
-        /* DATABASE TABLE STYLE FIXED */
-        .db-controls { display: flex; gap: 10px; margin-bottom: 15px; }
-        .db-search { flex: 1; background: #222; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; }
-        .db-table-container { max-height: 300px; overflow-y: auto; text-align: left; }
-        .db-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .db-table th { position: sticky; top: 0; background: #000; color: var(--primary); padding: 10px; border-bottom: 2px solid var(--primary); text-transform: uppercase; text-align: left; }
-        .db-table td { padding: 8px 10px; border-bottom: 1px solid #333; color: #ccc; vertical-align: middle; }
-        .db-table tr:hover { background: rgba(255,255,255,0.05); }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 15px; height: 100%;
+            display: flex; flex-direction: column; transition: 0.3s;
+        }
+        .card:hover { border-color: var(--accent-gold); transform: translateY(-3px); }
+        .today-highlight .card { border-color: rgba(0, 184, 148, 0.3); } 
         
-        .db-action-group { display: flex; gap: 8px; align-items: center; justify-content: flex-start; }
-        .btn-db-action { border: none; padding: 0 12px; height: 32px; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-db-load { background: rgba(0, 255, 136, 0.1); border: 1px solid var(--win-green); color: var(--win-green); }
-        .btn-db-load:hover { background: var(--win-green); color: #000; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
-        .btn-db-del { background: rgba(255, 62, 62, 0.1); border: 1px solid var(--danger-red); color: var(--danger-red); min-width: 32px; padding: 0; }
-        .btn-db-del:hover { background: var(--danger-red); color: #fff; box-shadow: 0 0 15px rgba(255, 62, 62, 0.4); }
-        .btn-csv { background: #10b981; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 6px; margin-top: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-csv:hover { box-shadow: 0 0 15px #10b981; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sess-name { font-size: 14px; font-weight: 800; color: var(--accent-gold); }
+        .sess-time { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+        .copy-mini { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #aaa; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .copy-mini:hover { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
 
-        .preview-date { font-size: 14px; color: var(--warn-yellow); font-weight: 800; margin-bottom: 15px; }
-        .preview-textarea { width: 100%; height: 300px; background: #000; color: var(--primary); border: 1px solid #333; border-radius: 8px; padding: 15px; font-family: 'Courier New', monospace; font-size: 11px; resize: none; margin-bottom: 15px; }
-        .preview-textarea:focus { outline: none; border-color: var(--primary); }
-        .btn-action-copy { background: var(--primary); color: #000; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 14px; }
+        .game-item {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 10px; border-radius: 8px; margin-bottom: 6px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
+            position: relative; padding-right: 35px;
+        }
+        .game-item:hover { border-color: var(--accent-gold); background: rgba(255,255,255,0.05); }
+        .g-name { font-size: 12px; font-weight: 600; color: #ddd; }
+        .g-tag { font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; }
+        .tag-gold { background: #FFD700; color: #000; } .tag-silver { background: #C0C0C0; color: #000; } .tag-bronze { background: #CD7F32; color: #fff; }
 
-        /* SCANNING */
-        #scanOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .scan-content { text-align: center; width: 300px; font-family: 'Courier New', monospace; }
-        .scan-icon { font-size: 50px; color: var(--primary); margin-bottom: 20px; text-shadow: 0 0 20px var(--primary); }
-        .scan-text { color: #fff; font-size: 18px; font-weight: bold; margin-bottom: 10px; letter-spacing: 2px; }
-        .scan-detail { color: var(--primary); font-size: 12px; margin-top: 5px; opacity: 0.8; }
-        .scan-bar-container { width: 100%; height: 4px; background: #333; border-radius: 2px; overflow: hidden; position: relative; }
-        .scan-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.1s linear; }
+        .prov-label { font-size: 9px; font-weight: 800; color: var(--text-muted); margin: 10px 0 5px; letter-spacing: 1px; }
 
-        @media (max-width: 1100px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { .container{padding:15px;} .session-grid { grid-template-columns: 1fr; } .time-inputs{ grid-template-columns: 1fr; } .date-range-wrapper{flex-wrap: wrap; justify-content: center;} .header-area h2 { font-size: 32px; } }
+        .pattern-box { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .pt-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #aaa; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; padding-right: 30px; }
+        .pt-row:last-child { border: none; }
+        
+        .del-btn-overlay {
+            position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; border-radius: 4px; border:none;
+            background: rgba(255, 71, 87, 0.1); color: var(--danger);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; opacity: 0; transition: 0.2s; font-size: 10px;
+        }
+        .game-item:hover .del-btn-overlay, .pt-row:hover .del-btn-overlay { opacity: 1; }
+        .del-btn-overlay:hover { background: var(--danger); color: #fff; }
 
-        body.clean-mode { background: #f4f6f8 !important; color: #222 !important; cursor: default; }
-        body.clean-mode #nebula-canvas, body.clean-mode #cursor-canvas, body.clean-mode #particle-canvas { display: none !important; }
-        body.clean-mode .container { background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid #d1d5db; border-top: 5px solid #333; }
-        body.clean-mode .header-area h2 { color: #111 !important; text-shadow: none !important; font-weight: 900; }
-        body.clean-mode #displayDate { color: #555; font-weight: 600; }
-        body.clean-mode .controls, body.clean-mode .time-settings { background: #f3f4f6; border: 1px solid #e5e7eb; box-shadow: none; color: #000; }
-        body.clean-mode .time-settings summary { color: #333; }
-        body.clean-mode .time-group label { color: #555; }
-        body.clean-mode .time-group input { background: #fff; color: #000; border: 1px solid #ccc; }
-        body.clean-mode #lockBtn, body.clean-mode #startDateInput, body.clean-mode #genBtn, body.clean-mode #historySelect, body.clean-mode #dbBtn, body.clean-mode #copyAllBtn { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
-        body.clean-mode .day-label { color: #000; border-left-color: #000; text-shadow: none; }
-        body.clean-mode .minimize-day-btn { background: #ccc; color: #000; border-color: #999; }
-        body.clean-mode .date-badge { background: #e0e0e0; color: #333; font-weight: bold; border: 1px solid #ccc; }
-        body.clean-mode .session-box { background: #fff; border: 2px solid #e5e7eb; box-shadow: none; }
-        body.clean-mode .session-title { color: #000; border-bottom: 2px solid #000; }
-        body.clean-mode .session-time { color: #666; font-weight: bold; }
-        body.clean-mode .action-btn { background: #eee; color: #000; border-color: #ccc; }
-        body.clean-mode .provider-label { color: #666; background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        body.clean-mode .game-card { background: #f9fafb; border: 1px solid #d1d5db; color: #111; }
-        body.clean-mode .game-card .game-name { color: #000; font-size: 13px; }
-        body.clean-mode .game-card:hover { background: #fff; border-color: #000; box-shadow: none; }
-        body.clean-mode .depo-container { background: #fffbe6; border: 1px solid #ffe58f; color: #000; }
-        body.clean-mode .depo-header { color: #d46b08; border-bottom: 1px solid #ffe58f; }
-        body.clean-mode .depo-info { color: #222; font-family: monospace; font-size: 12px; font-weight: bold; }
-        body.clean-mode .badge { background: #eee !important; color: #000 !important; border: 1px solid #ccc; }
-        body.clean-mode #designerBtn { background: #000; color: #fff; border-color: #000; }
-        body.clean-mode .preview-textarea { background: #fff; color: #000; border-color: #ccc; }
-        body.clean-mode .db-table th { background: #eee; color: #000; border-bottom: 2px solid #ccc; }
-        body.clean-mode .db-table td { color: #000; border-bottom: 1px solid #ccc; }
-        body.clean-mode .btn-db-load { background: #fff; border: 1px solid #ccc; color: #333; }
-        body.clean-mode .btn-db-del { background: #fff; border: 1px solid #ffcccc; color: red; }
+        .depo-box { margin-top: auto; padding-top: 10px; }
+        .depo-code { text-align: center; font-size: 11px; font-weight: 800; color: var(--accent-gold); border: 1px dashed rgba(255,255,255,0.2); padding: 5px; border-radius: 6px; margin-bottom: 5px; }
+        .depo-row { display: flex; justify-content: space-between; font-size: 10px; color: #888; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: #111; border: 1px solid var(--glass-border); padding: 25px; border-radius: 20px; width: 90%; max-width: 600px; text-align: center; }
+        .preview-area { width: 100%; height: 300px; background: #000; border: 1px solid #333; color: var(--accent-gold); padding: 15px; border-radius: 10px; font-family: monospace; font-size: 11px; resize: none; margin: 15px 0; }
+
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-box { background: var(--bg-card); border: 1px solid var(--glass-border); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(212, 175, 55, 0.1); width: 90%; max-width: 400px; }
+        .login-input { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: var(--accent-gold); border-radius: 10px; font-size: 16px; text-align: center; letter-spacing: 2px; }
+        .login-btn { background: var(--accent-gold); color: #000; font-weight: 800; padding: 15px; width: 100%; border-radius: 10px; border: none; cursor: pointer; transition: 0.3s; }
+        .login-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+
+        @media(max-width:1024px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(max-width:600px) { .session-grid { grid-template-columns: 1fr; } .dock-left, .dock-right { width: 100%; flex-wrap: wrap; } .control-dock { top:0; border-radius: 0; } }
+        
+        body.clean-mode { background: #f2f2f2; color: #333; --bg-card: #fff; --text-main: #222; --text-muted: #666; --glass-border: #ddd; }
+        body.clean-mode .control-dock { background: #fff; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        body.clean-mode input, body.clean-mode select { background: #fff; border-color: #ccc; color: #333; }
+        body.clean-mode .card, body.clean-mode .game-item { background: #fff; border-color: #ddd; }
+        body.clean-mode .g-name { color: #333; }
+        body.clean-mode .day-section.today-highlight { background: #e0fbf4; border-color: var(--success); }
     </style>
 </head>
 <body>
 
-<div id="scanOverlay">
-    <div class="scan-content">
-        <div class="scan-icon"><i class="fas fa-microchip fa-spin"></i></div>
-        <div class="scan-text" id="scanText">INITIALIZING SYSTEM...</div>
-        <div class="scan-bar-container">
-            <div class="scan-bar" id="scanBar"></div>
-        </div>
-        <div class="scan-detail" id="scanDetail">Connect to server...</div>
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2 style="color:#fff; margin-bottom:5px;">SECURE ACCESS</h2>
+        <div style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">SYSTEM V31 SMART VISIBILITY</div>
+        <input type="password" id="passInput" class="login-input" placeholder="ENTER PASSWORD">
+        <button onclick="checkLogin()" class="login-btn">UNLOCK SYSTEM</button>
+        <div id="loginMsg" style="color:var(--danger); margin-top:15px; font-size:12px;"></div>
     </div>
 </div>
+
+<div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; flex-direction:column; justify-content:center; align-items:center;">
+    <i class="fas fa-circle-notch fa-spin" style="font-size:40px; color:var(--accent-gold); margin-bottom:15px;"></i>
+    <div style="color:#fff; font-weight:600; letter-spacing:1px;">SYNCING DATA...</div>
+</div>
+
+<div id="customToast" style="position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(50px); background:#111; border:1px solid var(--success); color:var(--success); padding:10px 30px; border-radius:50px; font-weight:700; opacity:0; transition:0.3s; z-index:4000;">ACTION SUCCESS</div>
 
 <canvas id="nebula-canvas"></canvas>
-<canvas id="cursor-canvas"></canvas>
-<canvas id="particle-canvas"></canvas>
 
-<div class="toast-container"><div id="customToast" class="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">ACTION SUCCESSFUL</span></div></div>
-<div id="hover-tooltip"><img id="tooltip-img" src="" alt=""></div>
-
-<div id="gameModal" class="modal" onclick="document.getElementById('gameModal').style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="close-modal" onclick="document.getElementById('gameModal').style.display='none'">X</button>
-        <img id="modalImg" src="" alt="">
-        <h3 id="modalName" style="color:var(--primary); margin:0;"></h3>
+<div id="resultModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h3 style="color:#fff; margin:0;">📋 PREVIEW HASIL</h3>
+        <textarea id="resultText" class="preview-area" readonly></textarea>
+        <button class="btn btn-primary" onclick="finalCopy()" style="width:100%; justify-content:center;">SALIN TEKS</button>
     </div>
 </div>
 
-<div id="dbModal" class="modal" onclick="document.getElementById('dbModal').style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()" style="width: 800px; max-width: 95%;">
-        <button class="close-modal" onclick="document.getElementById('dbModal').style.display='none'"><i class="fas fa-times"></i></button>
-        <div class="modal-title"><i class="fas fa-database"></i> RIWAYAT SEED (CART)</div>
-        
-        <div class="db-controls">
-            <input type="text" id="dbSearch" class="db-search" placeholder="Cari Web / Tanggal..." onkeyup="renderDatabase()">
-            <select id="dbFilter" class="db-search" onchange="renderDatabase()">
-                <option value="">SEMUA WEB</option>
-                <option value="CAPTAIN77">CAPTAIN77</option>
-                <option value="PLAY77">PLAY77</option>
-                <option value="JAGUAR77">JAGUAR77</option>
-                <option value="FUN77">FUN77</option>
-                <option value="INDOPEDIA77">INDOPEDIA77</option>
-                <option value="INDOFUN17">INDOFUN17</option>
-                <option value="HOLYPLAY17">HOLYPLAY17</option>
-                <option value="MUSTANG77">MUSTANG77</option>
-            </select>
+<div id="imgModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-box" onclick="event.stopPropagation()" style="width:auto; max-width:400px;">
+        <img id="imgDisplay" src="" style="width:100%; border-radius:10px; display:block;">
+        <h4 id="imgTitle" style="color:var(--accent-gold); margin:10px 0 0;"></h4>
+    </div>
+</div>
+
+<div id="dbModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-box" onclick="event.stopPropagation()" style="text-align:left;">
+        <h3 style="color:#fff; margin-top:0;">DATABASE HISTORY</h3>
+        <div style="max-height:300px; overflow-y:auto; border-top:1px solid #333;">
+            <table style="width:100%; font-size:12px; color:#aaa; margin-top:10px;" id="dbTable"></table>
         </div>
-
-        <div class="db-table-container">
-            <table class="db-table" id="dbTableBody">
-                </table>
-        </div>
-        
-        <button class="btn-csv" onclick="exportDatabaseToCSV()"><i class="fas fa-file-csv"></i> DOWNLOAD CSV (UNTUK GOOGLE SHEETS)</button>
     </div>
 </div>
 
-<div id="resultModal" class="modal" onclick="document.getElementById('resultModal').style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="close-modal" onclick="document.getElementById('resultModal').style.display='none'"><i class="fas fa-times"></i></button>
-        <div class="modal-title"><i class="fas fa-clipboard-list"></i> PREVIEW JADWAL</div>
-        <div id="modalDateRange" class="preview-date">BERLAKU: -</div>
-        <textarea id="resultText" class="preview-textarea" readonly></textarea>
-        <button class="btn-action-copy" onclick="finalCopy()"><i class="fas fa-copy"></i> SALIN SEMUA TEKS</button>
+<div class="main-wrapper" id="mainApp">
+    <div class="header-section">
+        <h1 class="header-title">PLATFORM SCHEDULER</h1>
+        <div class="header-meta">V31 SMART VISIBILITY • PLATINUM EDITION</div>
     </div>
-</div>
 
-<div class="container">
-    <div class="header-area">
-        <h2>PLATFORM SCHEDULER V22.0 AI</h2>
-        
-        <div class="date-range-wrapper">
-            <div class="date-input-group">
-                <label>DARI TANGGAL</label>
-                <input type="date" id="startDateInput" onchange="updateEndDate(); liveUpdateView()">
+    <div class="control-dock">
+        <div class="dock-left">
+            <div class="input-group">
+                <i class="fas fa-globe input-icon"></i>
+                <select id="profileSelect" onchange="updateUI()">
+                    <option value="CAPTAIN77">CAPTAIN77</option>
+                    <option value="JAGUAR77">JAGUAR77</option>
+                    <option value="INDOPEDIA77">INDOPEDIA77</option>
+                    <option value="FUN77">FUN77</option>
+                    <option value="PLAY77">PLAY77</option>
+                    <option value="MUSTANG77">MUSTANG77</option>
+                    <option value="HOLYPLAY17">HOLYPLAY17</option>
+                    <option value="INDOFUN17">INDOFUN17</option>
+                </select>
             </div>
-            <div class="arrow-separator">➡</div>
-            <div class="date-input-group">
-                <label>SAMPAI TANGGAL</label>
-                <input type="text" id="endDateDisplay" readonly placeholder="Otomatis...">
+            <div class="input-group">
+                <i class="fas fa-calendar input-icon"></i>
+                <input type="date" id="startDateInput" onchange="updateDateDisplay()">
             </div>
         </div>
-
-        <div id="displayDate">READY TO SYNC</div>
-    </div>
-    
-    <details class="time-settings" id="timeSettings">
-        <summary><i class="fas fa-clock"></i> PENGATURAN JAM (EDITABLE)</summary>
-        <div class="time-inputs">
-            <div class="time-group"><label>MIDNIGHT</label><input type="text" id="timeMidnight" value="00:00 - 06:00 WIB" onchange="updateUrlState()"></div>
-            <div class="time-group"><label>SIANG</label><input type="text" id="timeSiang" value="06:00 - 15:00 WIB" onchange="updateUrlState()"></div>
-            <div class="time-group"><label>SORE</label><input type="text" id="timeSore" value="15:00 - 19:00 WIB" onchange="updateUrlState()"></div>
-            <div class="time-group"><label>MALAM</label><input type="text" id="timeMalam" value="19:00 - 00:00 WIB" onchange="updateUrlState()"></div>
+        <div class="dock-right">
+            <button class="btn btn-secondary" onclick="toggleSettings()"><i class="fas fa-clock"></i></button>
+            <button class="btn btn-secondary" onclick="toggleMode()"><i class="fas fa-adjust"></i></button>
+            <button class="btn btn-secondary btn-danger" onclick="hardReset()"><i class="fas fa-bolt"></i></button>
+            <button id="genBtn" onclick="initiateSync()" class="btn btn-primary"><i class="fas fa-sync-alt"></i> GENERATE</button>
         </div>
-    </details>
-
-    <div class="controls">
-        <select id="profileSelect" onchange="changeProfileHandler()">
-            <option value="CAPTAIN77">CAPTAIN77</option>
-            <option value="PLAY77">PLAY77</option>
-            <option value="JAGUAR77">JAGUAR77</option>
-            <option value="FUN77">FUN77</option>
-            <option value="INDOPEDIA77">INDOPEDIA77</option>
-            <option value="INDOFUN17">INDOFUN17</option>
-            <option value="HOLYPLAY17">HOLYPLAY17</option>
-            <option value="MUSTANG77">MUSTANG77</option>
-        </select>
-        
-        <button id="lockBtn" onclick="toggleLock()" title="Kunci Tombol Sync"><i class="fas fa-unlock"></i></button>
-        <button id="genBtn" onclick="initiateSync()">SYNC DATA</button>
-        <button id="copyAllBtn" onclick="copyFullWeek()" title="Salin Semua Hari"><i class="fas fa-copy"></i> MINGGUAN</button>
-
-        <button id="dbBtn" onclick="openDatabaseModal()"><i class="fas fa-database"></i> DATABASE SEED</button>
-        <button id="shareBtn" onclick="copyShareLink()" title="Copy Link Manual"><i class="fas fa-link"></i> LINK</button>
-        
-        <button id="designerBtn" onclick="toggleDesignerMode()" title="Mode Baca Mudah untuk Designer">
-            <i class="fas fa-eye"></i> MODE DESIGNER
-        </button>
     </div>
 
-    <div id="capture-area"><div id="hasil"></div></div>
+    <div id="settingsPanel" class="settings-panel">
+        <div class="time-grid">
+            <div class="time-input-wrap"><label>MIDNIGHT</label><input type="text" id="timeMidnight" value="00:00 - 06:00 WIB"></div>
+            <div class="time-input-wrap"><label>SIANG</label><input type="text" id="timeSiang" value="06:00 - 15:00 WIB"></div>
+            <div class="time-input-wrap"><label>SORE</label><input type="text" id="timeSore" value="15:00 - 19:00 WIB"></div>
+            <div class="time-input-wrap"><label>MALAM</label><input type="text" id="timeMalam" value="19:00 - 00:00 WIB"></div>
+        </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:30px;">
+        <button class="btn btn-secondary" onclick="copyWeek()"><i class="fas fa-copy"></i> SALIN MINGGUAN</button>
+        <button class="btn btn-secondary" onclick="shareLink()"><i class="fas fa-link"></i> BAGIKAN LINK</button>
+        <button class="btn btn-secondary" onclick="showDB()"><i class="fas fa-database"></i> RIWAYAT</button>
+    </div>
+
+    <button id="showHistoryBtn" class="history-toggle-btn" onclick="toggleHistory()">
+        <i class="fas fa-history"></i> TAMPILKAN HARI YANG SUDAH LEWAT
+    </button>
+
+    <div id="outputArea"></div>
 </div>
 
 <script>
-// --- ALGORITMA RNG MULBERRY32 ---
-let currentSeed = Date.now(); 
+// --- SECURITY (SHA-256) ---
+// PASSWORD: admin123
+const PASS_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
 
-function mulberry32(a) {
-    return function() {
-        var t = a += 0x6D2B79F5;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    }
-}
-
-function seedRandom(seed) {
-    return mulberry32(seed);
-}
-
-let myRandom = Math.random; 
-
-function shuffleArray(array) {
-    let currentIndex = array.length, randomIndex;
-    while (currentIndex != 0) {
-        randomIndex = Math.floor(myRandom() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-    }
-    return array;
-}
-
-// --- INTELLIGENT THEME LOGIC ---
-function getGameTheme(gameName) {
-    if (!gameName) return "";
-    let n = gameName.toLowerCase();
-    
-    // Manual overrides untuk seri game populer
-    if(n.includes("olympus")) return "olympus";
-    if(n.includes("starlight")) return "starlight";
-    if(n.includes("bonanza")) return "bonanza";
-    if(n.includes("mahjong")) return "mahjong";
-    if(n.includes("neko")) return "neko";
-    if(n.includes("aztec")) return "aztec";
-    if(n.includes("thor")) return "thor";
-    if(n.includes("wild bandito")) return "bandito";
-    if(n.includes("sugar")) return "sugar";
-    if(n.includes("gatot")) return "gatot";
-    if(n.includes("princess")) return "princess"; // Backup jika tidak ada starlight
-    
-    // Default: Ambil kata pertama
-    return n.split(" ")[0];
-}
-
-// --- DATABASE & HISTORY SYSTEM (LOCAL STORAGE) ---
-function saveSeedToStorage(profile, seed, dateStart) {
-    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
-    const exists = db.some(item => item.seed === seed && item.profile === profile);
-    if(exists) return;
-
-    const newItem = {
-        id: Date.now(),
-        profile: profile,
-        seed: seed,
-        dateStart: dateStart,
-        timestamp: new Date().toLocaleString('id-ID')
-    };
-    
-    db.unshift(newItem);
-    if(db.length > 100) db.pop();
-    
-    localStorage.setItem('schedulerDB', JSON.stringify(db));
-}
-
-function openDatabaseModal() {
-    renderDatabase();
-    document.getElementById('dbModal').style.display = 'flex';
-}
-
-function renderDatabase() {
-    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
-    const tableBody = document.getElementById('dbTableBody');
-    const searchVal = document.getElementById('dbSearch').value.toLowerCase();
-    const filterVal = document.getElementById('dbFilter').value;
-
-    let html = `<thead><tr><th>WEB</th><th>TANGGAL BERLAKU</th><th>WAKTU GENERATE</th><th style="width: 100px; text-align:center;">AKSI</th></tr></thead><tbody>`;
-    
-    const filtered = db.filter(item => {
-        const matchSearch = item.profile.toLowerCase().includes(searchVal) || item.dateStart.toLowerCase().includes(searchVal);
-        const matchFilter = filterVal === "" || item.profile === filterVal;
-        return matchSearch && matchFilter;
-    });
-
-    if(filtered.length === 0) {
-        html += `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #666;">BELUM ADA DATA</td></tr>`;
+async function checkLogin() {
+    const input = document.getElementById('passInput').value;
+    const msg = document.getElementById('loginMsg');
+    if(!input) return;
+    const msgBuffer = new TextEncoder().encode(input);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if(hashHex === PASS_HASH) {
+        document.getElementById('loginOverlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            initLoad(); 
+        }, 500);
+        localStorage.setItem('isLoggedIn', 'true');
     } else {
-        filtered.forEach(item => {
-            html += `
-            <tr>
-                <td style="color:var(--primary); font-weight:bold;">${item.profile}</td>
-                <td>${item.dateStart}</td>
-                <td>${item.timestamp}</td>
-                <td>
-                    <div class="db-action-group">
-                        <button class="btn-db-action btn-db-load" onclick="loadFromDatabase(${item.seed}, '${item.profile}', '${item.dateStart}')"><i class="fas fa-upload"></i> LOAD</button>
-                        <button class="btn-db-action btn-db-del" onclick="deleteFromDatabase(${item.id})"><i class="fas fa-times"></i></button>
-                    </div>
-                </td>
-            </tr>`;
-        });
-    }
-    html += `</tbody>`;
-    tableBody.innerHTML = html;
-}
-
-function loadFromDatabase(seed, profile, dateStart) {
-    currentSeed = parseInt(seed);
-    myRandom = seedRandom(currentSeed);
-    document.getElementById("profileSelect").value = profile;
-    document.getElementById("startDateInput").value = dateStart;
-    updateEndDate();
-    changeTheme();
-    updateUrlState();
-    document.getElementById('dbModal').style.display = 'none';
-    fetchDatabase();
-    showToast(`LOADED: ${profile}`);
-}
-
-function deleteFromDatabase(id) {
-    if(!confirm("Hapus data ini dari riwayat?")) return;
-    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
-    db = db.filter(item => item.id !== id);
-    localStorage.setItem('schedulerDB', JSON.stringify(db));
-    renderDatabase();
-}
-
-function exportDatabaseToCSV() {
-    let db = JSON.parse(localStorage.getItem('schedulerDB') || "[]");
-    if(db.length === 0) { showToast("DATABASE KOSONG!"); return; }
-    let csvContent = "data:text/csv;charset=utf-8,ID,WEBSITE,TANGGAL_BERLAKU,SEED_CODE,TIMESTAMP\n"; 
-    db.forEach(row => { csvContent += `${row.id},${row.profile},${row.dateStart},${row.seed},${row.timestamp}\n`; });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "database_seed_scheduler.csv");
-    document.body.appendChild(link);
-    link.click();
-}
-
-function updateEndDate() {
-    const startVal = document.getElementById("startDateInput").value;
-    if (!startVal) return;
-    const startDate = new Date(startVal);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    const options = { day: 'numeric', month: 'short', year: 'numeric' };
-    document.getElementById("endDateDisplay").value = endDate.toLocaleDateString('id-ID', options).toUpperCase();
-}
-
-function liveUpdateView() {
-    myRandom = seedRandom(currentSeed); 
-    updateUrlState();
-    generateJadwal(); 
-    showToast("TANGGAL DIPERBARUI");
-}
-
-function updateUrlState() {
-    const profile = document.getElementById("profileSelect").value;
-    const inputDate = document.getElementById("startDateInput").value;
-    const tM = encodeURIComponent(document.getElementById('timeMidnight').value);
-    const tS = encodeURIComponent(document.getElementById('timeSiang').value);
-    const tSo = encodeURIComponent(document.getElementById('timeSore').value);
-    const tMa = encodeURIComponent(document.getElementById('timeMalam').value);
-    let newUrl = `${window.location.pathname}?profile=${profile}&seed=${currentSeed}&tM=${tM}&tS=${tS}&tSo=${tSo}&tMa=${tMa}`;
-    if(inputDate) newUrl += `&date=${inputDate}`;
-    window.history.pushState({path: newUrl}, '', newUrl);
-}
-
-function changeProfileHandler() { 
-    changeTheme(); 
-    liveUpdateView(); 
-}
-
-function triggerScanEffect(callback) {
-    const overlay = document.getElementById('scanOverlay');
-    const bar = document.getElementById('scanBar');
-    const txt = document.getElementById('scanText');
-    const detail = document.getElementById('scanDetail');
-    overlay.style.display = 'flex';
-    let progress = 0;
-    const processes = ["CONNECTING SERVER...", "BYPASSING FIREWALL...", "CALCULATING RTP...", "ANALYZING PATTERNS...", "INJECTING ALGORITHM...", "FINALIZING DATA..."];
-    const interval = setInterval(() => {
-        progress += Math.random() * 5; 
-        if (progress > 100) progress = 100;
-        bar.style.width = progress + "%";
-        let processIndex = Math.floor((progress / 100) * processes.length);
-        if(processes[processIndex]) txt.innerText = processes[processIndex];
-        detail.innerText = "CODE: " + Math.floor(Math.random() * 999999);
-        if (progress === 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                if (callback) callback(); 
-            }, 500); 
-        }
-    }, 50); 
-}
-
-function initiateSync() {
-    triggerScanEffect(() => {
-        const prof = document.getElementById("profileSelect").value;
-        const date = document.getElementById("startDateInput").value;
-        currentSeed = Date.now();
-        saveSeedToStorage(prof, currentSeed, date);
-        myRandom = seedRandom(currentSeed); 
-        updateUrlState();
-        fetchDatabase(); 
-        showToast("DATA BARU & TERSIMPAN!");
-    });
-}
-
-function copyShareLink() {
-    updateUrlState(); 
-    const url = window.location.href;
-    if (!url.includes("seed=")) { showToast("KLIK 'SYNC DATA' DULU!"); return; }
-    navigator.clipboard.writeText(url).then(() => { showToast("LINK TERSALIN! SIAP DIBAGIKAN"); });
-}
-
-let isLocked = false;
-function toggleLock() {
-    isLocked = !isLocked;
-    const lockBtn = document.getElementById("lockBtn");
-    const genBtn = document.getElementById("genBtn");
-    const dateInput = document.getElementById("startDateInput");
-    if (isLocked) {
-        lockBtn.innerHTML = '<i class="fas fa-lock"></i>';
-        lockBtn.classList.add("locked");
-        genBtn.disabled = true; genBtn.style.opacity = "0.5"; genBtn.style.cursor = "not-allowed";
-        dateInput.disabled = true;
-    } else {
-        lockBtn.innerHTML = '<i class="fas fa-unlock"></i>';
-        lockBtn.classList.remove("locked");
-        genBtn.disabled = false; genBtn.style.opacity = "1"; genBtn.style.cursor = "pointer";
-        dateInput.disabled = false;
+        msg.innerText = "PASSWORD INVALID!";
+        document.getElementById('passInput').value = '';
     }
 }
 
-function toggleDesignerMode() {
-    const body = document.body;
-    const btn = document.getElementById("designerBtn");
-    body.classList.toggle("clean-mode");
-    if (body.classList.contains("clean-mode")) {
-        btn.innerHTML = '<i class="fas fa-paint-brush"></i> KEMBALI KE NEON';
-        showToast("MODE DESIGNER: AKTIF");
-        document.addEventListener('mousemove', handleTooltip);
-    } else {
-        btn.innerHTML = '<i class="fas fa-eye"></i> MODE DESIGNER';
-        showToast("MODE NEON: KEMBALI");
-        document.removeEventListener('mousemove', handleTooltip);
-        document.getElementById('hover-tooltip').style.display = 'none';
-    }
+if(localStorage.getItem('isLoggedIn') === 'true') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
 }
 
-function handleTooltip(e) {
-    if (!document.body.classList.contains('clean-mode')) return;
-    const target = e.target.closest('.game-card');
-    const tooltip = document.getElementById('hover-tooltip');
-    const tooltipImg = document.getElementById('tooltip-img');
-    if (target) {
-        const name = target.querySelector('.game-name').innerText;
-        if (gameImageMap[name]) {
-            tooltipImg.src = gameImageMap[name];
-            tooltip.style.display = 'block';
-            tooltip.style.top = (e.clientY + 15) + 'px';
-            tooltip.style.left = (e.clientX + 15) + 'px';
-        }
-    } else {
-        tooltip.style.display = 'none';
-    }
-}
-
-function showToast(msg) {
-    const toast = document.getElementById("customToast");
-    document.getElementById("toastMsg").innerText = msg;
-    toast.classList.add("show");
-    setTimeout(() => { toast.classList.remove("show"); }, 3000);
-}
-
-// --- VISUALS ---
-const bgCanvas = document.getElementById('nebula-canvas'); const bgCtx = bgCanvas.getContext('2d');
-const cursorCanvas = document.getElementById('cursor-canvas'); const cCtx = cursorCanvas.getContext('2d');
-const pCanvas = document.getElementById('particle-canvas'); const pCtx = pCanvas.getContext('2d');
-let w, h, nebulaLayers = [], stars = [], cursorParticles = [], mouse = { x: 0, y: 0 };
-let animationFrameId;
-
-document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-        cancelAnimationFrame(animationFrameId); 
-    } else {
-        loopVisuals();
-    }
-});
-
-function initVisuals() {
-    resize(); window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; spawnCursorTrail(); });
-    const isMobile = window.innerWidth < 700;
-    const starCount = isMobile ? 50 : 150; 
-    const layerCount = isMobile ? 3 : 5;
-    nebulaLayers = []; stars = [];
-    for(let i=0; i<layerCount; i++) nebulaLayers.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*300+300, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.floor(Math.random()*(currentNebulaColors.length-1)+1) });
-    for(let i=0; i<starCount; i++) stars.push({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2, a: Math.random(), vx: (Math.random()-0.5)*0.1, vy: (Math.random()-0.5)*0.1 });
-    loopVisuals();
-}
-function resize() { w = window.innerWidth; h = window.innerHeight; bgCanvas.width = cursorCanvas.width = pCanvas.width = w; bgCanvas.height = cursorCanvas.height = pCanvas.height = h; }
-function spawnCursorTrail() { 
-    if(cursorParticles.length > 20) return;
-    for(let i=0; i<1; i++) cursorParticles.push({ x: mouse.x, y: mouse.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 1, c: currentNebulaColors[1], s: Math.random()*3+1 }); 
-}
-
-function loopVisuals() {
-    if (document.body.classList.contains('clean-mode')) { animationFrameId = requestAnimationFrame(loopVisuals); return; }
-    bgCtx.fillStyle = currentNebulaColors[0]; bgCtx.fillRect(0,0,w,h);
-    nebulaLayers.forEach(l => {
-        l.x+=l.vx; l.y+=l.vy; if(l.x<-l.r)l.x=w+l.r; if(l.x>w+l.r)l.x=-l.r; if(l.y<-l.r)l.y=h+l.r; if(l.y>h+l.r)l.y=-l.r;
-        let g = bgCtx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r); g.addColorStop(0, hexToRgba(currentNebulaColors[l.c]||currentNebulaColors[1],0.2)); g.addColorStop(1,'transparent');
-        bgCtx.fillStyle=g; bgCtx.beginPath(); bgCtx.arc(l.x,l.y,l.r,0,Math.PI*2); bgCtx.fill();
-    });
-    pCtx.clearRect(0,0,w,h);
-    stars.forEach(s => { s.x+=s.vx; s.y+=s.vy; if(s.x<0)s.x=w; if(s.x>w)s.x=0; if(s.y<0)s.y=h; if(s.y>h)s.y=0; s.a+=(Math.random()-0.5)*0.02; if(s.a<0)s.a=0; if(s.a>1)s.a=1; pCtx.fillStyle=`rgba(255,255,255,${s.a})`; pCtx.beginPath(); pCtx.arc(s.x,s.y,s.s,0,Math.PI*2); pCtx.fill(); });
-    cCtx.clearRect(0,0,w,h); 
-    cursorParticles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.life-=0.05; p.s*=0.9; if(p.life>0){ cCtx.globalAlpha=p.life; cCtx.fillStyle=p.c; cCtx.beginPath(); cCtx.arc(p.x,p.y,p.s,0,Math.PI*2); cCtx.fill(); } else cursorParticles.splice(i,1); });
-    animationFrameId = requestAnimationFrame(loopVisuals);
-}
-function hexToRgba(hex,a) { let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
-
-// --- KONFIGURASI PERBAIKAN DATA (MANUAL FIX) ---
-const GAME_DICTIONARY = {
-    // "NAMA DI SHEET": "NAMA YANG BENAR DI WEB"
-    "Olympus": "Gates of Olympus",
-    "Starlight": "Starlight Princess",
-    "Sweet Bonanza Xmas": "Sweet Bonanza Christmas",
-    "Inces": "Starlight Princess",
-    "Kakek Zeus": "Gates of Olympus"
-};
-
-const LOCAL_BLACKLIST = [
-    // Masukkan nama game yang ingin dibuang paksa
-    "Game Error",
-    "Slot Demo"
-];
-
+// --- CONFIG ---
 const PROFILE_CONFIG = {
     "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
     "JAGUAR77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1165225864&single=true&output=csv",
@@ -769,338 +335,272 @@ const PROFILE_CONFIG = {
 };
 
 const THEMES = {
-    "CAPTAIN77": { primary: "#00f2ff", nebula: ["#000000", "#000428", "#004e92", "#00f2ff"] },
-    "PLAY77": { primary: "#3b82f6", nebula: ["#000000", "#020024", "#090979", "#3b82f6"] },
-    "JAGUAR77": { primary: "#FFD700", nebula: ["#000000", "#1c1003", "#4a3b00", "#FFD700"] },
-    "FUN77": { primary: "#ff3e3e", nebula: ["#000000", "#220000", "#430000", "#ff3e3e"] },
-    "INDOPEDIA77": { primary: "#4ade80", nebula: ["#000000", "#022c22", "#064e3b", "#4ade80"] },
-    "INDOFUN17": { primary: "#ff0055", nebula: ["#000000", "#330011", "#80002a", "#ff0055"] },
-    "HOLYPLAY17": { primary: "#d8b4fe", nebula: ["#000000", "#1e0033", "#581c87", "#d8b4fe"] },
-    "MUSTANG77": { primary: "#00ff88", nebula: ["#000000", "#001a00", "#003300", "#004d00"] }
+    "CAPTAIN77": { main: "#00f2ff" }, "PLAY77": { main: "#3b82f6" }, "JAGUAR77": { main: "#FFD700" },
+    "FUN77": { main: "#ff3e3e" }, "INDOPEDIA77": { main: "#4ade80" }, "INDOFUN17": { main: "#ff0055" },
+    "HOLYPLAY17": { main: "#d8b4fe" }, "MUSTANG77": { main: "#00ff88" }
 };
 
-let currentNebulaColors = THEMES["CAPTAIN77"].nebula;
-let poolPragmatic = { gold:[], silver:[], bronze:[], guide:[] };
-let poolPGSoft = { gold:[], silver:[], bronze:[], guide:[] };
-let gameImageMap = {};
-let depositSettings = { "MIDNIGHT":[], "SIANG":[], "SORE":[], "MALAM":[] };
-let globalMemory = [];
-let uniqueCodePool = [];
+const FIXES = { "Olympus":"Gates of Olympus", "Starlight":"Starlight Princess", "Inces":"Starlight Princess" };
+const BLACKLIST = ["Game Error", "Slot Demo"];
 
-function changeTheme() {
-    const selected = document.getElementById("profileSelect").value;
-    const theme = THEMES[selected] || THEMES["CAPTAIN77"];
-    document.documentElement.style.setProperty('--primary', theme.primary);
-    currentNebulaColors = theme.nebula;
+let currentSeed = Date.now();
+let rnd = Math.random;
+let poolPP={gold:[],silver:[],bronze:[],guide:[]}, poolPG={gold:[],silver:[],bronze:[],guide:[]};
+let gameImgs={}, depoData={"MIDNIGHT":[],"SIANG":[],"SORE":[],"MALAM":[]}, globalData=[];
+let codePool = [];
+let globalGenID = 0; 
+let deletedIDs = new Set(); 
+
+// --- CORE ---
+function mulberry32(a) { return function() { var t = a += 0x6D2B79F5; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; } }
+function seedRandom(s) { return mulberry32(s); }
+function shuffle(a) { let c=a.length,r; while(c!=0){ r=Math.floor(rnd()*c); c--; [a[c],a[r]]=[a[r],a[c]]; } return a; }
+
+function initiateSync() {
+    currentSeed = Date.now(); 
+    rnd = mulberry32(currentSeed);
+    deletedIDs.clear(); 
+    updateUrlState();   
+    fetchData();
 }
 
-function checkUrlParams() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const seed = urlParams.get('seed');
-    const profile = urlParams.get('profile');
-    const dateParam = urlParams.get('date');
-    const tM = urlParams.get('tM');
-    const tS = urlParams.get('tS');
-    const tSo = urlParams.get('tSo');
-    const tMa = urlParams.get('tMa');
+async function fetchData() {
+    const prof = document.getElementById('profileSelect').value;
+    const btn = document.getElementById('genBtn');
+    document.getElementById('loadingOverlay').style.display='flex';
+    btn.disabled = true;
 
-    if(tM) document.getElementById('timeMidnight').value = decodeURIComponent(tM);
-    if(tS) document.getElementById('timeSiang').value = decodeURIComponent(tS);
-    if(tSo) document.getElementById('timeSore').value = decodeURIComponent(tSo);
-    if(tMa) document.getElementById('timeMalam').value = decodeURIComponent(tMa);
-
-    if (seed && profile) {
-        currentSeed = parseInt(seed); 
-        myRandom = seedRandom(currentSeed); 
-        document.getElementById("profileSelect").value = profile;
-        if(dateParam) {
-            document.getElementById("startDateInput").value = dateParam;
-            updateEndDate(); 
-        }
-        changeProfileHandler(); 
-        fetchDatabase();
-    } else {
-        currentSeed = Date.now();
-        myRandom = Math.random;
-        document.getElementById("startDateInput").valueAsDate = new Date();
-        updateEndDate(); 
-        if(!tM && !tS) loadTimeSettings(); 
-        updateUrlState(); 
-    }
-}
-
-async function fetchDatabase() {
-    const selected = document.getElementById("profileSelect").value;
-    const btn = document.getElementById("genBtn");
-    btn.disabled = true; btn.innerText = "LOADING...";
-    
     try {
-        console.log("Fetching URL:", PROFILE_CONFIG[selected]); // Debug
-        const response = await fetch(PROFILE_CONFIG[selected]);
-        const data = await response.text();
-        const lines = data.split(/\r?\n/).filter(l => l.trim() !== "");
-        
-        // Reset Pool
-        poolPragmatic = { gold:[], silver:[], bronze:[], guide:[] };
-        poolPGSoft = { gold:[], silver:[], bronze:[], guide:[] };
-        gameImageMap = {};
-        depositSettings = { "MIDNIGHT":[], "SIANG":[], "SORE":[], "MALAM":[] };
-        
-        let validDataCount = 0;
+        const res = await fetch(PROFILE_CONFIG[prof]);
+        const txt = await res.text();
+        const rows = txt.split(/\r?\n/).filter(r=>r.trim()!=='');
 
-        lines.slice(1).forEach(line => {
-            let cleanLine = line.replace(/"/g, ''); 
-            let cols = cleanLine.split(',').map(c => c.trim());
-            
-            if (cols.length >= 3) {
-                // Normalisasi Data
-                let prov = cols[0].trim(); 
-                let provCheck = prov.toLowerCase();
-                const tier = cols[1].toUpperCase().trim(); 
-                let name = cols[2].trim(); 
-                
-                // Cek Blacklist & Dictionary
-                if (LOCAL_BLACKLIST.includes(name)) return;
-                if (GAME_DICTIONARY[name]) name = GAME_DICTIONARY[name];
+        poolPP={gold:[],silver:[],bronze:[],guide:[]}; poolPG={gold:[],silver:[],bronze:[],guide:[]};
+        gameImgs={}; depoData={"MIDNIGHT":[],"SIANG":[],"SORE":[],"MALAM":[]};
 
-                let meta = cols[3] || ""; 
-                let extra = cols[4] || ""; 
-                if (!meta.includes('|') && extra !== "") { meta = meta + "|" + extra; }
-                meta = meta.replace(/\*\*/g, '');
+        rows.slice(1).forEach(r => {
+            let c = r.replace(/"/g,'').split(',');
+            if(c.length<3) return;
+            let p=c[0].trim().toLowerCase(), tier=c[1].trim().toUpperCase(), n=c[2].trim(), meta=(c[3]||"").replace(/\*\*/g,'');
+            if(BLACKLIST.includes(n)) return;
+            if(FIXES[n]) n = FIXES[n];
+            if(!n || n==='GameName') return;
 
-                if (name === "" || name === "GameName") return;
-
-                // LOGIKA DETEKSI PROVIDER
-                if (provCheck.includes("setting") && tier.startsWith("DEPO_")) {
-                    const sess = tier.replace("DEPO_", "");
-                    if (depositSettings[sess]) depositSettings[sess].push({ range: name, info: meta });
-                } 
-                else {
-                    if (meta && !meta.includes('|')) gameImageMap[name] = meta; 
-                    const t = cols[1].toLowerCase().trim(); 
-
-                    if (provCheck.includes("pragmatic")) { 
-                        if(t === 'guide') poolPragmatic.guide.push(name); 
-                        else if(poolPragmatic[t]) { poolPragmatic[t].push(name); validDataCount++; }
-                    }
-                    else if (provCheck.includes("pg") || provCheck.includes("soft")) { 
-                        if(t === 'guide') poolPGSoft.guide.push(name); 
-                        else if(poolPGSoft[t]) { poolPGSoft[t].push(name); validDataCount++; }
-                    }
-                }
+            if(p.includes('setting') && tier.startsWith('DEPO_')) {
+                let s = tier.replace('DEPO_','');
+                if(depoData[s]) depoData[s].push({range:n, info:meta});
+            } else {
+                if(meta) gameImgs[n]=meta;
+                let t = c[1].trim().toLowerCase();
+                if(p.includes('pragmatic')) { if(t==='guide') poolPP.guide.push(n); else if(poolPP[t]) poolPP[t].push(n); }
+                else if(p.includes('pg')||p.includes('soft')) { if(t==='guide') poolPG.guide.push(n); else if(poolPG[t]) poolPG[t].push(n); }
             }
         });
 
-        // SAFETY CHECK
-        if (validDataCount === 0) {
-            alert(`DATA KOSONG/FORMAT SALAH!\nLink: ${PROFILE_CONFIG[selected]}`);
-        }
+        generateSchedule(prof);
+        
+        // Save History
+        let db = JSON.parse(localStorage.getItem('dbHistory')||"[]");
+        db.unshift({id:Date.now(), seed:currentSeed, prof:prof, date:document.getElementById('startDateInput').value});
+        if(db.length>30) db.pop();
+        localStorage.setItem('dbHistory',JSON.stringify(db));
 
-        myRandom = seedRandom(currentSeed); 
-        generateJadwal();
-        btn.disabled = false; btn.innerText = "SYNC DATA";
-        if(isLocked) btn.disabled = true;
+        document.getElementById('loadingOverlay').style.display='none';
+        btn.disabled = false;
+        showToast("DATA SYNC COMPLETED");
 
-    } catch (e) {
-        console.error(e);
-        alert("Gagal koneksi ke Spreadsheet! Cek Link di PROFILE_CONFIG.");
-        btn.disabled = false; btn.innerText = "RETRY";
+        // V30 SMART SCROLL & VISIBILITY
+        checkPastDays();
+
+    } catch(e) {
+        document.getElementById('loadingOverlay').style.display='none';
+        btn.disabled = false;
+        alert("GAGAL MENGAMBIL DATA.");
     }
 }
 
-function getUniqueCode() {
-    if (uniqueCodePool.length === 0) {
-        uniqueCodePool = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000];
-        shuffleArray(uniqueCodePool);
-    }
-    return uniqueCodePool.pop();
-}
-
-function getStrategy(prov) {
-    let list = (prov === 'Pragmatic') ? poolPragmatic.guide : poolPGSoft.guide;
-    if (!list || list.length === 0) return { html: "<div>Pola Kurang</div>", text: "" };
-
-    let headerText = "BET NOMINAL BEBAS";
-    let headerHtml = `<div style="color: #fff; font-size: 10px; margin-bottom: 3px; font-weight: bold; letter-spacing:1px; text-transform:uppercase;">${headerText}</div>`;
-    
-    let dcText = "";
-    let badgeHtml = "";
-    if (prov === 'Pragmatic') {
-        const state = myRandom() > 0.5 ? "ON" : "OFF";
-        dcText = `FITUR GANDA ${state}`;
-        badgeHtml = `<span class="badge" style="background:var(--primary); color:#000; margin-bottom:5px; display:inline-block;">${dcText}</span>`;
-    }
-
-    let selected = [];
-    
-    // Helper untuk mengenali tipe pola
-    const getType = (str) => {
-        let clean = str.toUpperCase();
-        if (clean.includes("MANUAL")) return "MANUAL";
-        if (clean.includes("AUTO")) return "AUTO"; 
-        if (clean.includes("TURBO")) return "TURBO";
-        if (clean.includes("BUY") || clean.includes("BELI")) return "BUY";
-        return "OTHER";
+function generateSchedule(prof) {
+    let date = new Date(document.getElementById('startDateInput').value);
+    let times = {
+        "MIDNIGHT": document.getElementById('timeMidnight').value,
+        "SIANG": document.getElementById('timeSiang').value,
+        "SORE": document.getElementById('timeSore').value,
+        "MALAM": document.getElementById('timeMalam').value
     };
+    
+    let days = ["MINGGU","SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"];
+    let html = "";
+    globalData = []; codePool = []; globalGenID = 0; 
+    let yesterdayThemes = {"MIDNIGHT":[],"SIANG":[],"SORE":[],"MALAM":[]};
+    
+    let today = new Date();
+    today.setHours(0,0,0,0);
+    let todayStr = today.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'});
 
-    if (prov === 'Pragmatic') {
-        let buySpinList = list.filter(item => getType(item) === "BUY");
-        let normalList = list.filter(item => getType(item) !== "BUY");
+    for(let i=0; i<7; i++) {
+        let d = new Date(date); d.setDate(date.getDate()+i);
+        let checkDate = new Date(d); checkDate.setHours(0,0,0,0);
         
-        if (normalList.length === 0) normalList = [...list];
-
-        // LOGIKA BARU: GROUPING BERDASARKAN TIPE
-        let grouped = {};
-        normalList.forEach(item => {
-            let t = getType(item);
-            if(!grouped[t]) grouped[t] = [];
-            grouped[t].push(item);
-        });
+        let dStr = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'});
+        let dayIndex = d.getDay(); 
+        let dName = days[dayIndex];
         
-        let availableTypes = Object.keys(grouped); 
+        let dayObj = {day:dName, date:dStr, sessions:[]};
+        let dailyGames = [];
+        let todayThemes = {"MIDNIGHT":[],"SIANG":[],"SORE":[],"MALAM":[]};
+        let prevSessionThemes = [];
 
-        // Loop 5 kali untuk pola normal
-        for(let i=0; i<5; i++) {
-            let forbiddenType = (selected.length > 0) ? getType(selected[selected.length-1]) : null;
-            let validPool = [];
+        // V31 VISIBILITY LOGIC
+        let isPast = checkDate < today;
+        let isToday = checkDate.getTime() === today.getTime();
+        
+        let dayClass = '';
+        if(isPast) dayClass = 'day-past';
+        if(isToday) dayClass = 'today-highlight';
+        let idAttr = isToday ? 'id="todayRow"' : '';
 
-            availableTypes.forEach(t => {
-                if(t !== forbiddenType) {
-                    validPool = validPool.concat(grouped[t]);
+        html += `<div class="day-section ${dayClass}" ${idAttr}>
+            <div class="day-title">
+                ${dName} <span class="date-badge">${dStr}</span>
+                <span class="today-badge">AKTIF SEKARANG</span>
+            </div>
+            <div class="session-grid">`;
+
+        ["MIDNIGHT","SIANG","SORE","MALAM"].forEach(sess => {
+            let counts = resolveGameCounts(prof, sess);
+            let sHtml = "", rawTxt = "";
+            let currentSessThemes = [];
+            
+            const draw = (pool, tier) => {
+                let res = pickGame(pool, tier, dailyGames, prevSessionThemes, currentSessThemes, yesterdayThemes[sess]);
+                if(res.name !== "NO DATA") {
+                    dailyGames.push(res.name); 
+                    currentSessThemes.push(res.theme);
+                    todayThemes[sess].push(res.theme);
                 }
-            });
+                let uid = globalGenID++; 
+                return {
+                    name: res.name,
+                    html: `<div class="game-item" id="gid-${uid}" onclick="showImg('${res.name}')">
+                            <span class="g-name">${res.name}</span><span class="g-tag tag-${tier}">${tier}</span>
+                            <button class="del-btn-overlay" onclick="deleteItem('${uid}', event)">✕</button>
+                           </div>`
+                };
+            };
 
-            if(validPool.length === 0) validPool = normalList;
+            if(counts.pp > 0) {
+                sHtml += `<div class="prov-label">PRAGMATIC PLAY</div>`;
+                rawTxt += `--- PRAGMATIC PLAY ---\n`;
+                for(let k=0; k<counts.pp; k++) {
+                    let t = (sess==="SORE") ? 'gold' : (k===0?'gold':(k===1?'silver':'bronze'));
+                    let r = draw(poolPP, t);
+                    sHtml += r.html; rawTxt += r.name + '\n';
+                }
+                let pt = getPattern(poolPP.guide, 'Pragmatic');
+                sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`;
+            }
 
-            let uniquePool = validPool.filter(item => !selected.includes(item));
-            if(uniquePool.length > 0) validPool = uniquePool;
+            if(counts.pg > 0) {
+                sHtml += `<div class="prov-label">PG SOFT</div>`;
+                rawTxt += `--- PG SOFT ---\n`;
+                for(let k=0; k<counts.pg; k++) {
+                    let t = (sess==="SORE") ? 'gold' : (k===0?'gold':'silver');
+                    let r = draw(poolPG, t);
+                    sHtml += r.html; rawTxt += r.name + '\n';
+                }
+                let pt = getPattern(poolPG.guide, 'PGSoft');
+                sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`;
+            }
 
-            let chosen = validPool[Math.floor(myRandom() * validPool.length)];
-            selected.push(chosen);
-        }
+            prevSessionThemes = [...currentSessThemes];
+            let dep = getDeposit(sess, prof);
+            dayObj.sessions.push({title:sess, time:times[sess], content:rawTxt, depo:dep});
 
-        let buyItem = buySpinList.length > 0 ? buySpinList[Math.floor(myRandom() * buySpinList.length)] : "POLA KHUSUS: BUY SPIN SECUKUPNYA";
-        selected.push(buyItem);
+            html += `
+            <div class="card">
+                <div class="card-header">
+                    <div><div class="sess-name">${sess}</div><span class="sess-time">${times[sess]}</span></div>
+                    <button class="copy-mini" onclick="copyOne(${i}, ${dayObj.sessions.length-1})"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="card-body" id="sess-${i}-${sess}">
+                    ${sHtml}
+                    <div class="depo-box">
+                        <div class="depo-code">KODE UNIK: ${dep.code}</div>
+                        ${dep.html}
+                    </div>
+                </div>
+            </div>`;
+        });
 
+        html += `</div></div>`;
+        globalData.push(dayObj);
+        yesterdayThemes = todayThemes; 
+    }
+    
+    document.getElementById('outputArea').innerHTML = html;
+    applyDeletions(); 
+}
+
+// --- V31: SMART VISIBILITY CONTROL ---
+function checkPastDays() {
+    let pastItems = document.querySelectorAll('.day-past');
+    let btn = document.getElementById('showHistoryBtn');
+    
+    if(pastItems.length > 0) {
+        btn.style.display = 'block';
+        btn.innerHTML = `<i class="fas fa-history"></i> ${pastItems.length} HARI YANG LALU DISEMBUNYIKAN (KLIK UNTUK LIHAT)`;
     } else {
-        let normalList = [...list];
-        let grouped = {};
-        normalList.forEach(item => {
-            let t = getType(item);
-            if(!grouped[t]) grouped[t] = [];
-            grouped[t].push(item);
-        });
-        let availableTypes = Object.keys(grouped);
-
-        for(let i=0; i<5; i++) {
-            let forbiddenType = (selected.length > 0) ? getType(selected[selected.length-1]) : null;
-            let validPool = [];
-            
-            availableTypes.forEach(t => {
-                if(t !== forbiddenType) validPool = validPool.concat(grouped[t]);
-            });
-
-            if(validPool.length === 0) validPool = normalList;
-            
-            let uniquePool = validPool.filter(item => !selected.includes(item));
-            if(uniquePool.length > 0) validPool = uniquePool;
-
-            let chosen = validPool[Math.floor(myRandom() * validPool.length)];
-            selected.push(chosen);
-        }
+        btn.style.display = 'none';
     }
-
-    let stepsHtml = selected.map(s => `
-        <div class="step-row">
-            <span class="step-text">${s}</span>
-            <button class="delete-item-btn" onclick="removeElement(this, event)" title="Hapus Pola Ini"><i class="fas fa-times"></i></button>
-        </div>`
-    ).join('');
-
-    const footerMsg = "NAIKAN BET SECARA BERTAHAP & ULANGI POLA";
-    let footerHtml = `<div class="step-row" style="margin-top:5px; border-top:1px dashed #444; padding-top:5px; justify-content:center;"><span style="color:var(--warn-yellow); font-weight:800; font-size:9px;">${footerMsg}</span></div>`;
-    
-    return { html: `<div class="guide-container">${headerHtml}${badgeHtml}${stepsHtml}${footerHtml}</div>`, text: "" };
 }
 
-function getDeposit(sess) {
-    let tail = getUniqueCode();
-    
-    let data = depositSettings[sess];
-    const currentProfile = document.getElementById("profileSelect").value;
-
-    if (currentProfile === "FUN77" && data && data.length > 0) {
-        data = [data[0]]; 
-    }
-
-    if (!data || data.length === 0) return { html: "", text: "", code: tail };
-    
-    let html = `<div class="depo-container"><div class="depo-header">KODE JITU EKOR: ${tail}</div>`;
-    let text = "";
-    const processValue = (rawStr) => {
-        if (!rawStr) return 0;
-        let cleanStr = rawStr.toString().replace(/\D/g, ''); 
-        let num = parseInt(cleanStr) || 0;
-        return (Math.floor(num / 1000) * 1000) + tail;
-    };
-    data.forEach((item, i) => {
-        let parts = item.range.split('-');
-        let meta = item.info.split('|');
-        let bonus = meta[0] || "UNK";
-        let rate = meta[1] || "90%";
-        let minVal = processValue(parts[0]);
-        let maxVal = parts.length === 2 ? processValue(parts[1]) : 0;
-        let nominal = parts.length === 2 ? `DEPO Rp ${minVal.toLocaleString()} - Rp ${maxVal.toLocaleString()}` : `SPECIAL DEPO Rp ${minVal.toLocaleString()}`;
-        html += `<div class="depo-item"><span class="depo-info">${i+1}. ${nominal}</span><div class="depo-meta"><span class="tag-bonus">BONUS ${bonus}</span><span class="tag-rate">RATE ${rate}</span></div></div>`;
-        text += `${i+1}. ${nominal} (Bonus ${bonus} | Rate ${rate})\n`;
+function toggleHistory() {
+    let pastItems = document.querySelectorAll('.day-past');
+    pastItems.forEach(el => {
+        el.style.display = (el.style.display === 'block') ? '' : 'block';
     });
-    html += `</div>`;
-    return { html, text, code: tail };
 }
 
-function pickGame(prov, tier, blacklist, daily, previousThemes, currentThemes, yesterdaySameSessionThemes) {
-    let list = (prov === 'Pragmatic') ? poolPragmatic[tier] : poolPGSoft[tier];
-    if (!list || list.length === 0) return { name: "DATA KOSONG", html: "", theme: "" };
-    
-    const filterGames = (strictLevel) => {
-        return list.filter(g => {
-            let theme = getGameTheme(g);
-            if (blacklist.includes(g)) return false; 
-            if (strictLevel > 1 && daily.includes(g)) return false; 
-            if (strictLevel > 2 && currentThemes.includes(theme)) return false;
-            if (strictLevel > 3 && previousThemes.includes(theme)) return false;
-            if (strictLevel > 4 && yesterdaySameSessionThemes && yesterdaySameSessionThemes.includes(theme)) return false;
-            return true;
-        });
+// --- HELPERS ---
+function getTheme(gameName) {
+    let n = gameName.toLowerCase();
+    n = n.replace(/\b(1000|megaways|xmas|christmas|jackpot|deluxe|gold|super scatter|maxways|party)\b/g, "");
+    n = n.replace(/[0-9]+/g, ""); 
+    n = n.trim();
+    if (n.includes("olympus") || n.includes("zeus") || n.includes("gatot")) return "zeus_gatot_family"; 
+    if (n.includes("starlight") || n.includes("inces")) return "starlight_family";
+    if (n.includes("bonanza") || n.includes("sweet")) return "bonanza_family";
+    if (n.includes("mahjong") || n.includes("ways")) return "mahjong_family";
+    if (n.includes("sugar")) return "sugar_family";
+    return n.split(" ")[0]; 
+}
+
+function pickGame(pool, tier, dailyGames, prevSessionThemes, currentSessThemes, yesterdayThemes) {
+    let fullList = pool[tier];
+    if (!fullList || fullList.length === 0) return { name: "NO DATA", theme: "" };
+    const isValid = (g, strictLevel) => {
+        let theme = getTheme(g);
+        if (strictLevel >= 4) { if (yesterdayThemes && yesterdayThemes.includes(theme)) return false; }
+        if (strictLevel >= 3) { if (prevSessionThemes.includes(theme)) return false; }
+        if (strictLevel >= 2) { if (dailyGames.includes(g)) return false; }
+        if (currentSessThemes.includes(theme)) return false;
+        return true;
     };
-
-    let available = [];
-    for (let level = 5; level >= 1; level--) {
-        available = filterGames(level);
-        if (available.length > 0) break;
+    let candidates = [];
+    for (let level = 4; level >= 1; level--) {
+        candidates = fullList.filter(g => isValid(g, level));
+        if (candidates.length > 0) break; 
     }
-
-    if (available.length === 0) {
-        available = list.filter(g => !blacklist.includes(g)); 
-        if (available.length === 0) available = list;
+    if (candidates.length === 0) {
+        candidates = fullList.filter(g => !currentSessThemes.includes(getTheme(g)));
+        if (candidates.length === 0) candidates = fullList; 
     }
-
-    const chosen = available[Math.floor(myRandom() * available.length)];
-    const chosenTheme = getGameTheme(chosen);
-    let badgeColor = tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32';
-    
-    return { 
-        name: chosen, 
-        theme: chosenTheme,
-        html: `<div class="game-card" onclick="showImg('${chosen}')">
-                <span class="game-name">${chosen}</span>
-                <span class="badge" style="background:${badgeColor};color:#000">${tier}</span>
-               </div>` 
-    };
+    let picked = candidates[Math.floor(rnd() * candidates.length)];
+    return { name: picked, theme: getTheme(picked) };
 }
 
 function resolveGameCounts(profile, sessionName) {
-    const r = myRandom(); 
+    const r = rnd(); 
     if (profile === "CAPTAIN77") {
         if(sessionName === "MIDNIGHT") return { pp:3, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
@@ -1145,265 +645,168 @@ function resolveGameCounts(profile, sessionName) {
     return { pp:2, pg:2 };
 }
 
-function generateJadwal() {
-    const profile = document.getElementById("profileSelect").value;
-    const dateInputStr = document.getElementById('startDateInput').value;
-    let startDate = dateInputStr ? new Date(dateInputStr) : new Date();
-    let endDate = new Date(startDate); endDate.setDate(startDate.getDate() + 6);
-    const options = { day: 'numeric', month: 'short', year: 'numeric' };
-    const dateRangeStr = `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
-    document.getElementById('displayDate').innerText = `PERIODE: ${dateRangeStr.toUpperCase()}`;
-    const times = {
-        "MIDNIGHT": document.getElementById('timeMidnight').value,
-        "SIANG": document.getElementById('timeSiang').value,
-        "SORE": document.getElementById('timeSore').value,
-        "MALAM": document.getElementById('timeMalam').value
-    };
-    const days = ["SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU","MINGGU"];
-    uniqueCodePool = []; 
-    let html = "";
-    globalMemory = [];
-    let yesterday = [];
-    let historyPerSession = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] };
-
-    days.forEach((day, dayIndex) => {
-        let currentDate = new Date(startDate); currentDate.setDate(startDate.getDate() + dayIndex);
-        let dateBadge = currentDate.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: '2-digit'});
-        let todayGames = [];
-        let dayData = { day: day, date: dateBadge, sessions: [] };
-        
-        let previousSessionThemes = []; 
-        let todaySessionThemes = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] };
-
-        const draw = (p, t, currentThemes, sessKey) => { 
-            let res = pickGame(p, t, yesterday, todayGames, previousSessionThemes, currentThemes, historyPerSession[sessKey]); 
-            if (res.name !== "DATA KOSONG") todayGames.push(res.name); 
-            return res; 
-        }
-
-        const buildSession = (label, sessKey, sessIndex) => {
-            const timeStr = times[sessKey];
-            const counts = resolveGameCounts(profile, sessKey);
-            let sessionHtml = "";
-            let rawTxt = "";
-            let currentSessionThemes = [];
-
-            if (counts.pp > 0) {
-                let ppContent = ""; let ppText = "";
-                for(let i=0; i<counts.pp; i++) {
-                    let tier = (sessKey === "SORE") ? 'gold' : (i===0 ? 'gold' : (i===1 ? 'silver' : 'bronze'));
-                    
-                    let g = draw('Pragmatic', tier, currentSessionThemes, sessKey);
-                    currentSessionThemes.push(g.theme); 
-                    todaySessionThemes[sessKey].push(g.theme); 
-                    ppContent += g.html; ppText += `${g.name}\n`;
-                }
-                let stP = getStrategy('Pragmatic');
-                sessionHtml += `<div class="provider-label">PRAGMATIC PLAY</div>${ppContent}${stP.html}`;
-                rawTxt += `--- PRAGMATIC PLAY ---\n${ppText}\nPOLA PRAGMATIC:\n${stP.text}\n\n`;
-            }
-            if (counts.pg > 0) {
-                let pgContent = ""; let pgText = "";
-                for(let i=0; i<counts.pg; i++) {
-                    let tier = (sessKey === "SORE") ? 'gold' : (i===0 ? 'gold' : 'silver');
-
-                    let g = draw('PGSoft', tier, currentSessionThemes, sessKey);
-                    currentSessionThemes.push(g.theme);
-                    todaySessionThemes[sessKey].push(g.theme); 
-                    pgContent += g.html; pgText += `${g.name}\n`;
-                }
-                let stPg = getStrategy('PGSoft');
-                sessionHtml += `<div class="provider-label">PG SOFT</div>${pgContent}${stPg.html}`;
-                rawTxt += `--- PG SOFT ---\n${pgText}\nPOLA PG SOFT:\n${stPg.text}`;
-            }
-            
-            previousSessionThemes = [...currentSessionThemes];
-
-            let depo = getDeposit(sessKey);
-            dayData.sessions.push({ title: label, time: timeStr, games: rawTxt.trim(), depo: depo });
-            return `
-            <div class="session-box">
-                <div class="session-header">
-                    <div class="session-title">${label}</div>
-                    <span class="session-time">${timeStr}</span>
-                    <div class="action-container">
-                        <button class="action-btn minimize-btn" onclick="toggleSession(this)"><i class="fas fa-window-minimize"></i></button>
-                        <button class="action-btn copy-btn" onclick="copySession(${dayIndex}, ${sessIndex})"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
-                <div class="session-content">${sessionHtml}${depo.html}</div>
-            </div>`;
-        };
-        html += `
-        <div class="day-row">
-            <div class="day-header">
-                <span class="day-label">${day} <span class="date-badge">${dateBadge}</span></span>
-                <button class="minimize-day-btn" onclick="toggleDay(this)" title="Toggle Hari"><i class="fas fa-window-minimize"></i></button>
-            </div>
-            <div class="session-grid">`;
-        html += buildSession("🌑 MIDNIGHT", "MIDNIGHT", 0);
-        html += buildSession("☀️ SIANG", "SIANG", 1);
-        html += buildSession("🌇 SORE", "SORE", 2);
-        html += buildSession("🌙 MALAM", "MALAM", 3);
-        html += `</div></div>`;
-        
-        globalMemory.push(dayData);
-        yesterday = [...todayGames];
-        historyPerSession = todaySessionThemes;
+function getPattern(list, prov) {
+    if(!list || list.length===0) return {html:"", txt:""};
+    let sel = [], txt = "";
+    let safe = list.filter(x => !x.toUpperCase().includes('BUY'));
+    if(safe.length===0) safe=list;
+    let type = s => s.toUpperCase().includes('MANUAL')?'M':(s.toUpperCase().includes('AUTO')?'A':'T');
+    for(let i=0; i<5; i++) {
+        let last = sel.length>0 ? type(sel[sel.length-1]) : null;
+        let pool = safe.filter(x => type(x)!==last && !sel.includes(x));
+        if(pool.length===0) pool=safe;
+        sel.push(pool[Math.floor(rnd()*pool.length)]);
+    }
+    if(prov==='Pragmatic') {
+        let buys = list.filter(x=>x.toUpperCase().includes('BUY'));
+        sel.push(buys.length>0?buys[Math.floor(rnd()*buys.length)]:"BUY SPIN SECUKUPNYA");
+    }
+    let h = `<div class="pattern-box"><div style="font-size:9px;color:var(--accent-gold);font-weight:800;margin-bottom:5px;">BET NOMINAL BEBAS</div>`;
+    sel.forEach(s => {
+        let uid = globalGenID++;
+        h += `<div class="pt-row" id="gid-${uid}"><span class="pt-txt">${s}</span><button class="del-btn-overlay" onclick="deleteItem('${uid}', event)">✕</button></div>`;
+        txt += `> ${s}\n`;
     });
-    document.getElementById("hasil").innerHTML = html;
+    h += `<div style="text-align:center;font-size:9px;color:#888;margin-top:5px;">NAIKAN BET BERTAHAP</div></div>`;
+    txt += `NAIKAN BET BERTAHAP`;
+    return {html:h, txt:txt};
 }
 
-function toggleSession(btn) {
-    const box = btn.closest('.session-box'); box.classList.toggle('collapsed');
-    const icon = btn.querySelector('i');
-    if (box.classList.contains('collapsed')) { icon.classList.remove('fa-window-minimize'); icon.classList.add('fa-window-maximize'); } 
-    else { icon.classList.remove('fa-window-maximize'); icon.classList.add('fa-window-minimize'); }
+function getDeposit(sess, prof) {
+    if(codePool.length===0) { codePool=[1000,2000,3000,4000,5000,6000,7000,8000,9000]; shuffle(codePool); }
+    let code = codePool.pop() || 1000;
+    let raw = depoData[sess] || [];
+    if(prof==="FUN77") raw = raw.slice(0,1);
+    if(raw.length===0) return {code:code, html:"", text:""};
+    let h="", t="";
+    raw.forEach((d,i) => {
+        let r = d.range.split('-');
+        let v1 = parseInt(r[0].replace(/\D/g,'')) + code;
+        let v2 = r[1] ? parseInt(r[1].replace(/\D/g,'')) + code : null;
+        let s = `Rp ${v1.toLocaleString()}` + (v2?` - Rp ${v2.toLocaleString()}`:'');
+        let info = d.info.split('|');
+        h += `<div class="depo-row"><span>${i+1}. ${s}</span><span style="color:var(--accent-gold)">${info[0]||''}</span></div>`;
+        t += `${i+1}. ${s} (${info[0]||''})\n`;
+    });
+    return {code:code, html:h, text:t};
 }
 
-function toggleDay(btn) {
-    const row = btn.closest('.day-row'); row.classList.toggle('collapsed');
-    const icon = btn.querySelector('i');
-    if (row.classList.contains('collapsed')) { icon.classList.remove('fa-window-minimize'); icon.classList.add('fa-window-maximize'); } 
-    else { icon.classList.remove('fa-window-maximize'); icon.classList.add('fa-window-minimize'); }
+// --- SYNC & STATE ---
+function deleteItem(uid, e) {
+    if(e) e.stopPropagation();
+    const el = document.getElementById('gid-' + uid);
+    if(el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 200); deletedIDs.add(uid.toString()); updateUrlState(); }
+}
+function applyDeletions() { deletedIDs.forEach(uid => { const el = document.getElementById('gid-' + uid); if(el) el.remove(); }); }
+function updateUrlState() {
+    let u = new URL(location.href);
+    u.searchParams.set('seed', currentSeed);
+    u.searchParams.set('profile', document.getElementById('profileSelect').value);
+    u.searchParams.set('date', document.getElementById('startDateInput').value);
+    u.searchParams.set('tM', document.getElementById('timeMidnight').value);
+    u.searchParams.set('tSi', document.getElementById('timeSiang').value);
+    u.searchParams.set('tSo', document.getElementById('timeSore').value);
+    u.searchParams.set('tMa', document.getElementById('timeMalam').value);
+    if(deletedIDs.size > 0) u.searchParams.set('del', Array.from(deletedIDs).join(','));
+    else u.searchParams.delete('del');
+    history.replaceState(null, '', u);
 }
 
-function saveTimeSettings() {
-    const settings = {
-        midnight: document.getElementById('timeMidnight').value,
-        siang: document.getElementById('timeSiang').value,
-        sore: document.getElementById('timeSore').value,
-        malam: document.getElementById('timeMalam').value
-    };
-    localStorage.setItem('schedulerTimeSettings', JSON.stringify(settings));
-    liveUpdateView(); 
+// --- UI UTILS ---
+function updateUI() {
+    let p = document.getElementById('profileSelect').value;
+    document.documentElement.style.setProperty('--accent-gold', THEMES[p]?.main || '#D4AF37');
 }
-function loadTimeSettings() {
-    const saved = localStorage.getItem('schedulerTimeSettings');
-    if (saved) {
-        const s = JSON.parse(saved);
-        if(s.midnight) document.getElementById('timeMidnight').value = s.midnight;
-        if(s.siang) document.getElementById('timeSiang').value = s.siang;
-        if(s.sore) document.getElementById('timeSore').value = s.sore;
-        if(s.malam) document.getElementById('timeMalam').value = s.malam;
+function updateDateDisplay() { /* handled by url state */ }
+function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('active'); }
+function toggleMode() { document.body.classList.toggle('clean-mode'); }
+function hardReset() { if(confirm("Refresh System & Clear Cache?")) { localStorage.clear(); location.href = location.pathname; } }
+function showImg(n) { document.getElementById('imgDisplay').src=gameImgs[n]||'https://via.placeholder.com/400x250?text=NO+IMAGE'; document.getElementById('imgTitle').innerText=n; document.getElementById('imgModal').style.display='flex'; }
+function showToast(m) { let t=document.getElementById('customToast'); t.innerText=m; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
+
+// --- COPY & SHARE ---
+function extractDOM(dom) {
+    let txt = "";
+    dom.querySelectorAll('.prov-label, .game-item, .pattern-box').forEach(el => {
+        if(el.classList.contains('prov-label')) txt += `\n--- ${el.innerText} ---\n`;
+        if(el.classList.contains('game-item')) txt += `${el.querySelector('.g-name').innerText}\n`;
+        if(el.classList.contains('pattern-box')) {
+            txt += "POLA:\n";
+            el.querySelectorAll('.pt-txt').forEach(p => txt += `> ${p.innerText}\n`);
+            txt += "NAIKAN BET BERTAHAP\n";
+        }
+    });
+    return txt;
+}
+function copyOne(d, s) {
+    let data = globalData[d].sessions[s];
+    let dom = document.getElementById(`sess-${d}-${data.title}`);
+    let content = extractDOM(dom);
+    let final = `=================================\nHARI: ${globalData[d].day}, ${globalData[d].date}\nSESI: ${data.title} (${data.time})\n=================================\n${content}\n---------------------------------\nKODE UNIK: ${data.depo.code}\n---------------------------------\n${data.depo.text}`;
+    document.getElementById('resultText').value = final;
+    document.getElementById('resultModal').style.display='flex';
+}
+function copyWeek() {
+    if(globalData.length===0) return showToast("DATA KOSONG");
+    let t = `JADWAL MINGGUAN\nPERIODE: ${document.getElementById('startDateInput').value}\n\n`;
+    globalData.forEach((d,i) => {
+        t += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📅 ${d.day}, ${d.date}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        d.sessions.forEach((s, idx) => {
+            let dom = document.getElementById(`sess-${i}-${s.title}`);
+            t += `\n[ ${s.title} | ${s.time} ]\n${extractDOM(dom)}\n------------------------------\nKODE: ${s.depo.code}\n`;
+        });
+        t += '\n\n';
+    });
+    document.getElementById('resultText').value = t;
+    document.getElementById('resultModal').style.display='flex';
+}
+function finalCopy() { document.getElementById('resultText').select(); document.execCommand('copy'); showToast("BERHASIL DISALIN!"); }
+function shareLink() { updateUrlState(); navigator.clipboard.writeText(location.href).then(() => showToast("LINK TERSIMPAN!")); }
+
+// --- INIT ---
+function initLoad() {
+    let p = new URLSearchParams(location.search);
+    if(p.get('tM')) document.getElementById('timeMidnight').value = p.get('tM');
+    if(p.get('tSi')) document.getElementById('timeSiang').value = p.get('tSi');
+    if(p.get('tSo')) document.getElementById('timeSore').value = p.get('tSo');
+    if(p.get('tMa')) document.getElementById('timeMalam').value = p.get('tMa');
+    if(p.get('del')) p.get('del').split(',').forEach(id => deletedIDs.add(id));
+
+    if(p.get('seed')) {
+        currentSeed = parseInt(p.get('seed'));
+        rnd = mulberry32(currentSeed);
+        document.getElementById('profileSelect').value = p.get('profile');
+        document.getElementById('startDateInput').value = p.get('date');
+        updateUI();
+        fetchData();
+    } else {
+        document.getElementById('startDateInput').valueAsDate = new Date();
+        initVisuals();
     }
 }
 
-function openResultModal(text) {
-    const modal = document.getElementById("resultModal");
-    const txtArea = document.getElementById("resultText");
-    const dateLabel = document.getElementById("modalDateRange");
-    const dateStr = document.getElementById("displayDate").innerText.replace("PERIODE: ", "");
-    dateLabel.innerText = "BERLAKU: " + dateStr;
-    txtArea.value = text;
-    modal.style.display = 'flex';
+window.onload = () => {
+    if(localStorage.getItem('isLoggedIn') === 'true') {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        initLoad();
+    }
+};
+
+const ctx = document.getElementById('nebula-canvas').getContext('2d');
+function initVisuals() {
+    let w=window.innerWidth, h=window.innerHeight;
+    document.getElementById('nebula-canvas').width=w; document.getElementById('nebula-canvas').height=h;
+    let hue=0;
+    function anim() {
+        if(document.body.classList.contains('clean-mode')) return requestAnimationFrame(anim);
+        ctx.fillStyle=`rgba(0,0,0,0.05)`; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle=`hsla(${hue}, 50%, 50%, 0.5)`;
+        ctx.beginPath(); ctx.arc(Math.random()*w, Math.random()*h, Math.random()*2, 0, Math.PI*2); ctx.fill();
+        hue+=0.5; requestAnimationFrame(anim);
+    }
+    anim();
 }
-
-function finalCopy() {
-    const txtArea = document.getElementById("resultText"); txtArea.select(); document.execCommand('copy'); showToast("TEKS BERHASIL DISALIN!");
-}
-
-function copySession(dayIndex, sessIndex) {
-    const data = globalMemory[dayIndex].sessions[sessIndex];
-    const dayName = globalMemory[dayIndex].day;
-    const dateStr = globalMemory[dayIndex].date;
-    let txt = `=================================\nHARI: ${dayName}, ${dateStr}\nSESI: ${data.title} (${data.time})\n=================================\n\n${data.games}\n\n---------------------------------\nKODE EKOR: ${data.depo.code}\n---------------------------------\nLIST DEPOSIT:\n${data.depo.text}`;
-    openResultModal(txt);
-}
-
-// 4. Override (Timpa) fungsi copyFullWeek (jika kamu pakai fitur Mingguan)
-function copyFullWeek() {
-    if (globalMemory.length === 0) { showToast("DATA BELUM DI-SYNC!"); return; }
-    
-    let fullText = "";
-    const headerTitle = document.querySelector('.header-area h2').innerText;
-    const period = document.getElementById('displayDate').innerText;
-    
-    fullText += `=== ${headerTitle} ===\n${period}\n\n`;
-
-    const dayRows = document.querySelectorAll('.day-row');
-    
-    dayRows.forEach((row, dIndex) => {
-        const dayLabel = row.querySelector('.day-label').innerText;
-        
-        fullText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        fullText += `📅 ${dayLabel}\n`;
-        fullText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        
-        const sessions = row.querySelectorAll('.session-box');
-        sessions.forEach((sessBox, sIndex) => {
-            const title = sessBox.querySelector('.session-title').innerText;
-            const time = sessBox.querySelector('.session-time').innerText;
-            
-            // Ambil text real-time dari layar
-            const gamesTxt = extractTextFromDOM(sessBox);
-            const depoCode = globalMemory[dIndex].sessions[sIndex].depo.code;
-
-            fullText += `\n[ ${title} | ${time} ]\n`;
-            fullText += `==============================\n`;
-            fullText += `${gamesTxt}\n`;
-            fullText += `------------------------------\n`;
-            fullText += `KODE: ${depoCode}\n`;
-        });
-        fullText += `\n\n`;
-    });
-
-    openResultModal(fullText);
-    showToast("PREVIEW MINGGUAN SIAP!");
-}
-
-function removeElement(btn, event) {
-    if(event) event.stopPropagation(); // Mencegah klik tembus ke game card
-    const elementToRemove = btn.parentElement;
-    
-    // Animasi hapus sedikit agar smooth
-    elementToRemove.style.opacity = '0';
-    elementToRemove.style.transform = 'translateX(20px)';
-    
-    setTimeout(() => {
-        elementToRemove.remove();
-    }, 200);
-}
-
-function extractTextFromDOM(sessionBox) {
-    let result = "";
-    const contentDiv = sessionBox.querySelector('.session-content');
-    if (!contentDiv) return "";
-
-    const children = contentDiv.querySelectorAll('.provider-label, .game-card, .guide-container');
-    
-    children.forEach(child => {
-        if (child.classList.contains('provider-label')) {
-            result += `\n--- ${child.innerText} ---\n`;
-        }
-        else if (child.classList.contains('game-card')) {
-            const gameName = child.querySelector('.game-name').innerText;
-            result += `${gameName}\n`;
-        }
-        else if (child.classList.contains('guide-container')) {
-            const header = child.innerText.split('\n')[0]; 
-            result += `${header}\n`;
-            const badge = child.querySelector('.badge');
-            if (badge) result += `${badge.innerText}\n`;
-            const steps = child.querySelectorAll('.step-row .step-text');
-            steps.forEach(step => {
-                if (!step.innerText.includes("NAIKAN BET")) {
-                    result += `> ${step.innerText}\n`;
-                }
-            });
-            result += `\nNAIKAN BET SECARA BERTAHAP & ULANGI POLA\n`;
-        }
-    });
-    return result.trim();
-}
-
-function showImg(name) {
-    document.getElementById('modalName').innerText = name;
-    document.getElementById('modalImg').src = gameImageMap[name] || 'https://via.placeholder.com/400x250?text=NO+IMAGE';
-    document.getElementById('gameModal').style.display = 'flex';
-}
-
-window.onload = function() { checkUrlParams(); initVisuals(); };
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-BAK2 GENERATE - Advanced Logic V22 (Smart Pattern)</title>
+    <title>GO-BAK2 GENERATE - Advanced Logic V22 (Final Config)</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -741,11 +741,27 @@ function loopVisuals() {
 }
 function hexToRgba(hex,a) { let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
 
+// --- KONFIGURASI PERBAIKAN DATA (MANUAL FIX) ---
+const GAME_DICTIONARY = {
+    // "NAMA DI SHEET": "NAMA YANG BENAR DI WEB"
+    "Olympus": "Gates of Olympus",
+    "Starlight": "Starlight Princess",
+    "Sweet Bonanza Xmas": "Sweet Bonanza Christmas",
+    "Inces": "Starlight Princess",
+    "Kakek Zeus": "Gates of Olympus"
+};
+
+const LOCAL_BLACKLIST = [
+    // Masukkan nama game yang ingin dibuang paksa
+    "Game Error",
+    "Slot Demo"
+];
+
 const PROFILE_CONFIG = {
     "CAPTAIN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=0&single=true&output=csv",
     "JAGUAR77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1165225864&single=true&output=csv",
     "INDOPEDIA77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=288756155&single=true&output=csv",
-    "FUN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=288756155&single=true&output=csv",
+    "FUN77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=7296733&single=true&output=csv",
     "PLAY77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=410917478&single=true&output=csv",
     "MUSTANG77": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=1769820056&single=true&output=csv",
     "HOLYPLAY17": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYLkswRdyQIUIBvcS1-_D6AUqrvqVo9u13KJbMT7aNJXnG8v6wfNMYmivF96G2eHwiSm6I-K64-1qY/pub?gid=265631998&single=true&output=csv",
@@ -817,39 +833,77 @@ async function fetchDatabase() {
     const selected = document.getElementById("profileSelect").value;
     const btn = document.getElementById("genBtn");
     btn.disabled = true; btn.innerText = "LOADING...";
+    
     try {
+        console.log("Fetching URL:", PROFILE_CONFIG[selected]); // Debug
         const response = await fetch(PROFILE_CONFIG[selected]);
         const data = await response.text();
         const lines = data.split(/\r?\n/).filter(l => l.trim() !== "");
+        
+        // Reset Pool
         poolPragmatic = { gold:[], silver:[], bronze:[], guide:[] };
         poolPGSoft = { gold:[], silver:[], bronze:[], guide:[] };
         gameImageMap = {};
         depositSettings = { "MIDNIGHT":[], "SIANG":[], "SORE":[], "MALAM":[] };
+        
+        let validDataCount = 0;
+
         lines.slice(1).forEach(line => {
             let cleanLine = line.replace(/"/g, ''); 
             let cols = cleanLine.split(',').map(c => c.trim());
+            
             if (cols.length >= 3) {
-                const prov = cols[0]; const tier = cols[1].toUpperCase(); const name = cols[2]; 
-                let meta = cols[3] || ""; let extra = cols[4] || ""; 
+                // Normalisasi Data
+                let prov = cols[0].trim(); 
+                let provCheck = prov.toLowerCase();
+                const tier = cols[1].toUpperCase().trim(); 
+                let name = cols[2].trim(); 
+                
+                // Cek Blacklist & Dictionary
+                if (LOCAL_BLACKLIST.includes(name)) return;
+                if (GAME_DICTIONARY[name]) name = GAME_DICTIONARY[name];
+
+                let meta = cols[3] || ""; 
+                let extra = cols[4] || ""; 
                 if (!meta.includes('|') && extra !== "") { meta = meta + "|" + extra; }
                 meta = meta.replace(/\*\*/g, '');
-                if (prov === "SETTING" && tier.startsWith("DEPO_")) {
+
+                if (name === "" || name === "GameName") return;
+
+                // LOGIKA DETEKSI PROVIDER
+                if (provCheck.includes("setting") && tier.startsWith("DEPO_")) {
                     const sess = tier.replace("DEPO_", "");
                     if (depositSettings[sess]) depositSettings[sess].push({ range: name, info: meta });
-                } else if (name && name !== "") {
+                } 
+                else {
                     if (meta && !meta.includes('|')) gameImageMap[name] = meta; 
-                    const t = cols[1].toLowerCase();
-                    if (prov === "Pragmatic") { if(t==='guide') poolPragmatic.guide.push(name); else if(poolPragmatic[t]) poolPragmatic[t].push(name); }
-                    else if (prov === "PGSoft") { if(t==='guide') poolPGSoft.guide.push(name); else if(poolPGSoft[t]) poolPGSoft[t].push(name); }
+                    const t = cols[1].toLowerCase().trim(); 
+
+                    if (provCheck.includes("pragmatic")) { 
+                        if(t === 'guide') poolPragmatic.guide.push(name); 
+                        else if(poolPragmatic[t]) { poolPragmatic[t].push(name); validDataCount++; }
+                    }
+                    else if (provCheck.includes("pg") || provCheck.includes("soft")) { 
+                        if(t === 'guide') poolPGSoft.guide.push(name); 
+                        else if(poolPGSoft[t]) { poolPGSoft[t].push(name); validDataCount++; }
+                    }
                 }
             }
         });
+
+        // SAFETY CHECK
+        if (validDataCount === 0) {
+            alert(`DATA KOSONG/FORMAT SALAH!\nLink: ${PROFILE_CONFIG[selected]}`);
+        }
+
         myRandom = seedRandom(currentSeed); 
         generateJadwal();
         btn.disabled = false; btn.innerText = "SYNC DATA";
         if(isLocked) btn.disabled = true;
+
     } catch (e) {
-        alert("Gagal mengambil data! Cek koneksi.");
+        console.error(e);
+        alert("Gagal koneksi ke Spreadsheet! Cek Link di PROFILE_CONFIG.");
         btn.disabled = false; btn.innerText = "RETRY";
     }
 }
@@ -903,24 +957,21 @@ function getStrategy(prov) {
             grouped[t].push(item);
         });
         
-        let availableTypes = Object.keys(grouped); // ['MANUAL', 'AUTO', 'TURBO']
+        let availableTypes = Object.keys(grouped); 
 
         // Loop 5 kali untuk pola normal
         for(let i=0; i<5; i++) {
             let forbiddenType = (selected.length > 0) ? getType(selected[selected.length-1]) : null;
             let validPool = [];
 
-            // Kumpulkan semua item yang BUKAN tipe sebelumnya
             availableTypes.forEach(t => {
                 if(t !== forbiddenType) {
                     validPool = validPool.concat(grouped[t]);
                 }
             });
 
-            // Jika pool kosong (misal cuma ada 1 tipe data), terpaksa pakai semua normalList
             if(validPool.length === 0) validPool = normalList;
 
-            // Prioritaskan yang belum terpilih (Text Unik)
             let uniquePool = validPool.filter(item => !selected.includes(item));
             if(uniquePool.length > 0) validPool = uniquePool;
 
@@ -928,12 +979,10 @@ function getStrategy(prov) {
             selected.push(chosen);
         }
 
-        // Tambah Buy Spin di akhir
         let buyItem = buySpinList.length > 0 ? buySpinList[Math.floor(myRandom() * buySpinList.length)] : "POLA KHUSUS: BUY SPIN SECUKUPNYA";
         selected.push(buyItem);
 
     } else {
-        // PG SOFT LOGIC (Mirip Pragmatic, tapi tanpa buy spin)
         let normalList = [...list];
         let grouped = {};
         normalList.forEach(item => {
@@ -977,11 +1026,9 @@ function getStrategy(prov) {
 function getDeposit(sess) {
     let tail = getUniqueCode();
     
-    // AMBIL DATA & LOGIKA BARU UNTUK FUN77
     let data = depositSettings[sess];
     const currentProfile = document.getElementById("profileSelect").value;
 
-    // JIKA FUN77, HANYA AMBIL 1 DATA PERTAMA
     if (currentProfile === "FUN77" && data && data.length > 0) {
         data = [data[0]]; 
     }
@@ -1011,12 +1058,10 @@ function getDeposit(sess) {
     return { html, text, code: tail };
 }
 
-// UPDATE: pickGame now accepts session history logic
 function pickGame(prov, tier, blacklist, daily, previousThemes, currentThemes, yesterdaySameSessionThemes) {
     let list = (prov === 'Pragmatic') ? poolPragmatic[tier] : poolPGSoft[tier];
     if (!list || list.length === 0) return { name: "DATA KOSONG", html: "", theme: "" };
     
-    // Filter games (Logic Anti-Kembar V22)
     const filterGames = (strictLevel) => {
         return list.filter(g => {
             let theme = getGameTheme(g);
@@ -1044,7 +1089,6 @@ function pickGame(prov, tier, blacklist, daily, previousThemes, currentThemes, y
     const chosenTheme = getGameTheme(chosen);
     let badgeColor = tier==='gold'?'#ffd700':tier==='silver'?'#c0c0c0':'#cd7f32';
     
-    // REVISI: TOMBOL DELETE DIHAPUS DARI SINI
     return { 
         name: chosen, 
         theme: chosenTheme,
@@ -1070,7 +1114,6 @@ function resolveGameCounts(profile, sessionName) {
     } else if (profile === "FUN77") {
         if(sessionName === "MIDNIGHT") return { pp:3, pg:2 };
         if(sessionName === "SIANG") return { pp:2, pg:2 };
-        // UPDATE LOGIKA SORE: 2 PP atau 1 PP (Tanpa PG Soft)
         if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 };
         if(sessionName === "MALAM") return { pp:1, pg:1 };
     } else if (profile === "MUSTANG77") {
@@ -1121,8 +1164,6 @@ function generateJadwal() {
     let html = "";
     globalMemory = [];
     let yesterday = [];
-    
-    // NEW: Store themes from previous day's specific sessions (e.g., Yesterday Midnight)
     let historyPerSession = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] };
 
     days.forEach((day, dayIndex) => {
@@ -1131,11 +1172,10 @@ function generateJadwal() {
         let todayGames = [];
         let dayData = { day: day, date: dateBadge, sessions: [] };
         
-        let previousSessionThemes = []; // Reset setiap hari baru agar fresh
-        let todaySessionThemes = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] }; // Store themes to pass to tomorrow
+        let previousSessionThemes = []; 
+        let todaySessionThemes = { "MIDNIGHT": [], "SIANG": [], "SORE": [], "MALAM": [] };
 
         const draw = (p, t, currentThemes, sessKey) => { 
-            // Pass historyPerSession[sessKey] to pickGame
             let res = pickGame(p, t, yesterday, todayGames, previousSessionThemes, currentThemes, historyPerSession[sessKey]); 
             if (res.name !== "DATA KOSONG") todayGames.push(res.name); 
             return res; 
@@ -1151,12 +1191,11 @@ function generateJadwal() {
             if (counts.pp > 0) {
                 let ppContent = ""; let ppText = "";
                 for(let i=0; i<counts.pp; i++) {
-                    // LOGIC CHANGE: FORCE GOLD IF SESSION IS "SORE"
                     let tier = (sessKey === "SORE") ? 'gold' : (i===0 ? 'gold' : (i===1 ? 'silver' : 'bronze'));
                     
                     let g = draw('Pragmatic', tier, currentSessionThemes, sessKey);
                     currentSessionThemes.push(g.theme); 
-                    todaySessionThemes[sessKey].push(g.theme); // Save for tomorrow
+                    todaySessionThemes[sessKey].push(g.theme); 
                     ppContent += g.html; ppText += `${g.name}\n`;
                 }
                 let stP = getStrategy('Pragmatic');
@@ -1166,12 +1205,11 @@ function generateJadwal() {
             if (counts.pg > 0) {
                 let pgContent = ""; let pgText = "";
                 for(let i=0; i<counts.pg; i++) {
-                    // LOGIC CHANGE: FORCE GOLD IF SESSION IS "SORE"
                     let tier = (sessKey === "SORE") ? 'gold' : (i===0 ? 'gold' : 'silver');
 
                     let g = draw('PGSoft', tier, currentSessionThemes, sessKey);
                     currentSessionThemes.push(g.theme);
-                    todaySessionThemes[sessKey].push(g.theme); // Save for tomorrow
+                    todaySessionThemes[sessKey].push(g.theme); 
                     pgContent += g.html; pgText += `${g.name}\n`;
                 }
                 let stPg = getStrategy('PGSoft');
@@ -1179,7 +1217,6 @@ function generateJadwal() {
                 rawTxt += `--- PG SOFT ---\n${pgText}\nPOLA PG SOFT:\n${stPg.text}`;
             }
             
-            // Simpan tema sesi ini untuk pengecekan sesi berikutnya (dalam hari yang sama)
             previousSessionThemes = [...currentSessionThemes];
 
             let depo = getDeposit(sessKey);
@@ -1212,8 +1249,6 @@ function generateJadwal() {
         
         globalMemory.push(dayData);
         yesterday = [...todayGames];
-        
-        // Update historyPerSession with today's data for the next loop iteration (tomorrow)
         historyPerSession = todaySessionThemes;
     });
     document.getElementById("hasil").innerHTML = html;
@@ -1268,102 +1303,11 @@ function finalCopy() {
     const txtArea = document.getElementById("resultText"); txtArea.select(); document.execCommand('copy'); showToast("TEKS BERHASIL DISALIN!");
 }
 
-// --- FITUR HAPUS & SMART COPY ---
-
-// 1. Fungsi untuk menghapus elemen saat tombol X diklik
-function removeElement(btn, event) {
-    if(event) event.stopPropagation(); // Mencegah klik tembus ke game card
-    const elementToRemove = btn.parentElement;
-    
-    // Animasi hapus sedikit agar smooth
-    elementToRemove.style.opacity = '0';
-    elementToRemove.style.transform = 'translateX(20px)';
-    
-    setTimeout(() => {
-        elementToRemove.remove();
-    }, 200);
-}
-
-// 2. Fungsi PINTAR untuk mengekstrak teks langsung dari LAYAR (DOM)
-// Ini memastikan apa yang sudah dihapus tidak ikut tersalin
-function extractTextFromDOM(sessionBox) {
-    let result = "";
-    
-    // Ambil konten di dalam session-content
-    const contentDiv = sessionBox.querySelector('.session-content');
-    if (!contentDiv) return "";
-
-    // Loop semua elemen anak
-    const children = contentDiv.querySelectorAll('.provider-label, .game-card, .guide-container');
-    
-    children.forEach(child => {
-        // Jika Header Provider (PRAGMATIC / PG SOFT)
-        if (child.classList.contains('provider-label')) {
-            result += `\n--- ${child.innerText} ---\n`;
-        }
-        // Jika Game Card
-        else if (child.classList.contains('game-card')) {
-            const gameName = child.querySelector('.game-name').innerText;
-            result += `${gameName}\n`;
-        }
-        // Jika Pola (Guide Container)
-        else if (child.classList.contains('guide-container')) {
-            // Ambil header pola
-            const header = child.innerText.split('\n')[0]; // Ambil baris pertama (BET NOMINAL...)
-            result += `${header}\n`;
-            
-            // Cek ada badge DC ON/OFF gak
-            const badge = child.querySelector('.badge');
-            if (badge) result += `${badge.innerText}\n`;
-
-            // Ambil langkah-langkah (step-row)
-            const steps = child.querySelectorAll('.step-row .step-text');
-            steps.forEach(step => {
-                if (!step.innerText.includes("NAIKAN BET")) {
-                    result += `> ${step.innerText}\n`;
-                }
-            });
-            
-            result += `\nNAIKAN BET SECARA BERTAHAP & ULANGI POLA\n`;
-        }
-    });
-
-    return result.trim();
-}
-
-// 3. Override (Timpa) fungsi copySession yang lama
 function copySession(dayIndex, sessIndex) {
-    // Cari elemen session box di layar berdasarkan index
-    const dayRows = document.querySelectorAll('.day-row');
-    if (!dayRows[dayIndex]) return;
-    
-    const sessionBoxes = dayRows[dayIndex].querySelectorAll('.session-box');
-    if (!sessionBoxes[sessIndex]) return;
-
-    const targetBox = sessionBoxes[sessIndex];
-    
-    // Ambil data dasar
-    const dayData = globalMemory[dayIndex];
-    const sessionTitle = targetBox.querySelector('.session-title').innerText;
-    const sessionTime = targetBox.querySelector('.session-time').innerText;
-    
-    // Generate Text Game & Pola DARI LAYAR (bukan dari memori)
-    const gamesText = extractTextFromDOM(targetBox);
-
-    // Ambil data Deposit (ini tetap dari memori karena strukturnya beda, kecuali mau dihapus juga)
-    // Untuk saat ini deposit kita biarkan static dari memori
-    const depoData = dayData.sessions[sessIndex].depo; 
-
-    let txt = `=================================\n`;
-    txt += `HARI: ${dayData.day}, ${dayData.date}\n`;
-    txt += `SESI: ${sessionTitle} (${sessionTime})\n`;
-    txt += `=================================\n\n`;
-    txt += `${gamesText}\n\n`;
-    txt += `---------------------------------\n`;
-    txt += `KODE EKOR: ${depoData.code}\n`;
-    txt += `---------------------------------\n`;
-    txt += `LIST DEPOSIT:\n${depoData.text}`;
-
+    const data = globalMemory[dayIndex].sessions[sessIndex];
+    const dayName = globalMemory[dayIndex].day;
+    const dateStr = globalMemory[dayIndex].date;
+    let txt = `=================================\nHARI: ${dayName}, ${dateStr}\nSESI: ${data.title} (${data.time})\n=================================\n\n${data.games}\n\n---------------------------------\nKODE EKOR: ${data.depo.code}\n---------------------------------\nLIST DEPOSIT:\n${data.depo.text}`;
     openResultModal(txt);
 }
 
@@ -1407,6 +1351,58 @@ function copyFullWeek() {
     openResultModal(fullText);
     showToast("PREVIEW MINGGUAN SIAP!");
 }
+
+function removeElement(btn, event) {
+    if(event) event.stopPropagation(); // Mencegah klik tembus ke game card
+    const elementToRemove = btn.parentElement;
+    
+    // Animasi hapus sedikit agar smooth
+    elementToRemove.style.opacity = '0';
+    elementToRemove.style.transform = 'translateX(20px)';
+    
+    setTimeout(() => {
+        elementToRemove.remove();
+    }, 200);
+}
+
+function extractTextFromDOM(sessionBox) {
+    let result = "";
+    const contentDiv = sessionBox.querySelector('.session-content');
+    if (!contentDiv) return "";
+
+    const children = contentDiv.querySelectorAll('.provider-label, .game-card, .guide-container');
+    
+    children.forEach(child => {
+        if (child.classList.contains('provider-label')) {
+            result += `\n--- ${child.innerText} ---\n`;
+        }
+        else if (child.classList.contains('game-card')) {
+            const gameName = child.querySelector('.game-name').innerText;
+            result += `${gameName}\n`;
+        }
+        else if (child.classList.contains('guide-container')) {
+            const header = child.innerText.split('\n')[0]; 
+            result += `${header}\n`;
+            const badge = child.querySelector('.badge');
+            if (badge) result += `${badge.innerText}\n`;
+            const steps = child.querySelectorAll('.step-row .step-text');
+            steps.forEach(step => {
+                if (!step.innerText.includes("NAIKAN BET")) {
+                    result += `> ${step.innerText}\n`;
+                }
+            });
+            result += `\nNAIKAN BET SECARA BERTAHAP & ULANGI POLA\n`;
+        }
+    });
+    return result.trim();
+}
+
+function showImg(name) {
+    document.getElementById('modalName').innerText = name;
+    document.getElementById('modalImg').src = gameImageMap[name] || 'https://via.placeholder.com/400x250?text=NO+IMAGE';
+    document.getElementById('gameModal').style.display = 'flex';
+}
+
 window.onload = function() { checkUrlParams(); initVisuals(); };
 </script>
 </body>

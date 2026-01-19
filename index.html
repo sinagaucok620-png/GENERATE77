@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCHEDULER V32 - PLATINUM COMPLETE</title>
+    <title>SCHEDULER V35 - GITHUB READY</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -137,16 +137,25 @@
         .copy-mini { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #aaa; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
         .copy-mini:hover { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
 
-        /* ITEMS */
+        /* ITEMS MODIFIED FOR IMAGES */
         .game-item {
             background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
             padding: 8px 10px; border-radius: 8px; margin-bottom: 6px;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
-            position: relative; padding-right: 35px;
+            display: flex; align-items: center; cursor: pointer; transition: 0.2s;
+            position: relative; padding-right: 30px;
         }
         .game-item:hover { border-color: var(--accent-gold); background: rgba(255,255,255,0.05); }
-        .g-name { font-size: 12px; font-weight: 600; color: #ddd; }
-        .g-tag { font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; }
+        
+        /* IMAGE STYLING */
+        .game-icon {
+            width: 38px; height: 38px; border-radius: 6px; margin-right: 10px;
+            object-fit: cover; border: 1px solid var(--glass-border); background: #222; flex-shrink: 0;
+        }
+        
+        .game-info-wrap { flex: 1; display: flex; align-items: center; justify-content: space-between; }
+
+        .g-name { font-size: 12px; font-weight: 600; color: #ddd; line-height: 1.2; }
+        .g-tag { font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; margin-left: 5px;}
         .tag-gold { background: #FFD700; color: #000; } .tag-silver { background: #C0C0C0; color: #000; } .tag-bronze { background: #CD7F32; color: #fff; }
 
         .prov-label { font-size: 9px; font-weight: 800; color: var(--text-muted); margin: 10px 0 5px; letter-spacing: 1px; }
@@ -196,7 +205,7 @@
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:#fff; margin-bottom:5px;">SECURE ACCESS</h2>
-        <div style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">SYSTEM V32 PLATINUM COMPLETE</div>
+        <div style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">SYSTEM V35 (GITHUB READY)</div>
         <input type="password" id="passInput" class="login-input" placeholder="ENTER PASSWORD">
         <button onclick="checkLogin()" class="login-btn">UNLOCK SYSTEM</button>
         <div id="loginMsg" style="color:var(--danger); margin-top:15px; font-size:12px;"></div>
@@ -239,7 +248,7 @@
 <div class="main-wrapper" id="mainApp">
     <div class="header-section">
         <h1 class="header-title">PLATFORM SCHEDULER</h1>
-        <div class="header-meta">V32 COMPLETE • PLATINUM EDITION</div>
+        <div class="header-meta">V35 COMPLETE • GITHUB EDITION</div>
     </div>
 
     <div class="control-dock">
@@ -347,6 +356,7 @@ const BLACKLIST = ["Game Error", "Slot Demo"];
 let currentSeed = Date.now();
 let rnd = Math.random;
 let poolPP={gold:[],silver:[],bronze:[],guide:[]}, poolPG={gold:[],silver:[],bronze:[],guide:[]};
+// Variabel gameImgs masih ada tapi tidak lagi bergantung 100% dari CSV jika kosong
 let gameImgs={}, depoData={"MIDNIGHT":[],"SIANG":[],"SORE":[],"MALAM":[]}, globalData=[];
 let codePool = [];
 let globalGenID = 0; 
@@ -391,6 +401,7 @@ async function fetchData() {
                 let s = tier.replace('DEPO_','');
                 if(depoData[s]) depoData[s].push({range:n, info:meta});
             } else {
+                // Simpan meta dari CSV jika ada (misal link manual), tapi nanti sistem V35 akan override jika lokal
                 if(meta) gameImgs[n]=meta;
                 let t = c[1].trim().toLowerCase();
                 if(p.includes('pragmatic')) { if(t==='guide') poolPP.guide.push(n); else if(poolPP[t]) poolPP[t].push(n); }
@@ -410,7 +421,6 @@ async function fetchData() {
         btn.disabled = false;
         showToast("DATA SYNC COMPLETED");
 
-        // V30 SMART SCROLL & VISIBILITY
         checkPastDays();
         setTimeout(scrollToToday, 500);
 
@@ -453,7 +463,6 @@ function generateSchedule(prof) {
         let todayThemes = {"MIDNIGHT":[],"SIANG":[],"SORE":[],"MALAM":[]};
         let prevSessionThemes = [];
 
-        // V31 VISIBILITY LOGIC
         let isPast = checkDate < today;
         let isToday = checkDate.getTime() === today.getTime();
         
@@ -482,10 +491,29 @@ function generateSchedule(prof) {
                     todayThemes[sess].push(res.theme);
                 }
                 let uid = globalGenID++; 
+                
+                // --- V35: LOGIKA NAMA FILE SESUAI SCREENSHOT ---
+                // 1. Ambil nama game, ubah ke LowerCase (huruf kecil)
+                // 2. Ganti semua SPASI dengan GARIS BAWAH (_)
+                // Contoh: "Gates of Olympus" -> "gates_of_olympus"
+                
+                let safeName = res.name.toLowerCase().replace(/ /g, '_'); 
+                
+                // 3. Gabungkan jadi path gambar
+                let autoPath = "img/" + safeName + ".jpg";
+                
+                // Cek jika ada manual link dari CSV (tetap diprioritaskan)
+                let manualLink = gameImgs[res.name];
+                let finalImg = (manualLink && manualLink.length > 5) ? manualLink : autoPath;
+
                 return {
                     name: res.name,
-                    html: `<div class="game-item" id="gid-${uid}" onclick="showImg('${res.name}')">
-                            <span class="g-name">${res.name}</span><span class="g-tag tag-${tier}">${tier}</span>
+                    html: `<div class="game-item" id="gid-${uid}" onclick="showImg('${res.name}', '${finalImg}')">
+                            <img src="${finalImg}" class="game-icon" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/50?text=IMG';">
+                            <div class="game-info-wrap">
+                                <span class="g-name">${res.name}</span>
+                                <span class="g-tag tag-${tier}">${tier}</span>
+                            </div>
                             <button class="del-btn-overlay" onclick="deleteItem('${uid}', event)">✕</button>
                            </div>`
                 };
@@ -673,7 +701,6 @@ function getPattern(list, prov) {
         sel.push(buys.length>0?buys[Math.floor(rnd()*buys.length)]:"BUY SPIN SECUKUPNYA");
     }
 
-    // DC FEATURE V32 RESTORED
     let dcHtml = "";
     if(prov === 'Pragmatic') {
         let state = rnd() > 0.5 ? "ON" : "OFF";
@@ -740,7 +767,13 @@ function updateDateDisplay() { /* handled by url state */ }
 function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('active'); }
 function toggleMode() { document.body.classList.toggle('clean-mode'); }
 function hardReset() { if(confirm("Refresh System & Clear Cache?")) { localStorage.clear(); location.href = location.pathname; } }
-function showImg(n) { document.getElementById('imgDisplay').src=gameImgs[n]||'https://via.placeholder.com/400x250?text=NO+IMAGE'; document.getElementById('imgTitle').innerText=n; document.getElementById('imgModal').style.display='flex'; }
+function showImg(n, url) { 
+    // Updated V35: Terima URL dinamis
+    let finalUrl = url || 'https://via.placeholder.com/400x250?text=NO+IMAGE';
+    document.getElementById('imgDisplay').src = finalUrl; 
+    document.getElementById('imgTitle').innerText = n; 
+    document.getElementById('imgModal').style.display='flex'; 
+}
 function showToast(m) { let t=document.getElementById('customToast'); t.innerText=m; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
 
 // --- COPY & SHARE ---

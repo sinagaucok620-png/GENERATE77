@@ -6,102 +6,18 @@
     <title>SCHEDULER V40 - 4+1 PATTERN SYSTEM</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* --- CSS SAMA SEPERTI VERSI SEBELUMNYA (DIPADATKAN) --- */
-        :root { --bg-deep: #050505; --bg-card: #0F0F0F; --accent-gold: #D4AF37; --text-main: #Eaeaea; --text-muted: #888888; --glass-border: rgba(255, 255, 255, 0.08); --danger: #ff4757; --success: #00b894; }
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Outfit', sans-serif; margin: 0; padding: 40px 20px; color: var(--text-main); background-color: var(--bg-deep); background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 70%); min-height: 100vh; overflow-x: hidden; }
-        #nebula-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; pointer-events: none; }
-        .main-wrapper { max-width: 1400px; margin: 0 auto; position: relative; z-index: 1; display: none; }
-        .header-section { text-align: center; margin-bottom: 40px; }
-        .header-title { font-size: 42px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(135deg, #fff 30%, var(--accent-gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; text-transform: uppercase; }
-        .header-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 5px;}
-        .control-dock { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; box-shadow: 0 20px 60px rgba(0,0,0,0.6); margin-bottom: 40px; position: sticky; top: 20px; z-index: 100; }
-        .dock-left { display: flex; gap: 15px; flex: 1; min-width: 300px; }
-        .dock-right { display: flex; gap: 10px; }
-        .input-group { position: relative; flex: 1; }
-        .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--accent-gold); pointer-events: none; font-size: 14px;}
-        select, input { width: 100%; background: var(--bg-deep); color: #fff; border: 1px solid var(--glass-border); padding: 12px 15px 12px 40px; border-radius: 12px; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; transition: 0.3s; cursor: pointer; }
-        select:focus, input:focus { border-color: var(--accent-gold); background: #000; }
-        .btn { border: none; padding: 12px 20px; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), #b38f26); color: #000; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3); }
-        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
-        .btn-secondary:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
-        .btn-danger { color: var(--danger); border-color: rgba(255, 77, 77, 0.3); }
-        .btn-danger:hover { background: rgba(255, 77, 77, 0.1); }
-        .settings-panel { background: var(--bg-card); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 16px; margin-bottom: 30px; display: none; }
-        .settings-panel.active { display: block; animation: slideIn 0.3s; }
-        @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .time-input-wrap label { display: block; font-size: 10px; color: var(--accent-gold); margin-bottom: 5px; font-weight: 700; }
-        .day-section { margin-bottom: 40px; padding: 20px; border-radius: 24px; border: 1px solid transparent; transition: 0.5s; animation: fadeIn 0.5s forwards; }
-        .day-section.day-past { display: none; } 
-        .day-section.today-highlight { border-color: var(--success); background: rgba(0, 184, 148, 0.05); box-shadow: 0 0 50px rgba(0, 184, 148, 0.1); }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        .day-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 15px; border-left: 3px solid var(--accent-gold); padding-left: 15px; display: flex; align-items: center; gap: 10px; }
-        .date-badge { font-weight: 400; color: var(--text-muted); font-size: 16px; }
-        .today-badge { background: var(--success); color: #000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; display: none; animation: pulse 2s infinite; }
-        .today-highlight .today-badge { display: inline-block; }
-        @keyframes pulse { 0%{opacity:1} 50%{opacity:0.6} 100%{opacity:1} }
-        .history-toggle-btn { width: 100%; padding: 15px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.2); color: #888; cursor: pointer; margin-bottom: 30px; border-radius: 16px; font-weight: 700; font-size: 12px; display: none; transition: 0.3s; }
-        .history-toggle-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: var(--accent-gold); }
-        .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .card { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 15px; height: 100%; display: flex; flex-direction: column; transition: 0.3s; }
-        .card:hover { border-color: var(--accent-gold); transform: translateY(-3px); }
-        .today-highlight .card { border-color: rgba(0, 184, 148, 0.3); } 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .sess-name { font-size: 14px; font-weight: 800; color: var(--accent-gold); }
-        .sess-time { font-size: 11px; color: var(--text-muted); font-family: monospace; }
-        .copy-mini { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #aaa; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
-        .copy-mini:hover { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
-        .game-item { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; cursor: pointer; transition: 0.2s; position: relative; padding-right: 30px; }
-        .game-item:hover { border-color: var(--accent-gold); background: rgba(255,255,255,0.05); }
-        .game-icon { width: 38px; height: 38px; border-radius: 6px; margin-right: 10px; object-fit: cover; border: 1px solid var(--glass-border); background: #222; flex-shrink: 0; }
-        .game-info-wrap { flex: 1; display: flex; align-items: center; justify-content: space-between; }
-        .g-name { font-size: 12px; font-weight: 600; color: #ddd; line-height: 1.2; }
-        .g-tag { font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px; text-transform: uppercase; margin-left: 5px;}
-        .tag-gold { background: #FFD700; color: #000; } .tag-silver { background: #C0C0C0; color: #000; } .tag-bronze { background: #CD7F32; color: #fff; }
-        .prov-label { font-size: 9px; font-weight: 800; color: var(--text-muted); margin: 10px 0 5px; letter-spacing: 1px; }
-        .pattern-box { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 8px; padding: 10px; margin-top: 10px; }
-        .pt-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #aaa; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; padding-right: 30px; }
-        .pt-row:last-child { border: none; }
-        .del-btn-overlay { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 4px; border:none; background: rgba(255, 71, 87, 0.1); color: var(--danger); display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0; transition: 0.2s; font-size: 10px; }
-        .game-item:hover .del-btn-overlay, .pt-row:hover .del-btn-overlay { opacity: 1; }
-        .del-btn-overlay:hover { background: var(--danger); color: #fff; }
-        .depo-box { margin-top: auto; padding-top: 10px; }
-        .depo-code { text-align: center; font-size: 11px; font-weight: 800; color: var(--accent-gold); border: 1px dashed rgba(255,255,255,0.2); padding: 5px; border-radius: 6px; margin-bottom: 5px; }
-        .depo-row { display: flex; justify-content: space-between; font-size: 10px; color: #888; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-box { background: #111; border: 1px solid var(--glass-border); padding: 25px; border-radius: 20px; width: 90%; max-width: 600px; text-align: center; }
-        .preview-area { width: 100%; height: 300px; background: #000; border: 1px solid #333; color: var(--accent-gold); padding: 15px; border-radius: 10px; font-family: monospace; font-size: 11px; resize: none; margin: 15px 0; }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .login-box { background: var(--bg-card); border: 1px solid var(--glass-border); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(212, 175, 55, 0.1); width: 90%; max-width: 400px; }
-        .login-input { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #333; color: var(--accent-gold); border-radius: 10px; font-size: 16px; text-align: center; letter-spacing: 2px; }
-        .login-btn { background: var(--accent-gold); color: #000; font-weight: 800; padding: 15px; width: 100%; border-radius: 10px; border: none; cursor: pointer; transition: 0.3s; }
-        .login-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
-        body.clean-mode { background: #f2f2f2; color: #333; --bg-card: #fff; --text-main: #222; --text-muted: #666; --glass-border: #ddd; }
-        body.clean-mode .control-dock { background: #fff; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        body.clean-mode input, body.clean-mode select { background: #fff; border-color: #ccc; color: #333; }
-        body.clean-mode .card, body.clean-mode .game-item { background: #fff; border-color: #ddd; }
-        body.clean-mode .g-name { color: #333; }
-        body.clean-mode .day-section.today-highlight { background: #e0fbf4; border-color: var(--success); }
-        @media(max-width:1024px) { .session-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media(max-width:600px) { .session-grid { grid-template-columns: 1fr; } .dock-left, .dock-right { width: 100%; flex-wrap: wrap; } .control-dock { top:0; border-radius: 0; } }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="loginOverlay">
-    <div class="login-box">
-        <h2 style="color:#fff; margin-bottom:5px;">SECURE ACCESS</h2>
-        <div style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">SYSTEM V40 (4+1 PATTERN)</div>
-        <input type="password" id="passInput" class="login-input" placeholder="ENTER PASSWORD">
-        <button onclick="checkLogin()" class="login-btn">UNLOCK SYSTEM</button>
-        <div id="loginMsg" style="color:var(--danger); margin-top:15px; font-size:12px;"></div>
-    </div>
+<div id="roleBadge" class="role-badge" style="display:none;">
+  <span class="role-dot"></span>
+  <span id="roleBadgeText">DESIGNER MODE</span>
 </div>
+
+
+
+
 
 <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; flex-direction:column; justify-content:center; align-items:center;">
     <i class="fas fa-circle-notch fa-spin" style="font-size:40px; color:var(--accent-gold); margin-bottom:15px;"></i>
@@ -161,6 +77,12 @@
                 <i class="fas fa-calendar input-icon"></i>
                 <input type="date" id="startDateInput" onchange="updateDateDisplay()">
             </div>
+
+            <div class="input-group seed-group">
+                <i class="fas fa-hashtag input-icon"></i>
+                <input type="text" id="seedInput" inputmode="numeric" placeholder="SEED (opsional)">
+            </div>
+
         </div>
         <div class="dock-right">
             <button class="btn btn-secondary" onclick="toggleSettings()"><i class="fas fa-clock"></i></button>
@@ -193,10 +115,35 @@
 </div>
 
 <script>
-// --- SECURITY ---
-const PASS_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
-async function checkLogin(){ const input=document.getElementById('passInput').value; if(!input)return; const msgBuffer=new TextEncoder().encode(input); const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer); const hashHex=Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join(''); if(hashHex===PASS_HASH){ document.getElementById('loginOverlay').style.opacity='0'; setTimeout(()=>{document.getElementById('loginOverlay').style.display='none'; document.getElementById('mainApp').style.display='block'; initLoad();},500); localStorage.setItem('isLoggedIn','true'); }else{ document.getElementById('loginMsg').innerText="PASSWORD INVALID!"; document.getElementById('passInput').value=''; } }
-if(localStorage.getItem('isLoggedIn')==='true'){ document.getElementById('loginOverlay').style.display='none'; document.getElementById('mainApp').style.display='block'; }
+// --- ROLE MODE (admin/designer) ---
+const __params = new URLSearchParams(window.location.search);
+const __role = (__params.get('role') || 'admin').toLowerCase();
+window.__ROLE__ = __role;
+
+function applyRoleMode(){
+  const badge = document.getElementById('roleBadge');
+  const badgeTxt = document.getElementById('roleBadgeText');
+  if(__role === 'designer'){
+    document.body.classList.add('designer-mode');
+    if(badge){ badge.style.display = 'flex'; }
+    if(badgeTxt){ badgeTxt.textContent = 'DESIGNER MODE (READ ONLY)'; }
+
+    // Disable controls that mutate state
+    const genBtn = document.getElementById('genBtn');
+    if(genBtn){ genBtn.disabled = true; genBtn.classList.add('is-disabled'); genBtn.title = 'Designer mode: generate dinonaktifkan'; }
+
+    const seed = document.getElementById('seedInput');
+    if(seed){ seed.disabled = true; seed.title = 'Designer mode: seed dikunci'; }
+
+    const resetBtn = document.querySelector('.btn-danger');
+    if(resetBtn){ resetBtn.disabled = true; resetBtn.title = 'Designer mode: reset dinonaktifkan'; }
+
+    // Prevent deleting items (also enforced in deleteItem())
+    // Hide delete buttons via CSS (designer-mode).
+  } else {
+    if(badge){ badge.style.display = 'none'; }
+  }
+}
 
 // --- CONFIG ---
 const PROFILE_CONFIG = {
@@ -223,7 +170,38 @@ let codePool = []; let globalGenID = 0; let deletedIDs = new Set();
 function mulberry32(a) { return function() { var t = a += 0x6D2B79F5; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; } }
 function shuffle(a) { let c=a.length,r; while(c!=0){ r=Math.floor(rnd()*c); c--; [a[c],a[r]]=[a[r],a[c]]; } return a; }
 
-function initiateSync() { currentSeed = Date.now(); rnd = mulberry32(currentSeed); deletedIDs.clear(); updateUrlState(); fetchData(); }
+function initiateSync() {
+    if (window.__ROLE__ === 'designer') { return showToast('DESIGNER MODE: GENERATE DINONAKTIFKAN'); }
+ 
+    // Prioritas seed: input admin > seed di URL (kalau ada) > random
+    const seedEl = document.getElementById('seedInput');
+    const inputSeedRaw = (seedEl && seedEl.value) ? seedEl.value.trim() : '';
+    const urlParams = new URLSearchParams(location.search);
+    const urlSeedRaw = urlParams.get('seed') ? String(urlParams.get('seed')).trim() : '';
+
+    let chosen = '';
+    if (inputSeedRaw) chosen = inputSeedRaw;
+    else if (urlSeedRaw) chosen = urlSeedRaw;
+
+    // Normalisasi: kalau bukan angka, ubah jadi hash sederhana
+    if (chosen) {
+        const asNum = parseInt(chosen, 10);
+        if (!Number.isNaN(asNum)) currentSeed = asNum;
+        else {
+            // hash string → int 32-bit
+            let h = 2166136261;
+            for (let i = 0; i < chosen.length; i++) { h ^= chosen.charCodeAt(i); h = Math.imul(h, 16777619); }
+            currentSeed = (h >>> 0);
+        }
+    } else {
+        currentSeed = Date.now();
+    }
+
+    rnd = mulberry32(currentSeed);
+    deletedIDs.clear();
+    updateUrlState();
+    fetchData();
+}
 
 async function fetchData() {
     const prof = document.getElementById('profileSelect').value;
@@ -232,8 +210,27 @@ async function fetchData() {
     btn.disabled = true;
 
     try {
-        const res = await fetch(PROFILE_CONFIG[prof]);
-        const txt = await res.text();
+        const cacheKey = "csv_cache_" + prof;
+        const cacheTsKey = "csv_cache_ts_" + prof;
+
+        let txt = "";
+        try {
+            const res = await fetch(PROFILE_CONFIG[prof], { cache: "no-store" });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            txt = await res.text();
+            localStorage.setItem(cacheKey, txt);
+            localStorage.setItem(cacheTsKey, String(Date.now()));
+        } catch(fetchErr) {
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                txt = cached;
+                const ts = Number(localStorage.getItem(cacheTsKey) || "0");
+                const d = ts ? new Date(ts) : null;
+                showToast("SPREADSHEET ERROR — PAKAI CACHE" + (d ? (" (" + d.toLocaleString('id-ID') + ")") : ""));
+            } else {
+                throw fetchErr;
+            }
+        }
         const rows = txt.split(/\r?\n/).filter(r=>r.trim()!=='');
 
         // Reset Pools
@@ -288,7 +285,7 @@ async function fetchData() {
     } catch(e) {
         document.getElementById('loadingOverlay').style.display='none';
         btn.disabled = false;
-        alert("GAGAL MENGAMBIL DATA.");
+        showToast("GAGAL MENGAMBIL DATA DARI SPREADSHEET");
     }
 }
 
@@ -303,6 +300,7 @@ function generateSchedule(prof) {
     // Matrix Memory untuk 31 Hari (Cooldown)
     let historyMatrix = []; 
 
+    let historyThemeMatrix = [];
     // Loop 31 Hari
     for(let i=0; i<31; i++) {
         let d = new Date(date); d.setDate(date.getDate()+i);
@@ -314,6 +312,7 @@ function generateSchedule(prof) {
         let dailyGames = []; 
         let gamesThisDay = []; 
 
+        let dayThemesUsed = [];
         let isPast = checkDate < today;
         let isToday = checkDate.getTime() === today.getTime();
         let dayClass = isPast ? 'day-past' : (isToday ? 'today-highlight' : '');
@@ -328,16 +327,17 @@ function generateSchedule(prof) {
         sessions.forEach(sess => {
             let counts = resolveGameCounts(prof, sess);
             let sHtml = "", rawTxt = "";
-            let prevSessionThemes = [...currentSessThemes];
+            let dayThemesUsedLocal = [...dayThemesUsed];
             currentSessThemes = [];
 
             const draw = (pool, tier) => {
-                let res = pickGame(pool, tier, dailyGames, prevSessionThemes, currentSessThemes, i, historyMatrix);
+                let res = pickGame(pool, tier, dailyGames, dayThemesUsedLocal, currentSessThemes, i, historyMatrix, historyThemeMatrix);
                 
                 if(res.name !== "NO DATA") {
                     dailyGames.push(res.name);
                     gamesThisDay.push(res.name); 
                     currentSessThemes.push(res.theme);
+                    if(res.theme) dayThemesUsedLocal.push(res.theme);
                 }
                 let uid = globalGenID++; 
                 
@@ -366,6 +366,8 @@ function generateSchedule(prof) {
                 let pt = getPattern(poolPG, 'PGSoft'); sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`;
             }
 
+            dayThemesUsed = dayThemesUsedLocal;
+
             let dep = getDeposit(sess, prof);
             dayObj.sessions.push({title:sess, time:times[sess], content:rawTxt, depo:dep});
             html += `<div class="card"><div class="card-header"><div><div class="sess-name">${sess}</div><span class="sess-time">${times[sess]}</span></div><button class="copy-mini" onclick="copyOne(${i}, ${dayObj.sessions.length-1})"><i class="fas fa-copy"></i></button></div><div class="card-body" id="sess-${i}-${sess}">${sHtml}<div class="depo-box"><div class="depo-code">KODE UNIK: ${dep.code}</div>${dep.html}</div></div></div>`;
@@ -374,54 +376,190 @@ function generateSchedule(prof) {
         html += `</div></div>`;
         globalData.push(dayObj);
         historyMatrix.push(gamesThisDay);
+        historyThemeMatrix.push(Array.from(new Set(dayThemesUsed)));
     }
     
     document.getElementById('outputArea').innerHTML = html;
     applyDeletions(); 
 }
 
-function pickGame(pool, tier, dailyGames, prevSessionThemes, currentSessThemes, dayIndex, historyMatrix) {
-    let fullList = pool[tier];
+function pickGame(pool, tier, dailyGames, dayThemesUsed, currentSessThemes, dayIndex, historyMatrix, historyThemeMatrix) {
+    // Tier semantics (Rasdip):
+    // GOLD   = game utama / wajib keluar -> boleh override cooldown theme 2 hari (tetap hindari duplikat dalam 1 sesi & duplikat nama dalam 1 hari sebisa mungkin)
+    // SILVER = game pendamping -> patuh cooldown + anti-theme harian
+    // BRONZE = game terbaru -> patuh ketat + prefer rotasi (lebih sulit diulang)
+
+    // Fallback jika tier list kosong
+    const listForTier = (t) => (pool && pool[t]) ? pool[t] : [];
+    let fullList = listForTier(tier);
+    if (!fullList || fullList.length === 0) {
+        // fallback ke tier lain (agar tidak NO DATA)
+        if (tier === 'bronze') fullList = listForTier('silver').concat(listForTier('gold'));
+        else if (tier === 'silver') fullList = listForTier('gold').concat(listForTier('bronze'));
+        else fullList = listForTier('silver').concat(listForTier('bronze'));
+    }
     if (!fullList || fullList.length === 0) return { name: "NO DATA", theme: "" };
 
-    const isCoolingDown = (gameName) => {
+    const themeOf = (g) => getTheme(g);
+
+    const isCoolingDownGame = (gameName) => {
         if (dayIndex > 0 && historyMatrix[dayIndex-1] && historyMatrix[dayIndex-1].includes(gameName)) return true;
         if (dayIndex > 1 && historyMatrix[dayIndex-2] && historyMatrix[dayIndex-2].includes(gameName)) return true;
         return false;
     };
 
+    const isCoolingDownTheme = (theme) => {
+        if (!theme) return false;
+        if (dayIndex > 0 && historyThemeMatrix[dayIndex-1] && historyThemeMatrix[dayIndex-1].includes(theme)) return true;
+        if (dayIndex > 1 && historyThemeMatrix[dayIndex-2] && historyThemeMatrix[dayIndex-2].includes(theme)) return true;
+        return false;
+    };
+
+    // Rule sets by tier
+    const rules = {
+        gold: {
+            avoidThemeCooldown: true,   // override
+            avoidDayThemeRepeat: true,  // still prefer not repeating theme within same day if possible
+            avoidDayGameRepeat: true,   // avoid same game within same day
+            avoidGameCooldown: true,    // prefer avoid if possible, but can override
+            strictSessionTheme: true
+        },
+        silver: {
+            avoidThemeCooldown: true,
+            avoidDayThemeRepeat: true,
+            avoidDayGameRepeat: true,
+            avoidGameCooldown: true,
+            strictSessionTheme: true
+        },
+        bronze: {
+            avoidThemeCooldown: true,
+            avoidDayThemeRepeat: true,
+            avoidDayGameRepeat: true,
+            avoidGameCooldown: true,
+            strictSessionTheme: true
+        }
+    };
+
+    // For GOLD: cooldown can be overridden if pool is tight.
+    // For SILVER/BRONZE: keep strict as before, but allow graceful fallback.
+    const tierKey = (tier === 'gold' || tier === 'silver' || tier === 'bronze') ? tier : 'silver';
+    const cfg = rules[tierKey];
+
+    // strict levels:
+    // 4 = cooldown 2 hari (game+theme) + anti-theme harian + anti-game harian
+    // 3 = anti-theme harian + anti-game harian
+    // 2 = anti-game harian
+    // 1 = session theme unique only
     const isValid = (g, strictLevel) => {
-        let theme = getTheme(g);
-        if (strictLevel >= 4) { if (isCoolingDown(g)) return false; }
-        if (strictLevel >= 3) { if (prevSessionThemes.includes(theme)) return false; }
-        if (strictLevel >= 2) { if (dailyGames.includes(g)) return false; }
-        if (currentSessThemes.includes(theme)) return false;
+        const theme = themeOf(g);
+
+        // Always: in-session theme must be unique (best UX)
+        if (cfg.strictSessionTheme && currentSessThemes.includes(theme)) return false;
+
+        // Avoid same game in same day (if requested)
+        if (cfg.avoidDayGameRepeat && strictLevel >= 2) {
+            if (dailyGames.includes(g)) return false;
+        }
+
+        // Avoid repeating theme within same day across sessions (if requested)
+        if (cfg.avoidDayThemeRepeat && strictLevel >= 3) {
+            if (dayThemesUsed.includes(theme)) return false;
+        }
+
+        // Cooldown 2 days: theme + game
+        if (strictLevel >= 4) {
+            if (cfg.avoidGameCooldown && isCoolingDownGame(g)) return false;
+            if (cfg.avoidThemeCooldown && isCoolingDownTheme(theme)) return false;
+        }
+
         return true;
     };
 
+    // Candidate selection:
+    // SILVER/BRONZE: try strict, then relax gradually.
+    // GOLD: try strict, but relax more aggressively (never return NO DATA if possible).
     let candidates = [];
-    for (let level = 4; level >= 1; level--) {
+    const startLevel = 4;
+    const endLevel = 1;
+
+    for (let level = startLevel; level >= endLevel; level--) {
         candidates = fullList.filter(g => isValid(g, level));
-        if (candidates.length > 0) break; 
-    }
-    if (candidates.length === 0) {
-        candidates = fullList.filter(g => !currentSessThemes.includes(getTheme(g)));
-        if (candidates.length === 0) candidates = fullList; 
+        if (candidates.length > 0) break;
     }
 
-    let picked = candidates[Math.floor(rnd() * candidates.length)];
-    return { name: picked, theme: getTheme(picked) };
+    // Extra relax for GOLD only: ignore daily theme repeat, then ignore daily game repeat.
+    if ((tierKey === 'gold') && candidates.length === 0) {
+        candidates = fullList.filter(g => {
+            const theme = themeOf(g);
+            if (currentSessThemes.includes(theme)) return false;
+            // allow repeats if needed
+            return true;
+        });
+    }
+
+    if (candidates.length === 0) candidates = fullList;
+
+    // BRONZE weighting: prefer items not seen in last 2 days & not in dayThemesUsed (already filtered),
+    // so here we just add a small bias to pick earlier in list after shuffle for extra rotation.
+    let picked;
+    if (tierKey === 'bronze' && candidates.length > 3) {
+        // shuffle then pick from first half more often
+        const tmp = candidates.slice();
+        shuffle(tmp);
+        const half = Math.max(2, Math.floor(tmp.length * 0.5));
+        picked = tmp[Math.floor(rnd() * half)];
+    } else {
+        picked = candidates[Math.floor(rnd() * candidates.length)];
+    }
+
+    return { name: picked, theme: themeOf(picked) };
 }
 
 function getTheme(gameName) {
-    let n = gameName.toLowerCase();
-    n = n.replace(/\b(1000|megaways|xmas|christmas|jackpot|deluxe|gold|super scatter|maxways|party)\b/g, "");
-    n = n.replace(/[0-9]+/g, ""); n = n.trim();
-    if (n.includes("olympus")||n.includes("zeus")||n.includes("gatot")) return "zeus_family"; 
-    if (n.includes("starlight")||n.includes("inces")) return "starlight_family";
-    if (n.includes("bonanza")||n.includes("sweet")) return "bonanza_family";
-    if (n.includes("mahjong")||n.includes("ways")) return "mahjong_family";
-    return n.split(" ")[0]; 
+    // Theme = "keluarga/tema besar" yang dipakai untuk aturan anti-theme berulang.
+    // Tujuan: variasi judul (Deluxe/Gold/1000/versi dll) tetap dianggap 1 tema.
+    let n = (gameName || "").toLowerCase();
+
+    // buang kata-kata umum yang sering jadi embel-embel judul
+    n = n.replace(/\b(1000|megaways|maxways|xmas|christmas|jackpot|deluxe|super|scatter|party|gold|silver|bronze|tournament|free|spin|spins|wild|bonus|mania|rush)\b/g, " ");
+    n = n.replace(/[0-9]+/g, " ");
+    n = n.replace(/[^a-z\s]/g, " ");
+    n = n.replace(/\s+/g, " ").trim();
+
+    // Mapping tema besar (bisa kamu tambah kapan saja)
+    // Format: kalau mengandung keyword -> return themeKey
+    const THEME_MAP = [
+        { key: "starlight",  words: ["starlight", "inces", "princess"] },
+        { key: "olympus",    words: ["olympus", "zeus", "gates of olympus"] },
+        { key: "gatot",      words: ["gatot", "gatotkaca"] },
+        { key: "bonanza",    words: ["bonanza", "sweet bonanza", "candy"] },
+        { key: "mahjong",    words: ["mahjong"] },
+        { key: "poseidon",   words: ["poseidon"] },
+        { key: "aztec",      words: ["aztec"] },
+        { key: "pirate",     words: ["pirate", "pirates"] },
+        { key: "dragon",     words: ["dragon", "dragons"] },
+        { key: "samurai",    words: ["samurai"] },
+        { key: "egypt",      words: ["egypt", "pharaoh", "anubis", "cleopatra"] },
+        { key: "viking",     words: ["viking", "valhalla", "ragnarok", "thor"] },
+        { key: "wildwest",   words: ["wild west", "cowboy", "outlaw"] },
+        { key: "buffalo",    words: ["buffalo", "bison"] },
+        { key: "fortune",    words: ["fortune"] },
+        { key: "joker",      words: ["joker"] },
+        { key: "kraken",     words: ["kraken"] },
+        { key: "midas",      words: ["midas"] },
+    ];
+
+    for (const t of THEME_MAP) {
+        for (const w of t.words) {
+            if (n.includes(w)) return t.key;
+        }
+    }
+
+    // Fallback: pakai 1-2 kata pertama sebagai tema
+    const parts = n.split(" ").filter(Boolean);
+    if (parts.length === 0) return "";
+    if (parts.length === 1) return parts[0];
+    return parts[0] + "_" + parts[1];
 }
 
 // --- V40 FIXED PATTERN LOGIC ---
@@ -477,14 +615,18 @@ function getPattern(poolObj, prov) {
 // --- UTILS ---
 function resolveGameCounts(profile, sessionName) { const r = rnd(); if (profile === "CAPTAIN77") { if(sessionName === "MIDNIGHT") return { pp:3, pg:2 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") return { pp:2, pg:0 }; if(sessionName === "MALAM") return r > 0.5 ? { pp:1, pg:0 } : { pp:0, pg:1 }; } else if (profile === "JAGUAR77") { if(sessionName === "MIDNIGHT") return { pp:3, pg:2 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:1 }; if(sessionName === "MALAM") return r > 0.5 ? { pp:1, pg:0 } : { pp:0, pg:1 }; } else if (profile === "FUN77") { if(sessionName === "MIDNIGHT") return { pp:3, pg:2 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 }; if(sessionName === "MALAM") return { pp:1, pg:1 }; } else if (profile === "MUSTANG77") { if(sessionName === "MIDNIGHT") return { pp:2, pg:2 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") return { pp:1, pg:0 }; if(sessionName === "MALAM") return { pp:0, pg:1 }; } else if (profile === "INDOPEDIA77") { if(sessionName === "MIDNIGHT") return { pp:2, pg:2 }; if(sessionName === "SIANG") return { pp:3, pg:3 }; if(sessionName === "SORE") return r > 0.5 ? { pp:1, pg:0 } : { pp:2, pg:0 }; if(sessionName === "MALAM") return r > 0.5 ? { pp:1, pg:0 } : { pp:0, pg:1 }; } else if (profile === "HOLYPLAY17") { if(sessionName === "MIDNIGHT") return { pp:2, pg:2 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") return { pp:2, pg:0 }; if(sessionName === "MALAM") return { pp:0, pg:2 }; } else if (profile === "INDOFUN17") { if(sessionName === "MIDNIGHT") return { pp:2, pg:2 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") return { pp:2, pg:0 }; if(sessionName === "MALAM") return { pp:0, pg:1 }; } else if (profile === "PLAY77") { if(sessionName === "MIDNIGHT") return r > 0.5 ? { pp:2, pg:0 } : { pp:1, pg:0 }; if(sessionName === "SIANG") return { pp:2, pg:2 }; if(sessionName === "SORE") { if (r < 0.33) return { pp:1, pg:0 }; else if (r < 0.66) return { pp:2, pg:0 }; else return { pp:1, pg:1 }; } if(sessionName === "MALAM") return { pp:0, pg:1 }; } return { pp:2, pg:2 }; }
 function getDeposit(sess, prof) { if(codePool.length===0) { codePool=[1000,2000,3000,4000,5000,6000,7000,8000,9000]; shuffle(codePool); } let code = codePool.pop() || 1000; let raw = depoData[sess] || []; if(prof==="FUN77") raw = raw.slice(0,1); if(raw.length===0) return {code:code, html:"", text:""}; let h="", t=""; raw.forEach((d,i) => { let r = d.range.split('-'); let v1 = parseInt(r[0].replace(/\D/g,'')) + code; let v2 = r[1] ? parseInt(r[1].replace(/\D/g,'')) + code : null; let s = `Rp ${v1.toLocaleString()}` + (v2?` - Rp ${v2.toLocaleString()}`:''); let info = d.info.split('|'); h += `<div class="depo-row"><span>${i+1}. ${s}</span><span style="color:var(--accent-gold)">${info[0]||''}</span></div>`; t += `${i+1}. ${s} (${info[0]||''})\n`; }); return {code:code, html:h, text:t}; }
-function deleteItem(uid, e) { if(e) e.stopPropagation(); const el = document.getElementById('gid-' + uid); if(el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 200); deletedIDs.add(uid.toString()); updateUrlState(); } }
+function deleteItem(uid, e) {
+    if (window.__ROLE__ === 'designer') { showToast('DESIGNER MODE: TIDAK BISA HAPUS'); return; }
+ if(e) e.stopPropagation(); const el = document.getElementById('gid-' + uid); if(el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 200); deletedIDs.add(uid.toString()); updateUrlState(); } }
 function applyDeletions() { deletedIDs.forEach(uid => { const el = document.getElementById('gid-' + uid); if(el) el.remove(); }); }
 function updateUrlState() { let u = new URL(location.href); u.searchParams.set('seed', currentSeed); u.searchParams.set('profile', document.getElementById('profileSelect').value); u.searchParams.set('date', document.getElementById('startDateInput').value); u.searchParams.set('tM', document.getElementById('timeMidnight').value); u.searchParams.set('tSi', document.getElementById('timeSiang').value); u.searchParams.set('tSo', document.getElementById('timeSore').value); u.searchParams.set('tMa', document.getElementById('timeMalam').value); if(deletedIDs.size > 0) u.searchParams.set('del', Array.from(deletedIDs).join(',')); else u.searchParams.delete('del'); history.replaceState(null, '', u); }
 function updateUI() { let p = document.getElementById('profileSelect').value; document.documentElement.style.setProperty('--accent-gold', THEMES[p]?.main || '#D4AF37'); }
 function updateDateDisplay() {} 
 function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('active'); }
 function toggleMode() { document.body.classList.toggle('clean-mode'); }
-function hardReset() { if(confirm("Refresh System & Clear Cache?")) { localStorage.clear(); location.href = location.pathname; } }
+function hardReset() {
+    if (window.__ROLE__ === 'designer') { return showToast('DESIGNER MODE: RESET DINONAKTIFKAN'); }
+ if(confirm("Refresh System & Clear Cache?")) { localStorage.clear(); location.href = location.pathname; } }
 function showImg(n, url) { let finalUrl = url || 'https://via.placeholder.com/400x250?text=NO+IMAGE'; document.getElementById('imgDisplay').src = finalUrl; document.getElementById('imgTitle').innerText = n; document.getElementById('imgModal').style.display='flex'; }
 function showToast(m) { let t=document.getElementById('customToast'); t.innerText=m; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
 function checkPastDays() { let pastItems = document.querySelectorAll('.day-past'); let btn = document.getElementById('showHistoryBtn'); if(pastItems.length > 0) { btn.style.display = 'block'; btn.innerHTML = `<i class="fas fa-history"></i> ${pastItems.length} HARI YANG LALU DISEMBUNYIKAN (KLIK UNTUK LIHAT)`; } else { btn.style.display = 'none'; } }
@@ -496,9 +638,23 @@ function copyOne(d, s) { let data = globalData[d].sessions[s]; let dom = documen
 function copyWeek() { if(globalData.length===0) return showToast("DATA KOSONG"); let t = `JADWAL LENGKAP 1 BULAN\nPERIODE: ${document.getElementById('startDateInput').value}\n\n`; globalData.forEach((d,i) => { t += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📅 ${d.day}, ${d.date}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`; d.sessions.forEach((s, idx) => { let dom = document.getElementById(`sess-${i}-${s.title}`); t += `\n[ ${s.title} | ${s.time} ]\n${extractDOM(dom)}\n------------------------------\nKODE: ${s.depo.code}\n`; }); t += '\n\n'; }); document.getElementById('resultText').value = t; document.getElementById('resultModal').style.display='flex'; }
 function finalCopy() { document.getElementById('resultText').select(); document.execCommand('copy'); showToast("BERHASIL DISALIN!"); }
 function shareLink() { updateUrlState(); navigator.clipboard.writeText(location.href).then(() => showToast("LINK TERSIMPAN!")); }
-function initLoad() { let p = new URLSearchParams(location.search); if(p.get('tM')) document.getElementById('timeMidnight').value = p.get('tM'); if(p.get('tSi')) document.getElementById('timeSiang').value = p.get('tSi'); if(p.get('tSo')) document.getElementById('timeSore').value = p.get('tSo'); if(p.get('tMa')) document.getElementById('timeMalam').value = p.get('tMa'); if(p.get('del')) p.get('del').split(',').forEach(id => deletedIDs.add(id)); if(p.get('seed')) { currentSeed = parseInt(p.get('seed')); rnd = mulberry32(currentSeed); document.getElementById('profileSelect').value = p.get('profile'); document.getElementById('startDateInput').value = p.get('date'); updateUI(); fetchData(); } else { document.getElementById('startDateInput').valueAsDate = new Date(); initVisuals(); } }
+function initLoad() { let p = new URLSearchParams(location.search); if(p.get('tM')) document.getElementById('timeMidnight').value = p.get('tM'); if(p.get('tSi')) document.getElementById('timeSiang').value = p.get('tSi'); if(p.get('tSo')) document.getElementById('timeSore').value = p.get('tSo'); if(p.get('tMa')) document.getElementById('timeMalam').value = p.get('tMa'); if(p.get('del')) p.get('del').split(',').forEach(id => deletedIDs.add(id));  
+    if(p.get('seed')) { 
+        currentSeed = parseInt(p.get('seed')); 
+        if (Number.isNaN(currentSeed)) currentSeed = Date.now();
+        rnd = mulberry32(currentSeed); 
+        if (document.getElementById('seedInput')) document.getElementById('seedInput').value = currentSeed;
+        if (p.get('profile')) document.getElementById('profileSelect').value = p.get('profile'); 
+        if (p.get('date')) document.getElementById('startDateInput').value = p.get('date'); 
+        updateUI(); 
+        fetchData(); 
+    } else { 
+        document.getElementById('startDateInput').valueAsDate = new Date(); 
+        if (document.getElementById('seedInput')) document.getElementById('seedInput').value = '';
+        initVisuals(); 
+    } }
 const ctx = document.getElementById('nebula-canvas').getContext('2d'); function initVisuals() { let w=window.innerWidth, h=window.innerHeight; document.getElementById('nebula-canvas').width=w; document.getElementById('nebula-canvas').height=h; let hue=0; function anim() { if(document.body.classList.contains('clean-mode')) return requestAnimationFrame(anim); ctx.fillStyle=`rgba(0,0,0,0.05)`; ctx.fillRect(0,0,w,h); ctx.fillStyle=`hsla(${hue}, 50%, 50%, 0.5)`; ctx.beginPath(); ctx.arc(Math.random()*w, Math.random()*h, Math.random()*2, 0, Math.PI*2); ctx.fill(); hue+=0.5; requestAnimationFrame(anim); } anim(); }
-window.onload = () => { if(localStorage.getItem('isLoggedIn') === 'true') { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; initLoad(); } };
+window.onload = () => { document.getElementById("mainApp").style.display = "block"; applyRoleMode(); initLoad(); };
 </script>
 </body>
 </html>

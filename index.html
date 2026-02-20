@@ -7,7 +7,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+<style>
+  .g-tag.tag-wild{ background: var(--accent-gold); color:#000; border:1px solid rgba(255,255,255,0.15); }
+  .prov-label.prov-wild{ color: var(--accent-gold); }
+</style>
+
+<style>
+  /* Safety: pastikan canvas tidak nutup UI */
+  #nebula-canvas{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    z-index:0;
+    pointer-events:none;
+  }
+  #mainApp{
+    position:relative;
+    z-index:10;
+    display:block !important; /* override jika style.css sembunyikan */
+  }
+</style>
 </head>
+
+
 <body>
 
 <div id="roleBadge" class="role-badge" style="display:none;">
@@ -36,13 +59,6 @@
     </div>
 </div>
 
-<div id="imgModal" class="modal" onclick="this.style.display='none'">
-    <div class="modal-box" onclick="event.stopPropagation()" style="width:auto; max-width:400px;">
-        <img id="imgDisplay" src="" style="width:100%; border-radius:10px; display:block;">
-        <h4 id="imgTitle" style="color:var(--accent-gold); margin:10px 0 0;"></h4>
-    </div>
-</div>
-
 <div id="dbModal" class="modal" onclick="this.style.display='none'">
     <div class="modal-box" onclick="event.stopPropagation()" style="text-align:left;">
         <h3 style="color:#fff; margin-top:0;">DATABASE HISTORY</h3>
@@ -52,8 +68,8 @@
     </div>
 </div>
 
-<div class="main-wrapper" id="mainApp">
-    <div class="header-section">
+<div class="main-wrapper" id="mainApp" style="display:block; position:relative; z-index:10;">
+    <div class="header-section sticky-header">
         <h1 class="header-title">PLATFORM SCHEDULER</h1>
         <div class="header-meta">V40 COMPLETE • 31 DAYS SYSTEM</div>
     </div>
@@ -101,11 +117,16 @@
         </div>
     </div>
 
-    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:30px;">
-        <button class="btn btn-secondary" onclick="copyWeek()"><i class="fas fa-copy"></i> SALIN SEMUA (TXT)</button>
-        <button class="btn btn-secondary" onclick="shareLink()"><i class="fas fa-link"></i> BAGIKAN LINK</button>
-        <button class="btn btn-secondary" onclick="showDB()"><i class="fas fa-database"></i> RIWAYAT</button>
-    </div>
+    <div id="bottomBar" class="bottom-bar">
+  <div class="bottom-left">
+    <button class="btn btn-secondary" onclick="copyWeek()"><i class="fas fa-copy"></i> SALIN SEMUA</button>
+    <button class="btn btn-secondary" onclick="shareLink()"><i class="fas fa-link"></i> LINK</button>
+    <button class="btn btn-secondary" onclick="showDB()"><i class="fas fa-database"></i> RIWAYAT</button>
+  </div>
+  <div class="bottom-right">
+    <button class="btn btn-secondary" onclick="scrollToToday()"><i class="fas fa-location-arrow"></i> HARI INI</button>
+  </div>
+</div>
 
     <button id="showHistoryBtn" class="history-toggle-btn" onclick="toggleHistory()">
         <i class="fas fa-history"></i> TAMPILKAN HARI YANG SUDAH LEWAT
@@ -115,6 +136,8 @@
 </div>
 
 <script>
+const BUILD_ID = 'V43-FRAME-PATHFIX-2026-02-20-02';
+
 // --- ROLE MODE (admin/designer) ---
 const __params = new URLSearchParams(window.location.search);
 const __role = (__params.get('role') || 'admin').toLowerCase();
@@ -160,6 +183,9 @@ const THEMES = { "CAPTAIN77": { main: "#00f2ff" }, "PLAY77": { main: "#3b82f6" }
 const FIXES = { "Olympus":"Gates of Olympus", "Starlight":"Starlight Princess", "Inces":"Starlight Princess" };
 const BLACKLIST = ["Game Error", "Slot Demo"];
 
+// --- V43: Frame assets (1x1) ---
+const FRAME_MAP = { gold: 'img/frame_gold.png', silver: 'img/frame_silver.png', bronze: 'img/frame_bronze.png', wild: 'img/frame_wild.png' };
+
 let currentSeed = Date.now();
 let rnd = Math.random;
 // V40: Menambahkan array 'buys' khusus di dalam poolPP
@@ -200,7 +226,7 @@ function initiateSync() {
     rnd = mulberry32(currentSeed);
     deletedIDs.clear();
     updateUrlState();
-    fetchData();
+    fetchData(); updateBottomBarInfo();
 }
 
 async function fetchData() {
@@ -285,16 +311,69 @@ async function fetchData() {
     } catch(e) {
         document.getElementById('loadingOverlay').style.display='none';
         btn.disabled = false;
-        showToast("GAGAL MENGAMBIL DATA DARI SPREADSHEET");
+        showToast("GAGAL AMBIL DATA: " + (e && e.message ? e.message : e)); console.error(e);
     }
 }
 
+// --- V42: SCORING ENGINE (data-driven rotation) ---
+// Tujuan:
+// - Meratakan exposure game (anti 'itu-itu saja')
+// - Menjaga peran tier: GOLD utama, SILVER pendamping, BRONZE baru/eksplorasi
+// - Tetap hormati aturan duplikat harian & unik tema per sesi
+function makeStats(){
+    return {
+        gameCount: Object.create(null),
+        gameLastSeen: Object.create(null),   // dayIndex terakhir muncul
+        themeCount: Object.create(null),
+        themeLastSeen: Object.create(null),
+    };
+}
+function statInc(map, key, by=1){ map[key] = (map[key]||0) + by; }
+function statSet(map, key, val){ map[key] = val; }
+function daysSince(lastSeen, dayIndex){
+    if (lastSeen === undefined || lastSeen === null) return 999;
+    return Math.max(0, dayIndex - lastSeen);
+}
+function tierBase(tierKey){
+    if (tierKey === 'gold') return 30;
+    if (tierKey === 'silver') return 20;
+    if (tierKey === 'bronze') return 12;
+    return 18;
+}
+function providerTag(poolObj){
+    // best-effort tagging (for future tuning)
+    if (poolObj === poolPP) return 'pp';
+    if (poolObj === poolPG) return 'pg';
+    return '';
+}
+
+// --- V41: ADAPTIVE ROTATION MODE ---
+// normal = seperti V40 (cooldown 2 hari)
+// boost  = cooldown 1 hari (lebih variatif)
+// chaos  = cooldown 0 hari (lebih 'acak' tapi tetap anti-duplikat dalam 1 sesi)
+function pickDayMode(dayIndex){
+    // Weighted: 70% normal, 25% boost, 5% chaos
+    const r = rnd();
+    if (r < 0.05) return 'chaos';
+    if (r < 0.30) return 'boost';
+    return 'normal';
+}
+
+function getCooldownDays(mode, tierKey){
+    if (mode === 'chaos') return 0;
+    if (mode === 'boost') return (tierKey === 'gold') ? 1 : 1;
+    return 2; // normal
+}
+
 function generateSchedule(prof) {
+    console.log('[GEN] generateSchedule start', prof, 'seed', currentSeed);
+
     let date = new Date(document.getElementById('startDateInput').value);
     let times = { "MIDNIGHT": document.getElementById('timeMidnight').value, "SIANG": document.getElementById('timeSiang').value, "SORE": document.getElementById('timeSore').value, "MALAM": document.getElementById('timeMalam').value };
     let days = ["MINGGU","SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"];
     let html = "";
-    globalData = []; codePool = []; globalGenID = 0; 
+    globalData = []; codePool = []; globalGenID = 0;
+    let stats = makeStats(); 
     let today = new Date(); today.setHours(0,0,0,0);
     
     // Matrix Memory untuk 31 Hari (Cooldown)
@@ -303,6 +382,7 @@ function generateSchedule(prof) {
     let historyThemeMatrix = [];
     // Loop 31 Hari
     for(let i=0; i<31; i++) {
+        let dayMode = pickDayMode(i);
         let d = new Date(date); d.setDate(date.getDate()+i);
         let checkDate = new Date(d); checkDate.setHours(0,0,0,0);
         let dStr = d.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'});
@@ -331,9 +411,18 @@ function generateSchedule(prof) {
             currentSessThemes = [];
 
             const draw = (pool, tier) => {
-                let res = pickGame(pool, tier, dailyGames, dayThemesUsedLocal, currentSessThemes, i, historyMatrix, historyThemeMatrix);
+                let res = pickGame(pool, tier, dailyGames, dayThemesUsedLocal, currentSessThemes, i, dayMode, historyMatrix, historyThemeMatrix, stats);
                 
                 if(res.name !== "NO DATA") {
+// V42 stats update
+const __t = res.theme || getTheme(res.name);
+statInc(stats.gameCount, res.name, 1);
+statSet(stats.gameLastSeen, res.name, i);
+if(__t){
+    statInc(stats.themeCount, __t, 1);
+    statSet(stats.themeLastSeen, __t, i);
+}
+
                     dailyGames.push(res.name);
                     gamesThisDay.push(res.name); 
                     currentSessThemes.push(res.theme);
@@ -348,23 +437,65 @@ function generateSchedule(prof) {
 
                 return {
                     name: res.name,
-                    html: `<div class="game-item" id="gid-${uid}" onclick="showImg('${res.name}', '${finalImg}')">
-                            <img src="${finalImg}" class="game-icon" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/50?text=IMG';">
-                            <div class="game-info-wrap"><span class="g-name">${res.name}</span><span class="g-tag tag-${tier}">${tier}</span></div>
+                    html: `<div class="game-card tier-${tier}" id="gid-${uid}">
+                            <div class="gc-media"><img src="${finalImg}" class="gc-thumb" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/512?text=NO+IMG';"><img src="${FRAME_MAP[tier] || FRAME_MAP.silver}" class="gc-frame" loading="lazy" onerror="this.style.display='none'"></div>
+                            <div class="gc-label"><div class="g-name">${res.name}</div><div class="g-tag tag-${tier}">${tier}</div></div>
                             <button class="del-btn-overlay" onclick="deleteItem('${uid}', event)">✕</button></div>`
                 };
             };
 
             if(counts.pp > 0) {
-                sHtml += `<div class="prov-label">PRAGMATIC PLAY</div>`; rawTxt += `--- PRAGMATIC PLAY ---\n`;
+                sHtml += `<div class="prov-block"><div class="prov-label">PRAGMATIC PLAY</div><div class="game-grid">`; rawTxt += `--- PRAGMATIC PLAY ---\n`;
                 for(let k=0; k<counts.pp; k++) { let t = (sess==="SORE")?'gold':(k===0?'gold':(k===1?'silver':'bronze')); let r = draw(poolPP, t); sHtml += r.html; rawTxt += r.name + '\n'; }
-                let pt = getPattern(poolPP, 'Pragmatic'); sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`;
+                sHtml += `</div>`; let pt = getPattern(poolPP, 'Pragmatic'); sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`; sHtml += `</div>`;
             }
             if(counts.pg > 0) {
-                sHtml += `<div class="prov-label">PG SOFT</div>`; rawTxt += `--- PG SOFT ---\n`;
+                sHtml += `<div class="prov-block"><div class="prov-label">PG SOFT</div><div class="game-grid">`; rawTxt += `--- PG SOFT ---\n`;
                 for(let k=0; k<counts.pg; k++) { let t = (sess==="SORE")?'gold':(k===0?'gold':'silver'); let r = draw(poolPG, t); sHtml += r.html; rawTxt += r.name + '\n'; }
-                let pt = getPattern(poolPG, 'PGSoft'); sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`;
+                sHtml += `</div>`; let pt = getPattern(poolPG, 'PGSoft'); sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`; sHtml += `</div>`;
             }
+
+
+// --- V41: WILD ROTATION PICK (1x per day, ditempatkan di MALAM) ---
+if(sess === "MALAM") {
+    // gabungkan semua game dari PP+PG (gold/silver/bronze)
+    const all = []
+        .concat(poolPP.gold, poolPP.silver, poolPP.bronze, poolPG.gold, poolPG.silver, poolPG.bronze)
+        .filter(Boolean);
+    if(all.length > 0) {
+        // pilih 1 game yang belum muncul hari ini jika memungkinkan
+        let candidates = all.filter(g => !dailyGames.includes(g));
+        if(candidates.length === 0) candidates = all;
+        // pilih dengan sedikit bias ke yang belum muncul 3 hari terakhir
+        const last3 = []
+            .concat(historyMatrix[i-1]||[], historyMatrix[i-2]||[], historyMatrix[i-3]||[]);
+        let fresh = candidates.filter(g => !last3.includes(g));
+        if(fresh.length > 0) candidates = fresh;
+
+        const picked = candidates[Math.floor(rnd() * candidates.length)];
+        const theme = getTheme(picked);
+        if(picked) {
+            dailyGames.push(picked);
+            gamesThisDay.push(picked);
+            currentSessThemes.push(theme);
+            if(theme) dayThemesUsedLocal.push(theme);
+
+            let manualLink = gameImgs[picked];
+            let finalImg;
+            if (manualLink && manualLink.length > 3) { finalImg = manualLink; } 
+            else { let safeName = picked.toLowerCase().replace(/ /g, '_'); finalImg = "img/" + safeName + ".jpg"; }
+
+            let uid = globalGenID++;
+            sHtml += `<div class="prov-block"><div class="prov-label prov-wild">WILD ROTATION</div><div class="game-grid">`;
+            rawTxt += `--- WILD ROTATION ---\n`;
+            sHtml += `<div class="game-card tier-wild" id="gid-${uid}">
+                    <div class="gc-media"><img src="${finalImg}" class="gc-thumb" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/512?text=NO+IMG';"><img src="${FRAME_MAP[tier] || FRAME_MAP.silver}" class="gc-frame" loading="lazy" onerror="this.style.display='none'"></div>
+                    <div class="gc-label"><div class="g-name">${picked}</div><div class="g-tag tag-wild">WILD</div></div>
+                    <button class="del-btn-overlay" onclick="deleteItem('${uid}', event)">✕</button></div>`;
+            rawTxt += picked + '\n'; sHtml += `</div></div>`;
+        }
+    }
+}
 
             dayThemesUsed = dayThemesUsedLocal;
 
@@ -383,7 +514,7 @@ function generateSchedule(prof) {
     applyDeletions(); 
 }
 
-function pickGame(pool, tier, dailyGames, dayThemesUsed, currentSessThemes, dayIndex, historyMatrix, historyThemeMatrix) {
+function pickGame(pool, tier, dailyGames, dayThemesUsed, currentSessThemes, dayIndex, dayMode, historyMatrix, historyThemeMatrix, stats) {
     // Tier semantics (Rasdip):
     // GOLD   = game utama / wajib keluar -> boleh override cooldown theme 2 hari (tetap hindari duplikat dalam 1 sesi & duplikat nama dalam 1 hari sebisa mungkin)
     // SILVER = game pendamping -> patuh cooldown + anti-theme harian
@@ -402,18 +533,24 @@ function pickGame(pool, tier, dailyGames, dayThemesUsed, currentSessThemes, dayI
 
     const themeOf = (g) => getTheme(g);
 
+    dayMode = dayMode || 'normal';
+    const cooldownDays = getCooldownDays(dayMode, tier);
+
+
     const isCoolingDownGame = (gameName) => {
-        if (dayIndex > 0 && historyMatrix[dayIndex-1] && historyMatrix[dayIndex-1].includes(gameName)) return true;
-        if (dayIndex > 1 && historyMatrix[dayIndex-2] && historyMatrix[dayIndex-2].includes(gameName)) return true;
-        return false;
-    };
+    for (let back = 1; back <= cooldownDays; back++) {
+        if (dayIndex - back >= 0 && historyMatrix[dayIndex-back] && historyMatrix[dayIndex-back].includes(gameName)) return true;
+    }
+    return false;
+};
 
     const isCoolingDownTheme = (theme) => {
-        if (!theme) return false;
-        if (dayIndex > 0 && historyThemeMatrix[dayIndex-1] && historyThemeMatrix[dayIndex-1].includes(theme)) return true;
-        if (dayIndex > 1 && historyThemeMatrix[dayIndex-2] && historyThemeMatrix[dayIndex-2].includes(theme)) return true;
-        return false;
-    };
+    if (!theme) return false;
+    for (let back = 1; back <= cooldownDays; back++) {
+        if (dayIndex - back >= 0 && historyThemeMatrix[dayIndex-back] && historyThemeMatrix[dayIndex-back].includes(theme)) return true;
+    }
+    return false;
+};
 
     // Rule sets by tier
     const rules = {
@@ -499,20 +636,65 @@ function pickGame(pool, tier, dailyGames, dayThemesUsed, currentSessThemes, dayI
 
     if (candidates.length === 0) candidates = fullList;
 
-    // BRONZE weighting: prefer items not seen in last 2 days & not in dayThemesUsed (already filtered),
+    // V41: extra rotation bias for BRONZE (prefer belum muncul 3 hari terakhir)
+    const lastSeenBiasDays = 3;
+
+    // BRONZE weighting: prefer items not seen recently & not in dayThemesUsed (already filtered),
     // so here we just add a small bias to pick earlier in list after shuffle for extra rotation.
-    let picked;
-    if (tierKey === 'bronze' && candidates.length > 3) {
-        // shuffle then pick from first half more often
-        const tmp = candidates.slice();
-        shuffle(tmp);
-        const half = Math.max(2, Math.floor(tmp.length * 0.5));
-        picked = tmp[Math.floor(rnd() * half)];
-    } else {
-        picked = candidates[Math.floor(rnd() * candidates.length)];
+    // --- V42 scored selection ---
+let picked;
+
+const tkey = tierKey;
+const scoreOne = (g) => {
+    const theme = themeOf(g);
+
+    // hard constraints already handled by candidates filter, but keep mild penalties for soft pushes
+    let score = tierBase(tkey);
+
+    // exposure balance
+    const c = (stats && stats.gameCount) ? (stats.gameCount[g] || 0) : 0;
+    score -= c * (tkey === 'gold' ? 1.0 : (tkey === 'silver' ? 1.2 : 1.4));
+
+    // novelty (days since seen)
+    const last = (stats && stats.gameLastSeen) ? stats.gameLastSeen[g] : undefined;
+    const ds = daysSince(last, dayIndex);
+    if (tkey === 'gold') score += Math.min(6, ds) * 0.6;
+    else if (tkey === 'silver') score += Math.min(8, ds) * 0.8;
+    else score += Math.min(12, ds) * 1.1; // bronze boost
+
+    // bonus besar untuk BRONZE yang "lama tidak muncul"
+    if (tkey === 'bronze' && ds >= 5) score += 6;
+
+    // theme fatigue control
+    if (theme) {
+        const tc = (stats && stats.themeCount) ? (stats.themeCount[theme] || 0) : 0;
+        score -= tc * 0.8;
+
+        const tlast = (stats && stats.themeLastSeen) ? stats.themeLastSeen[theme] : undefined;
+        const tds = daysSince(tlast, dayIndex);
+        score += Math.min(6, tds) * 0.4;
     }
 
-    return { name: picked, theme: themeOf(picked) };
+    // prefer avoid repeating day theme even if it passed filters (defensive)
+    if (theme && dayThemesUsed.includes(theme)) score -= 5;
+
+    // cooldown penalty if mode allows soft override (mostly for GOLD in boost/chaos)
+    if (cfg.avoidGameCooldown && isCoolingDownGame(g)) score -= (tkey === 'gold' ? 3 : 8);
+    if (cfg.avoidThemeCooldown && theme && isCoolingDownTheme(theme)) score -= (tkey === 'gold' ? 2 : 7);
+
+    return score;
+};
+
+// Rank candidates by score, then pick randomly among top N (to keep it natural)
+const ranked = candidates
+    .map(g => ({ g, s: scoreOne(g) }))
+    .sort((a,b) => b.s - a.s);
+
+const topN = Math.min(3, ranked.length);
+const pickIdx = Math.floor(rnd() * Math.max(1, topN));
+picked = ranked[pickIdx].g;
+
+return { name: picked, theme: themeOf(picked) };
 }
 
 function getTheme(gameName) {
@@ -620,20 +802,50 @@ function deleteItem(uid, e) {
  if(e) e.stopPropagation(); const el = document.getElementById('gid-' + uid); if(el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 200); deletedIDs.add(uid.toString()); updateUrlState(); } }
 function applyDeletions() { deletedIDs.forEach(uid => { const el = document.getElementById('gid-' + uid); if(el) el.remove(); }); }
 function updateUrlState() { let u = new URL(location.href); u.searchParams.set('seed', currentSeed); u.searchParams.set('profile', document.getElementById('profileSelect').value); u.searchParams.set('date', document.getElementById('startDateInput').value); u.searchParams.set('tM', document.getElementById('timeMidnight').value); u.searchParams.set('tSi', document.getElementById('timeSiang').value); u.searchParams.set('tSo', document.getElementById('timeSore').value); u.searchParams.set('tMa', document.getElementById('timeMalam').value); if(deletedIDs.size > 0) u.searchParams.set('del', Array.from(deletedIDs).join(',')); else u.searchParams.delete('del'); history.replaceState(null, '', u); }
-function updateUI() { let p = document.getElementById('profileSelect').value; document.documentElement.style.setProperty('--accent-gold', THEMES[p]?.main || '#D4AF37'); }
+function updateBottomBarInfo(){
+    const bar = document.getElementById('bottomBar');
+    if(!bar) return;
+    const prof = document.getElementById('profileSelect')?.value || '';
+    const seed = (typeof currentSeed !== 'undefined') ? currentSeed : '';
+    bar.setAttribute('data-prof', prof);
+    bar.setAttribute('data-seed', seed);
+}
+
+function updateUI() { let p = document.getElementById('profileSelect').value; document.documentElement.style.setProperty('--accent-gold', THEMES[p]?.main || '#D4AF37'); updateBottomBarInfo(); }
 function updateDateDisplay() {} 
 function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('active'); }
 function toggleMode() { document.body.classList.toggle('clean-mode'); }
 function hardReset() {
     if (window.__ROLE__ === 'designer') { return showToast('DESIGNER MODE: RESET DINONAKTIFKAN'); }
  if(confirm("Refresh System & Clear Cache?")) { localStorage.clear(); location.href = location.pathname; } }
-function showImg(n, url) { let finalUrl = url || 'https://via.placeholder.com/400x250?text=NO+IMAGE'; document.getElementById('imgDisplay').src = finalUrl; document.getElementById('imgTitle').innerText = n; document.getElementById('imgModal').style.display='flex'; }
 function showToast(m) { let t=document.getElementById('customToast'); t.innerText=m; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
+// Surface runtime errors so 'blank/failed generate' is debuggable
+window.addEventListener('error', (ev) => {
+    try {
+        console.error('[RUNTIME ERROR]', ev.error || ev.message);
+        if (typeof showToast === 'function') {
+            showToast('ERROR: ' + (ev.message || 'unknown'));
+        } else {
+            alert('ERROR: ' + (ev.message || 'unknown'));
+        }
+    } catch(_) {}
+});
+window.addEventListener('unhandledrejection', (ev) => {
+    try {
+        console.error('[PROMISE ERROR]', ev.reason);
+        if (typeof showToast === 'function') {
+            showToast('ERROR: ' + (ev.reason?.message || String(ev.reason)));
+        } else {
+            alert('ERROR: ' + (ev.reason?.message || String(ev.reason)));
+        }
+    } catch(_) {}
+});
+
 function checkPastDays() { let pastItems = document.querySelectorAll('.day-past'); let btn = document.getElementById('showHistoryBtn'); if(pastItems.length > 0) { btn.style.display = 'block'; btn.innerHTML = `<i class="fas fa-history"></i> ${pastItems.length} HARI YANG LALU DISEMBUNYIKAN (KLIK UNTUK LIHAT)`; } else { btn.style.display = 'none'; } }
 function toggleHistory() { let pastItems = document.querySelectorAll('.day-past'); pastItems.forEach(el => { el.style.display = (el.style.display === 'block') ? '' : 'block'; }); }
 function scrollToToday() { const el = document.getElementById('todayRow'); if(el) { el.scrollIntoView({behavior: "smooth", block: "center"}); showToast("JADWAL HARI INI DITEMUKAN"); } }
 function showDB() { let db = JSON.parse(localStorage.getItem('dbHistory')||"[]"); let h=""; db.forEach(x => { let d=new Date(x.id); h += `<tr><td style="padding:8px;border-bottom:1px solid #333;">${d.toLocaleDateString()} ${d.toLocaleTimeString()}</td><td style="padding:8px;border-bottom:1px solid #333;color:var(--accent-gold)">${x.prof}</td><td style="padding:8px;border-bottom:1px solid #333;"><a href="?seed=${x.seed}&profile=${x.prof}&date=${x.date}" style="color:#aaa;">LOAD</a></td></tr>`; }); document.getElementById('dbTable').innerHTML=h; document.getElementById('dbModal').style.display='flex'; }
-function extractDOM(dom) { let txt = ""; dom.querySelectorAll('.prov-label, .game-item, .pattern-box').forEach(el => { if(el.classList.contains('prov-label')) txt += `\n--- ${el.innerText} ---\n`; if(el.classList.contains('game-item')) txt += `${el.querySelector('.g-name').innerText}\n`; if(el.classList.contains('pattern-box')) { txt += "POLA:\n"; el.querySelectorAll('.pt-txt').forEach(p => txt += `> ${p.innerText}\n`); txt += "NAIKAN BET BERTAHAP\n"; } }); return txt; }
+function extractDOM(dom) { let txt = ""; dom.querySelectorAll('.prov-label, .game-card, .pattern-box').forEach(el => { if(el.classList.contains('prov-label')) txt += `\n--- ${el.innerText} ---\n`; if(el.classList.contains('game-card')) txt += `${el.querySelector('.g-name').innerText}\n`; if(el.classList.contains('pattern-box')) { txt += "POLA:\n"; el.querySelectorAll('.pt-txt').forEach(p => txt += `> ${p.innerText}\n`); txt += "NAIKAN BET BERTAHAP\n"; } }); return txt; }
 function copyOne(d, s) { let data = globalData[d].sessions[s]; let dom = document.getElementById(`sess-${d}-${data.title}`); let content = extractDOM(dom); let final = `=================================\nHARI: ${globalData[d].day}, ${globalData[d].date}\nSESI: ${data.title} (${data.time})\n=================================\n${content}\n---------------------------------\nKODE UNIK: ${data.depo.code}\n---------------------------------\n${data.depo.text}`; document.getElementById('resultText').value = final; document.getElementById('resultModal').style.display='flex'; }
 function copyWeek() { if(globalData.length===0) return showToast("DATA KOSONG"); let t = `JADWAL LENGKAP 1 BULAN\nPERIODE: ${document.getElementById('startDateInput').value}\n\n`; globalData.forEach((d,i) => { t += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📅 ${d.day}, ${d.date}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`; d.sessions.forEach((s, idx) => { let dom = document.getElementById(`sess-${i}-${s.title}`); t += `\n[ ${s.title} | ${s.time} ]\n${extractDOM(dom)}\n------------------------------\nKODE: ${s.depo.code}\n`; }); t += '\n\n'; }); document.getElementById('resultText').value = t; document.getElementById('resultModal').style.display='flex'; }
 function finalCopy() { document.getElementById('resultText').select(); document.execCommand('copy'); showToast("BERHASIL DISALIN!"); }
@@ -647,14 +859,16 @@ function initLoad() { let p = new URLSearchParams(location.search); if(p.get('tM
         if (p.get('profile')) document.getElementById('profileSelect').value = p.get('profile'); 
         if (p.get('date')) document.getElementById('startDateInput').value = p.get('date'); 
         updateUI(); 
-        fetchData(); 
+        fetchData(); updateBottomBarInfo(); 
     } else { 
         document.getElementById('startDateInput').valueAsDate = new Date(); 
         if (document.getElementById('seedInput')) document.getElementById('seedInput').value = '';
         initVisuals(); 
     } }
 const ctx = document.getElementById('nebula-canvas').getContext('2d'); function initVisuals() { let w=window.innerWidth, h=window.innerHeight; document.getElementById('nebula-canvas').width=w; document.getElementById('nebula-canvas').height=h; let hue=0; function anim() { if(document.body.classList.contains('clean-mode')) return requestAnimationFrame(anim); ctx.fillStyle=`rgba(0,0,0,0.05)`; ctx.fillRect(0,0,w,h); ctx.fillStyle=`hsla(${hue}, 50%, 50%, 0.5)`; ctx.beginPath(); ctx.arc(Math.random()*w, Math.random()*h, Math.random()*2, 0, Math.PI*2); ctx.fill(); hue+=0.5; requestAnimationFrame(anim); } anim(); }
-window.onload = () => { document.getElementById("mainApp").style.display = "block"; applyRoleMode(); initLoad(); };
+function setBuildLabel(){ const el=document.querySelector('.header-meta'); if(el){ el.textContent = 'V43 FRAMES • 31 DAYS SYSTEM • ' + BUILD_ID; } }
+
+window.onload = () => { setBuildLabel(); document.getElementById("mainApp").style.display = "block"; applyRoleMode(); initLoad(); };
 </script>
 </body>
 </html>

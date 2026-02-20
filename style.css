@@ -458,7 +458,7 @@ body{
 :root{
   --gc-size: 150px;      /* ukuran kotak 1:1 */
   --gc-radius: 18px;
-  --gc-pad: 10px;        /* jarak aman antara frame & thumb */
+  --gc-pad: 4px;        /* lebih rapat ke frame */        /* jarak aman antara frame & thumb */
 }
 
 /* Grid lebih rapat */
@@ -521,6 +521,6 @@ body{
 
 /* Mobile: sedikit lebih kecil */
 @media(max-width: 520px){
-  :root{ --gc-size: 140px; }
+  :root{ --gc-size: 150px; }
   .session-grid{ gap: 12px; }
 }

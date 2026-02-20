@@ -549,3 +549,86 @@ body{
   :root{ --gc-size: 110px; --gc-safe: 16px; }
   .session-grid{ gap: 10px; }
 }
+/* =========================================================
+   OVERRIDE: Game dalam 1 provider harus SEBARIS (horizontal)
+   dan kecil-kecil (tidak memanjang ke bawah)
+   Tempelkan file ini sebagai override (atau copy ke paling bawah style.css)
+   ========================================================= */
+
+:root{
+  --provider-card-size: 96px;      /* kecil-besar kartu game */
+  --provider-gap: 10px;            /* jarak antar game */
+  --provider-inset: 10px;          /* jendela dalam frame */
+  --provider-zoom: 1.06;           /* zoom isi gambar */
+}
+
+/* Container game per provider (class di HTML: game-grid) */
+.game-grid{
+  display: flex !important;
+  flex-wrap: nowrap !important;    /* jangan turun ke bawah */
+  gap: var(--provider-gap) !important;
+  overflow-x: auto !important;     /* scroll ke kanan bila kepanjangan */
+  overflow-y: hidden !important;
+  padding: 6px 2px 10px !important;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.game-grid > *{ scroll-snap-align: start; }
+
+.game-grid::-webkit-scrollbar{ height: 8px; }
+.game-grid::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+}
+.game-grid::-webkit-scrollbar-track{
+  background: rgba(255,255,255,0.04);
+  border-radius: 999px;
+}
+
+/* Kartu game kecil */
+.game-card{
+  width: var(--provider-card-size) !important;
+  flex: 0 0 var(--provider-card-size) !important;
+}
+
+/* Pastikan media kotak 1:1 */
+.game-card .gc-media{
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+}
+
+/* Isi gambar mengikuti "jendela" frame */
+.game-card .gc-thumb{
+  inset: var(--provider-inset) !important;
+  object-fit: cover !important;
+  transform: scale(var(--provider-zoom)) !important;
+}
+
+/* Nama game lebih ringkas */
+.game-card .g-name, .game-card .gc-name{
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+  margin-top: 6px !important;
+  max-height: 2.3em !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  text-align: center !important;
+}
+
+/* Badge tier lebih kecil */
+.game-card .g-tag, .game-card .gc-tier{
+  font-size: 9px !important;
+  padding: 2px 8px !important;
+}
+
+/* Mobile: lebih kecil lagi */
+@media(max-width: 520px){
+  :root{
+    --provider-card-size: 88px;
+    --provider-gap: 8px;
+    --provider-inset: 9px;
+  }
+}

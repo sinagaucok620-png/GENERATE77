@@ -184,7 +184,7 @@ const FIXES = { "Olympus":"Gates of Olympus", "Starlight":"Starlight Princess", 
 const BLACKLIST = ["Game Error", "Slot Demo"];
 
 // --- V43: Frame assets (1x1) ---
-const FRAME_MAP = { gold: 'img/frame_gold.png', silver: 'img/frame_silver.png', bronze: 'img/frame_bronze.png', wild: 'img/frame_wild.png' };
+const FRAME_MAP = { gold: 'img/frame_gold.png', silver: 'img/frame_silver.png', bronze: 'img/frame_bronze.png', };
 
 let currentSeed = Date.now();
 let rnd = Math.random;
@@ -454,49 +454,6 @@ if(__t){
                 for(let k=0; k<counts.pg; k++) { let t = (sess==="SORE")?'gold':(k===0?'gold':'silver'); let r = draw(poolPG, t); sHtml += r.html; rawTxt += r.name + '\n'; }
                 sHtml += `</div>`; let pt = getPattern(poolPG, 'PGSoft'); sHtml += pt.html; rawTxt += `POLA:\n${pt.txt}\n`; sHtml += `</div>`;
             }
-
-
-// --- V41: WILD ROTATION PICK (1x per day, ditempatkan di MALAM) ---
-if(sess === "MALAM") {
-    // gabungkan semua game dari PP+PG (gold/silver/bronze)
-    const all = []
-        .concat(poolPP.gold, poolPP.silver, poolPP.bronze, poolPG.gold, poolPG.silver, poolPG.bronze)
-        .filter(Boolean);
-    if(all.length > 0) {
-        // pilih 1 game yang belum muncul hari ini jika memungkinkan
-        let candidates = all.filter(g => !dailyGames.includes(g));
-        if(candidates.length === 0) candidates = all;
-        // pilih dengan sedikit bias ke yang belum muncul 3 hari terakhir
-        const last3 = []
-            .concat(historyMatrix[i-1]||[], historyMatrix[i-2]||[], historyMatrix[i-3]||[]);
-        let fresh = candidates.filter(g => !last3.includes(g));
-        if(fresh.length > 0) candidates = fresh;
-
-        const picked = candidates[Math.floor(rnd() * candidates.length)];
-        const theme = getTheme(picked);
-        if(picked) {
-            dailyGames.push(picked);
-            gamesThisDay.push(picked);
-            currentSessThemes.push(theme);
-            if(theme) dayThemesUsedLocal.push(theme);
-
-            let manualLink = gameImgs[picked];
-            let finalImg;
-            if (manualLink && manualLink.length > 3) { finalImg = manualLink; } 
-            else { let safeName = picked.toLowerCase().replace(/ /g, '_'); finalImg = "img/" + safeName + ".jpg"; }
-
-            let uid = globalGenID++;
-            sHtml += `<div class="prov-block"><div class="prov-label prov-wild">WILD ROTATION</div><div class="game-grid">`;
-            rawTxt += `--- WILD ROTATION ---\n`;
-            sHtml += `<div class="game-card tier-wild" id="gid-${uid}">
-                    <div class="gc-media"><img src="${finalImg}" class="gc-thumb" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/512?text=NO+IMG';"><img src="${FRAME_MAP[tier] || FRAME_MAP.silver}" class="gc-frame" loading="lazy" onerror="this.style.display='none'"></div>
-                    <div class="gc-label"><div class="g-name">${picked}</div><div class="g-tag tag-wild">WILD</div></div>
-                    <button class="del-btn-overlay" onclick="deleteItem('${uid}', event)">✕</button></div>`;
-            rawTxt += picked + '\n'; sHtml += `</div></div>`;
-        }
-    }
-}
-
             dayThemesUsed = dayThemesUsedLocal;
 
             let dep = getDeposit(sess, prof);

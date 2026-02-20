@@ -453,74 +453,99 @@ body{
 .game-icon{ display:none !important; }
 .game-info-wrap{ display:none !important; }
 
-/* ===== V43 Compact Cards (requested) ===== */
-/* Ukuran kartu lebih kecil & thumb presisi di tengah frame */
+/* ===== V43 Row Layout (1 row per session) =====
+   Goal:
+   - Frame source 512x512, icon/thumb around 200x200
+   - Cards kecil & rapi
+   - Setiap sesi: game tampil sebaris (horizontal)
+*/
 :root{
-  --gc-size: 150px;      /* ukuran kotak 1:1 */
-  --gc-radius: 18px;
-  --gc-pad: 4px;        /* lebih rapat ke frame */        /* jarak aman antara frame & thumb */
+  --gc-size: 120px;      /* ukuran tampil kartu 1:1 */
+  --gc-radius: 16px;
+  --gc-safe: 18px;       /* jarak aman agar icon 200x200 tidak nabrak frame */
 }
 
-/* Grid lebih rapat */
+/* Ubah grid jadi baris horizontal */
 .session-grid{
-  grid-template-columns: repeat(auto-fill, minmax(var(--gc-size), 1fr));
-  gap: 14px;
+  display:flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
 }
+.session-grid::-webkit-scrollbar{ height: 8px; }
+.session-grid::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.10); border-radius: 999px; }
+.session-grid::-webkit-scrollbar-track{ background: rgba(255,255,255,0.03); border-radius: 999px; }
 
-/* Kartu */
+/* Card kecil */
 .gc-card{
-  width: 100%;
-  max-width: var(--gc-size);
+  width: var(--gc-size);
+  flex: 0 0 var(--gc-size);
+  scroll-snap-align: start;
   border-radius: var(--gc-radius);
 }
 
-/* Area media (1:1) */
+/* Media 1:1 */
 .gc-media{
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1/1;
   border-radius: var(--gc-radius);
   overflow: hidden;
   background: rgba(255,255,255,0.04);
 }
 
-/* Frame selalu full */
+/* Frame overlay */
 .gc-frame{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
   object-fit: contain;
-  pointer-events: none;
-  z-index: 3;
+  pointer-events:none;
+  z-index:3;
 }
 
-/* Thumbnail dibuat lebih kecil & presisi di tengah */
+/* Thumb/icon: lebih cocok pakai contain supaya icon 200x200 tidak kepotong */
 .gc-thumb{
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(100% - (var(--gc-pad) * 2));
-  height: calc(100% - (var(--gc-pad) * 2));
+  position:absolute;
+  left:50%;
+  top:50%;
+  width: calc(100% - (var(--gc-safe) * 2));
+  height: calc(100% - (var(--gc-safe) * 2));
   transform: translate(-50%, -50%);
-  object-fit: cover;
-  border-radius: calc(var(--gc-radius) - 6px);
-  z-index: 2;
-  filter: saturate(1.03) contrast(1.03);
+  object-fit: contain;
+  border-radius: calc(var(--gc-radius) - 8px);
+  z-index:2;
+  filter: saturate(1.02) contrast(1.02);
 }
 
-/* Nama & badge lebih kecil */
+/* Label ringkas */
 .gc-name{
-  font-size: 11px;
-  letter-spacing: .2px;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align:center;
+  margin-top: 6px;
+  max-height: 2.4em;
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .gc-tier{
-  font-size: 10px;
-  padding: 3px 10px;
+  font-size: 9px;
+  padding: 2px 8px;
+  margin-top: 4px;
 }
 
-/* Mobile: sedikit lebih kecil */
+/* Jika kamu mau card sedikit lebih besar di desktop */
+@media(min-width: 1100px){
+  :root{ --gc-size: 130px; --gc-safe: 18px; }
+}
+
+/* Mobile: biar muat, kecilkan sedikit */
 @media(max-width: 520px){
-  :root{ --gc-size: 150px; }
-  .session-grid{ gap: 12px; }
+  :root{ --gc-size: 110px; --gc-safe: 16px; }
+  .session-grid{ gap: 10px; }
 }

@@ -452,3 +452,75 @@ body{
 /* Make old list styles harmless if present */
 .game-icon{ display:none !important; }
 .game-info-wrap{ display:none !important; }
+
+/* ===== V43 Compact Cards (requested) ===== */
+/* Ukuran kartu lebih kecil & thumb presisi di tengah frame */
+:root{
+  --gc-size: 150px;      /* ukuran kotak 1:1 */
+  --gc-radius: 18px;
+  --gc-pad: 10px;        /* jarak aman antara frame & thumb */
+}
+
+/* Grid lebih rapat */
+.session-grid{
+  grid-template-columns: repeat(auto-fill, minmax(var(--gc-size), 1fr));
+  gap: 14px;
+}
+
+/* Kartu */
+.gc-card{
+  width: 100%;
+  max-width: var(--gc-size);
+  border-radius: var(--gc-radius);
+}
+
+/* Area media (1:1) */
+.gc-media{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--gc-radius);
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+}
+
+/* Frame selalu full */
+.gc-frame{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Thumbnail dibuat lebih kecil & presisi di tengah */
+.gc-thumb{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100% - (var(--gc-pad) * 2));
+  height: calc(100% - (var(--gc-pad) * 2));
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  border-radius: calc(var(--gc-radius) - 6px);
+  z-index: 2;
+  filter: saturate(1.03) contrast(1.03);
+}
+
+/* Nama & badge lebih kecil */
+.gc-name{
+  font-size: 11px;
+  letter-spacing: .2px;
+}
+.gc-tier{
+  font-size: 10px;
+  padding: 3px 10px;
+}
+
+/* Mobile: sedikit lebih kecil */
+@media(max-width: 520px){
+  :root{ --gc-size: 140px; }
+  .session-grid{ gap: 12px; }
+}
